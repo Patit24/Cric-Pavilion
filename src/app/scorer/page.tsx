@@ -22,13 +22,36 @@ export default function ScorerPage() {
   const teamB = state.teams.find((t) => t.id === activeMatch?.teamBId);
   const currentInnings = state.innings.find((i) => i.matchId === activeMatch?.id);
 
-  // Crease players
-  const striker = state.players.find((p) => p.id === currentInnings?.currentStrikerId) || state.players[0];
-  const nonStriker = state.players.find((p) => p.id === currentInnings?.currentNonStrikerId) || state.players[2];
-  const bowler = state.players.find((p) => p.id === currentInnings?.currentBowlerId) || state.players[3];
+  // Determine batting and bowling rosters
+  const battingTeamId = currentInnings?.battingTeamId || activeMatch?.teamAId;
+  const bowlingTeamId = currentInnings?.bowlingTeamId || activeMatch?.teamBId;
 
-  const battingTeamPlayers = state.players; // all available roster
-  const bowlingTeamPlayers = state.players;
+  const battingTeamPlayerIds = state.tournamentPlayers
+    .filter((tp) => tp.teamId === battingTeamId)
+    .map((tp) => tp.playerId);
+
+  const bowlingTeamPlayerIds = state.tournamentPlayers
+    .filter((tp) => tp.teamId === bowlingTeamId)
+    .map((tp) => tp.playerId);
+
+  let battingTeamPlayers = state.players.filter((p) => battingTeamPlayerIds.includes(p.id));
+  if (battingTeamPlayers.length < 6) {
+    battingTeamPlayers = state.players.filter((_, idx) => idx % 2 === 0);
+  }
+
+  let bowlingTeamPlayers = state.players.filter((p) => bowlingTeamPlayerIds.includes(p.id));
+  if (bowlingTeamPlayers.length < 6) {
+    bowlingTeamPlayers = state.players.filter((_, idx) => idx % 2 === 1);
+  }
+
+  // Crease players
+  const striker =
+    state.players.find((p) => p.id === currentInnings?.currentStrikerId) || battingTeamPlayers[0];
+  const nonStriker =
+    state.players.find((p) => p.id === currentInnings?.currentNonStrikerId) || battingTeamPlayers[1];
+  const bowler =
+    state.players.find((p) => p.id === currentInnings?.currentBowlerId) || bowlingTeamPlayers[0];
+
   const recentDeliveries = state.deliveries.filter((d) => d.matchId === activeMatch?.id && !d.isUndone);
 
   return (

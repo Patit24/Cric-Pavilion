@@ -368,6 +368,114 @@ const DEFAULT_PLAYERS: Player[] = [
     bestBowling: '0/0',
     economy: 0.0,
   },
+  {
+    id: 'pl_11',
+    fullName: 'Sourav Roy',
+    displayName: 'Sourav Roy',
+    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256&auto=format&fit=crop&q=80',
+    role: 'batter',
+    battingStyle: 'right_hand_bat',
+    bowlingStyle: 'none',
+    city: 'Siliguri',
+    matches: 25,
+    runs: 620,
+    highestScore: 58,
+    battingAverage: 26.0,
+    strikeRate: 122.5,
+    wickets: 0,
+    bestBowling: '0/0',
+    economy: 0.0,
+  },
+  {
+    id: 'pl_12',
+    fullName: 'Wriddhiman Saha',
+    displayName: 'Wriddhi Saha',
+    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256&auto=format&fit=crop&q=80',
+    role: 'wicket_keeper',
+    battingStyle: 'right_hand_bat',
+    bowlingStyle: 'none',
+    city: 'Siliguri',
+    matches: 65,
+    runs: 1650,
+    highestScore: 94,
+    battingAverage: 31.5,
+    strikeRate: 135.0,
+    wickets: 0,
+    bestBowling: '0/0',
+    economy: 0.0,
+  },
+  {
+    id: 'pl_13',
+    fullName: 'Mohammed Shami',
+    displayName: 'Md. Shami',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&auto=format&fit=crop&q=80',
+    role: 'bowler',
+    battingStyle: 'right_hand_bat',
+    bowlingStyle: 'right_arm_fast',
+    city: 'Kolkata',
+    matches: 70,
+    runs: 210,
+    highestScore: 32,
+    battingAverage: 10.5,
+    strikeRate: 110.0,
+    wickets: 92,
+    bestBowling: '5/18',
+    economy: 6.9,
+  },
+  {
+    id: 'pl_14',
+    fullName: 'Manoj Tiwary',
+    displayName: 'Manoj Tiwary',
+    photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=256&auto=format&fit=crop&q=80',
+    role: 'batter',
+    battingStyle: 'right_hand_bat',
+    bowlingStyle: 'right_arm_spin',
+    city: 'Howrah',
+    matches: 58,
+    runs: 1720,
+    highestScore: 84,
+    battingAverage: 34.0,
+    strikeRate: 132.0,
+    wickets: 15,
+    bestBowling: '2/14',
+    economy: 7.8,
+  },
+  {
+    id: 'pl_15',
+    fullName: 'Shahbaz Ahmed',
+    displayName: 'Shahbaz Ahmed',
+    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=256&auto=format&fit=crop&q=80',
+    role: 'all_rounder',
+    battingStyle: 'left_hand_bat',
+    bowlingStyle: 'left_arm_spin',
+    city: 'Kolkata',
+    matches: 42,
+    runs: 740,
+    highestScore: 48,
+    battingAverage: 27.5,
+    strikeRate: 138.0,
+    wickets: 36,
+    bestBowling: '3/16',
+    economy: 7.15,
+  },
+  {
+    id: 'pl_16',
+    fullName: 'Akash Deep',
+    displayName: 'Akash Deep',
+    photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=256&auto=format&fit=crop&q=80',
+    role: 'bowler',
+    battingStyle: 'right_hand_bat',
+    bowlingStyle: 'right_arm_fast',
+    city: 'Sasaram',
+    matches: 34,
+    runs: 120,
+    highestScore: 19,
+    battingAverage: 12.0,
+    strikeRate: 95.0,
+    wickets: 44,
+    bestBowling: '4/24',
+    economy: 7.5,
+  },
 ];
 
 const DEFAULT_TOURNAMENT_PLAYERS: TournamentPlayer[] = [
@@ -465,6 +573,66 @@ const DEFAULT_TOURNAMENT_PLAYERS: TournamentPlayer[] = [
     status: 'in_auction',
     basePrice: 50000,
     lotNumber: 10,
+  },
+  {
+    id: 'tp_11',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_11',
+    teamId: 'team_barasat',
+    status: 'sold',
+    basePrice: 50000,
+    finalPrice: 400000,
+    lotNumber: 11,
+  },
+  {
+    id: 'tp_12',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_12',
+    teamId: 'team_kolkata',
+    status: 'sold',
+    basePrice: 100000,
+    finalPrice: 650000,
+    lotNumber: 12,
+  },
+  {
+    id: 'tp_13',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_13',
+    teamId: 'team_kolkata',
+    status: 'sold',
+    basePrice: 100000,
+    finalPrice: 1200000,
+    lotNumber: 13,
+  },
+  {
+    id: 'tp_14',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_14',
+    teamId: 'team_barasat',
+    status: 'sold',
+    basePrice: 75000,
+    finalPrice: 750000,
+    lotNumber: 14,
+  },
+  {
+    id: 'tp_15',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_15',
+    teamId: 'team_barasat',
+    status: 'sold',
+    basePrice: 75000,
+    finalPrice: 500000,
+    lotNumber: 15,
+  },
+  {
+    id: 'tp_16',
+    tournamentId: 'tourn_bpl_2026',
+    playerId: 'pl_16',
+    teamId: 'team_kolkata',
+    status: 'sold',
+    basePrice: 50000,
+    finalPrice: 450000,
+    lotNumber: 16,
   },
 ];
 
@@ -1139,6 +1307,10 @@ class PlatformStore {
   public recordDelivery(input: Omit<RecordDeliveryInput, 'innings'> & { inningsId: string }): {
     success: boolean;
     delivery?: Delivery;
+    isOverComplete?: boolean;
+    isMatchWon?: boolean;
+    isAllOut?: boolean;
+    updatedInnings?: Innings;
     error?: string;
   } {
     const innings = this.state.innings.find((i) => i.id === input.inningsId);
@@ -1208,7 +1380,31 @@ class PlatformStore {
     }
 
     this.persistAndNotify();
-    return { success: true, delivery: result.delivery };
+    return {
+      success: true,
+      delivery: result.delivery,
+      isOverComplete: result.isOverComplete,
+      isMatchWon: result.isMatchWon,
+      isAllOut: result.isAllOut,
+      updatedInnings: result.updatedInnings,
+    };
+  }
+
+  public setBowler(inningsId: string, bowlerId: string): boolean {
+    const innings = this.state.innings.find((i) => i.id === inningsId);
+    if (!innings) return false;
+    innings.currentBowlerId = bowlerId;
+    this.persistAndNotify();
+    return true;
+  }
+
+  public setBatters(inningsId: string, strikerId: string, nonStrikerId: string): boolean {
+    const innings = this.state.innings.find((i) => i.id === inningsId);
+    if (!innings) return false;
+    innings.currentStrikerId = strikerId;
+    innings.currentNonStrikerId = nonStrikerId;
+    this.persistAndNotify();
+    return true;
   }
 
   public undoLastDelivery(inningsId: string): { success: boolean; error?: string } {
