@@ -45,12 +45,15 @@ export default function ScorerPage() {
   }
 
   // Crease players
-  const striker =
-    state.players.find((p) => p.id === currentInnings?.currentStrikerId) || battingTeamPlayers[0];
-  const nonStriker =
-    state.players.find((p) => p.id === currentInnings?.currentNonStrikerId) || battingTeamPlayers[1];
-  const bowler =
-    state.players.find((p) => p.id === currentInnings?.currentBowlerId) || bowlingTeamPlayers[0];
+  const striker = currentInnings?.currentStrikerId
+    ? state.players.find((p) => p.id === currentInnings.currentStrikerId) || null
+    : battingTeamPlayers[0] || null;
+  const nonStriker = currentInnings?.currentNonStrikerId
+    ? state.players.find((p) => p.id === currentInnings.currentNonStrikerId) || null
+    : battingTeamPlayers[1] || null;
+  const bowler = currentInnings?.currentBowlerId
+    ? state.players.find((p) => p.id === currentInnings.currentBowlerId) || null
+    : null;
 
   const recentDeliveries = state.deliveries.filter((d) => d.matchId === activeMatch?.id && !d.isUndone);
 

@@ -222,3 +222,149 @@ export function processDelivery(input: RecordDeliveryInput): DeliveryExecutionRe
     isAllOut,
   };
 }
+
+/**
+ * Validates whether a bowler is eligible to bowl the next over:
+ * - Cannot bowl two consecutive overs (Law 17.8)
+ * - Cannot exceed max overs quota per bowler (e.g. 4 overs in 20-over T20)
+ */
+export interface BowlerEligibilityResult {
+  isEligible: boolean;
+  reason?: string;
+  ballsBowled: number;
+  oversStr: string;
+}
+
+export function validateBowlerEligibility(params: {
+  bowlerId: string;
+  previousOverBowlerId: string | null;
+  deliveries: Delivery[];
+  inningsId: string;
+  maxOversPerBowler: number;
+}): BowlerEligibilityResult {
+  const { bowlerId, previousOverBowlerId, deliveries, inningsId, maxOversPerBowler } = params;
+
+  // Count legal balls bowled by this bowler in this innings
+  const legalBallsBowled = deliveries.filter(
+    (d) => d.inningsId === inningsId && !d.isUndone && d.isLegal && d.bowlerId === bowlerId
+  ).length;
+
+  const oversStr = formatOvers(legalBallsBowled);
+  const completedOvers = Math.floor(legalBallsBowled / 6);
+
+  // Law 17.8: Bowler cannot bowl consecutive overs
+  if (previousOverBowlerId && bowlerId === previousOverBowlerId) {
+    return {
+      isEligible: false,
+      reason: 'Cannot bowl consecutive overs',
+      ballsBowled: legalBallsBowled,
+      oversStr,
+    };
+  }
+
+  if (completedOvers >= maxOversPerBowler) {
+    return {
+      isEligible: false,
+      reason: `Over quota reached (${completedOvers}/${maxOversPerBowler} ov)`,
+      ballsBowled: legalBallsBowled,
+      oversStr,
+    };
+  }
+
+  return {
+    isEligible: true,
+    ballsBowled: legalBallsBowled,
+    oversStr,
+  };
+}
+
+/**
+ * Determines the bowler ID who bowled the previous completed over.
+ * Under Law 17.8, this bowler is ineligible to bowl the next over.
+ */
+export function getPreviousOverBowlerId(
+  deliveries: Delivery[],
+  inningsId: string,
+  legalBalls: number
+): string | null {
+  const activeLegalDeliveries = deliveries.filter(
+    (d) => d.inningsId === inningsId && !d.isUndone && d.isLegal
+  );
+
+  if (activeLegalDeliveries.length === 0) return null;
+
+  // If legalBalls is a multiple of 6 (and > 0), an over has just completed.
+  // The bowler who bowled the last ball of this completed over cannot bowl the next over!
+  if (legalBalls > 0 && legalBalls % 6 === 0) {
+    const lastDelivery = activeLegalDeliveries[activeLegalDeliveries.length - 1];
+    return lastDelivery?.bowlerId || null;
+  }
+
+  // If in the middle of an over (e.g. ball 14.3):
+  const currentOverIndex = Math.floor(legalBalls / 6);
+  if (currentOverIndex > 0) {
+    const prevOverDeliveries = activeLegalDeliveries.filter(
+      (d) => d.overNumber === currentOverIndex - 1
+    );
+    if (prevOverDeliveries.length > 0) {
+      return prevOverDeliveries[prevOverDeliveries.length - 1].bowlerId;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Retrieves set of all batsman IDs who have been dismissed in this innings.
+ * Once dismissed, a batsman CANNOT bat again.
+ */
+export function getDismissedPlayerIds(deliveries: Delivery[], inningsId: string): Set<string> {
+  const dismissed = new Set<string>();
+  deliveries
+    .filter((d) => d.inningsId === inningsId && !d.isUndone && d.isWicket)
+    .forEach((d) => {
+      const id = d.dismissedPlayerId || d.strikerId;
+      if (id) dismissed.add(id);
+    });
+  return dismissed;
+}
+
+/**
+ * Retrieves the list of available dugout batsmen who can come in as the new batsman.
+ * Filters out anyone who is already out or currently batting on crease.
+ */
+export function getAvailableIncomingBatsmen(params: {
+  battingTeamPlayers: Array<{ id: string; fullName: string; displayName?: string; role: string; battingStyle: string; photoUrl?: string }>;
+  deliveries: Delivery[];
+  inningsId: string;
+  currentStrikerId: string | null;
+  currentNonStrikerId: string | null;
+  dismissedPlayerId?: string | null;
+}): Array<{ id: string; fullName: string; displayName?: string; role: string; battingStyle: string; photoUrl?: string }> {
+  const {
+    battingTeamPlayers,
+    deliveries,
+    inningsId,
+    currentStrikerId,
+    currentNonStrikerId,
+    dismissedPlayerId,
+  } = params;
+
+  const dismissedIds = getDismissedPlayerIds(deliveries, inningsId);
+  if (dismissedPlayerId) {
+    dismissedIds.add(dismissedPlayerId);
+  }
+
+  // Active on crease
+  const activeOnCrease = new Set<string>();
+  if (currentStrikerId && currentStrikerId !== dismissedPlayerId) {
+    activeOnCrease.add(currentStrikerId);
+  }
+  if (currentNonStrikerId && currentNonStrikerId !== dismissedPlayerId) {
+    activeOnCrease.add(currentNonStrikerId);
+  }
+
+  return battingTeamPlayers.filter(
+    (p) => !dismissedIds.has(p.id) && !activeOnCrease.has(p.id)
+  );
+}

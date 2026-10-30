@@ -5,6 +5,12 @@ import { Delivery, DismissalType, ExtrasType, Innings, Match, Player } from '@/l
 import { store } from '@/lib/store/mock-db';
 import { generateCommentaryLine } from '@/lib/cricket-engine/commentary';
 import {
+  validateBowlerEligibility,
+  getAvailableIncomingBatsmen,
+  getDismissedPlayerIds,
+  getPreviousOverBowlerId,
+} from '@/lib/cricket-engine/rules';
+import {
   RotateCcw,
   AlertCircle,
   CheckCircle2,
@@ -19,6 +25,7 @@ import {
   ChevronRight,
   Shield,
   Zap,
+  Lock,
 } from 'lucide-react';
 
 interface ScoringKeypadProps {
@@ -68,31 +75,55 @@ export default function ScoringKeypad({
   const [nextBatterId, setNextBatterId] = useState<string>('');
   const [wicketStep, setWicketStep] = useState<1 | 2>(1); // 1 = dismissal details, 2 = select new batsman
 
+  const maxOversPerBowler = Math.ceil(match.overs / 5); // 4 overs in T20
+
+  // Derive previous over bowler from official cricket rules
+  const rulePrevBowlerId = getPreviousOverBowlerId(
+    store.getState().deliveries,
+    innings.id,
+    innings.legalBalls
+  );
+  const effectivePrevBowlerId = rulePrevBowlerId || previousBowlerId;
+
+  // Get dismissed player IDs
+  const allDismissedIds = getDismissedPlayerIds(store.getState().deliveries, innings.id);
+  store.getState().battingScorecards
+    .filter((b) => b.inningsId === innings.id && b.isOut)
+    .forEach((b) => allDismissedIds.add(b.playerId));
+
+  // Eligible incoming batsmen (CANNOT BE ALREADY DISMISSED OR CURRENTLY BATTING)
+  const availableDugoutBatsmen = getAvailableIncomingBatsmen({
+    battingTeamPlayers,
+    deliveries: store.getState().deliveries,
+    inningsId: innings.id,
+    currentStrikerId: striker?.id || null,
+    currentNonStrikerId: nonStriker?.id || null,
+    dismissedPlayerId: dismissedBatterId || striker?.id,
+  });
+
+  const isAllOutAfterThis = innings.wickets + 1 >= 10 || availableDugoutBatsmen.length === 0;
+
+  // Auto-open bowler selection modal if no bowler is selected on an active innings
+  useEffect(() => {
+    if (!bowler && !innings.isCompleted) {
+      const overNum = Math.floor(innings.legalBalls / 6);
+      setCompletedOverNumber(overNum);
+      setShowOverCompleteModal(true);
+    }
+  }, [bowler, innings.legalBalls, innings.isCompleted]);
+
   // Sync dismissed batter default when modal opens
   useEffect(() => {
     if (showWicketModal) {
       setDismissedBatterId(striker?.id || '');
       setWicketStep(1);
-      // Auto pre-select first available dugout batsman
-      const availableBatsmen = getAvailableDugoutBatsmen();
-      if (availableBatsmen.length > 0) {
-        setNextBatterId(availableBatsmen[0].id);
+      if (availableDugoutBatsmen.length > 0) {
+        setNextBatterId(availableDugoutBatsmen[0].id);
       } else {
         setNextBatterId('');
       }
     }
   }, [showWicketModal, striker?.id]);
-
-  // Find batsmen in batting team who haven't batted or gotten out yet
-  const getAvailableDugoutBatsmen = () => {
-    const scorecards = store.getState().battingScorecards.filter((b) => b.inningsId === innings.id);
-    const dismissedIds = new Set(scorecards.filter((b) => b.isOut).map((b) => b.playerId));
-    
-    // Also exclude current striker and non-striker
-    const currentOnCrease = new Set([striker?.id, nonStriker?.id].filter(Boolean));
-
-    return battingTeamPlayers.filter((p) => !dismissedIds.has(p.id) && !currentOnCrease.has(p.id));
-  };
 
   const handleRecordBall = (params: {
     runsBatter: number;
@@ -105,7 +136,11 @@ export default function ScoringKeypad({
     nextBatterId?: string | null;
   }) => {
     if (!striker || !nonStriker || !bowler) {
-      alert('Please ensure Striker, Non-Striker, and Bowler are set.');
+      if (!bowler) {
+        setShowOverCompleteModal(true);
+      } else {
+        alert('Please ensure both Striker and Non-Striker are selected.');
+      }
       return;
     }
 
@@ -150,7 +185,22 @@ export default function ScoringKeypad({
   };
 
   const handleSelectNewBowler = (newBowlerId: string) => {
+    // Validate bowler eligibility
+    const eligibility = validateBowlerEligibility({
+      bowlerId: newBowlerId,
+      previousOverBowlerId: effectivePrevBowlerId,
+      deliveries: store.getState().deliveries,
+      inningsId: innings.id,
+      maxOversPerBowler,
+    });
+
+    if (!eligibility.isEligible) {
+      alert(`Invalid Bowler: ${eligibility.reason}`);
+      return;
+    }
+
     store.setBowler(innings.id, newBowlerId);
+    setPreviousBowlerId(effectivePrevBowlerId);
     setShowOverCompleteModal(false);
     setShowBowlerModal(false);
   };
@@ -174,9 +224,6 @@ export default function ScoringKeypad({
     runsRemaining && ballsRemaining > 0
       ? ((runsRemaining / ballsRemaining) * 6).toFixed(2)
       : null;
-
-  const availableDugoutBatsmen = getAvailableDugoutBatsmen();
-  const isAllOutAfterThis = innings.wickets + 1 >= 10 || availableDugoutBatsmen.length === 0;
 
   // Wicketkeeper of bowling team
   const wicketKeeper =
@@ -217,7 +264,7 @@ export default function ScoringKeypad({
       <div className="p-5 rounded-3xl bg-gradient-to-br from-cricket-900 via-cricket-950 to-slate-950 text-white shadow-xl border border-cricket-800/60">
         <div className="flex items-center justify-between text-xs text-cricket-300 font-semibold">
           <span>{match.stage} • Innings {innings.inningsNumber}</span>
-          <span>Max {match.overs} Overs</span>
+          <span>Max {match.overs} Overs ({maxOversPerBowler} ov/bowler)</span>
         </div>
 
         <div className="flex items-baseline justify-between mt-2">
@@ -250,7 +297,7 @@ export default function ScoringKeypad({
               <button
                 onClick={handleSwapEnds}
                 className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold underline"
-                title="Manually swap striker and non-striker ends"
+                title="Swap striker and non-striker ends"
               >
                 <ArrowRightLeft size={10} /> Swap Ends
               </button>
@@ -270,26 +317,71 @@ export default function ScoringKeypad({
           </div>
 
           {/* Bowler on Crease */}
-          <div className="p-3 rounded-2xl bg-cricket-950/70 border border-cricket-800/50 flex flex-col justify-between">
+          <div className={`p-3 rounded-2xl border flex flex-col justify-between ${
+            !bowler
+              ? 'bg-amber-950/60 border-amber-500/80 ring-2 ring-amber-500/50'
+              : 'bg-cricket-950/70 border-cricket-800/50'
+          }`}>
             <div>
               <span className="text-[10px] text-cricket-400 uppercase font-bold tracking-wider block">Current Bowler</span>
-              <div className="mt-1 font-bold text-white truncate text-sm">
-                {bowler?.displayName || 'Select Bowler'}
-              </div>
-              <span className="text-[10px] text-slate-400 capitalize block truncate">
-                {bowler?.bowlingStyle.replace(/_/g, ' ') || 'Bowling'}
-              </span>
+              {bowler ? (
+                <>
+                  <div className="mt-1 font-bold text-white truncate text-sm">
+                    {bowler.displayName}
+                  </div>
+                  <span className="text-[10px] text-slate-400 capitalize block truncate">
+                    {bowler.bowlingStyle.replace(/_/g, ' ')}
+                  </span>
+                </>
+              ) : (
+                <div className="mt-1">
+                  <span className="text-amber-400 font-black text-sm block animate-pulse">
+                    Select Next Bowler
+                  </span>
+                  <span className="text-[10px] text-amber-200/80 block">
+                    Over completed
+                  </span>
+                </div>
+              )}
             </div>
             <button
-              onClick={() => setShowBowlerModal(true)}
-              className="mt-2 py-1 px-2.5 rounded-lg bg-cricket-900 hover:bg-cricket-800 text-[11px] text-cricket-300 font-bold transition flex items-center justify-between border border-cricket-700/60"
+              onClick={() => setShowOverCompleteModal(true)}
+              className={`mt-2 py-1.5 px-2.5 rounded-lg text-[11px] font-black transition flex items-center justify-between border ${
+                !bowler
+                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-400 shadow-sm'
+                  : 'bg-cricket-900 hover:bg-cricket-800 text-cricket-300 border-cricket-700/60'
+              }`}
             >
-              <span>Change Bowler</span>
+              <span>{bowler ? 'Change Bowler' : 'Choose Bowler'}</span>
               <ChevronRight size={12} />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Over Complete Bowler Banner if bowler is not yet chosen */}
+      {!bowler && !innings.isCompleted && (
+        <div className="p-4 rounded-2xl bg-amber-500/15 border-2 border-dashed border-amber-500 text-amber-950 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm animate-pulse">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle size={22} className="text-amber-600 shrink-0" />
+            <div>
+              <span className="font-black text-xs uppercase tracking-wider text-amber-950 block">
+                Over Completed — Select Next Bowler
+              </span>
+              <span className="text-[11px] text-amber-800">
+                Law 17.8: Same bowler cannot bowl consecutive overs. Select an eligible bowler to unlock keypad.
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowOverCompleteModal(true)}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 shadow-sm flex items-center justify-center gap-1.5"
+          >
+            <span>Select Bowler</span>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Recent Deliveries Carousel */}
       <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 overflow-x-auto">
@@ -381,44 +473,56 @@ export default function ScoringKeypad({
               </p>
             </div>
 
-            {/* Lockout Notice for previous bowler */}
-            {previousBowlerId && (
-              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
-                <AlertCircle size={15} className="text-amber-600 shrink-0" />
-                <span>
-                  <strong>{bowlingTeamPlayers.find((p) => p.id === previousBowlerId)?.displayName}</strong> just bowled this over and cannot bowl consecutive overs.
-                </span>
-              </div>
-            )}
-
-            {/* List of Eligible Bowlers */}
+            {/* List of Bowlers with Strict Consecutive & Quota Lockout */}
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {bowlingTeamPlayers
-                .filter((p) => p.id !== previousBowlerId)
-                .map((p) => (
+              {bowlingTeamPlayers.map((p) => {
+                const eligibility = validateBowlerEligibility({
+                  bowlerId: p.id,
+                  previousOverBowlerId: effectivePrevBowlerId,
+                  deliveries: store.getState().deliveries,
+                  inningsId: innings.id,
+                  maxOversPerBowler,
+                });
+
+                const isLocked = !eligibility.isEligible;
+
+                return (
                   <button
                     key={p.id}
+                    disabled={isLocked}
                     onClick={() => handleSelectNewBowler(p.id)}
-                    className="w-full p-3 rounded-2xl border border-slate-200 hover:border-cricket-500 hover:bg-cricket-50/50 flex items-center justify-between text-left transition group shadow-xs"
+                    className={`w-full p-3 rounded-2xl border flex items-center justify-between text-left transition shadow-xs ${
+                      isLocked
+                        ? 'bg-slate-100/80 border-slate-200 opacity-60 cursor-not-allowed'
+                        : 'border-slate-200 hover:border-cricket-500 hover:bg-cricket-50/50 group'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
                         <img src={p.photoUrl} alt={p.fullName} className="w-full h-full object-cover object-top" />
                       </div>
                       <div>
-                        <span className="font-bold text-slate-900 text-sm block group-hover:text-cricket-700">
+                        <span className={`font-bold text-sm block ${isLocked ? 'text-slate-500' : 'text-slate-900 group-hover:text-cricket-700'}`}>
                           {p.fullName}
                         </span>
                         <span className="text-[11px] text-slate-500 capitalize">
-                          {p.role.replace(/_/g, ' ')} • {p.bowlingStyle.replace(/_/g, ' ')}
+                          {p.role.replace(/_/g, ' ')} • {eligibility.oversStr} ov bowled
                         </span>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-cricket-600 group-hover:translate-x-1 transition">
-                      Bowl Over →
-                    </span>
+
+                    {isLocked ? (
+                      <span className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Lock size={10} /> {eligibility.reason}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-cricket-600 group-hover:translate-x-1 transition">
+                        Bowl Over →
+                      </span>
+                    )}
                   </button>
-                ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -649,7 +753,7 @@ export default function ScoringKeypad({
                     <span className="text-2xl">🏏</span>
                     <h4 className="text-lg font-black text-amber-400">10 Wickets Down — All Out!</h4>
                     <p className="text-xs text-slate-400">
-                      The team is all out. Confirming this dismissal will conclude this innings.
+                      All 10 wickets have fallen. Confirming this dismissal will conclude the innings. No more batsmen can enter.
                     </p>
                   </div>
                 ) : (
@@ -658,6 +762,7 @@ export default function ScoringKeypad({
                       Select Incoming Batsman ({availableDugoutBatsmen.length} in dugout)
                     </span>
 
+                    {/* Eligible incoming batsmen list */}
                     <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                       {availableDugoutBatsmen.map((b) => (
                         <button
@@ -686,6 +791,29 @@ export default function ScoringKeypad({
                         </button>
                       ))}
                     </div>
+
+                    {/* Already Out Batsmen List (Non-repeatable) */}
+                    {allDismissedIds.size > 0 && (
+                      <div className="mt-4 pt-3 border-t border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                          Already Dismissed (Cannot Bat Again):
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Array.from(allDismissedIds).map((pId) => {
+                            const p = battingTeamPlayers.find((x) => x.id === pId);
+                            if (!p) return null;
+                            return (
+                              <span
+                                key={p.id}
+                                className="text-[10px] px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 line-through font-medium"
+                              >
+                                {p.displayName} (OUT)
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -796,7 +924,7 @@ export default function ScoringKeypad({
       )}
 
       {/* ============================================================== */}
-      {/* 4. MANUAL BOWLER CHANGE MODAL                                   */}
+      {/* 4. MANUAL BOWLER CHANGE MODAL WITH CONSECUTIVE/QUOTA LOCKOUT   */}
       {/* ============================================================== */}
       {showBowlerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
@@ -809,21 +937,51 @@ export default function ScoringKeypad({
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {bowlingTeamPlayers
-                .filter((p) => p.id !== bowler?.id)
-                .map((p) => (
+              {bowlingTeamPlayers.map((p) => {
+                const isCurrentlyBowling = bowler?.id === p.id;
+                const eligibility = validateBowlerEligibility({
+                  bowlerId: p.id,
+                  previousOverBowlerId: effectivePrevBowlerId,
+                  deliveries: store.getState().deliveries,
+                  inningsId: innings.id,
+                  maxOversPerBowler,
+                });
+
+                const isLocked = isCurrentlyBowling || !eligibility.isEligible;
+                const lockoutReason = isCurrentlyBowling
+                  ? 'Currently Bowling'
+                  : eligibility.reason;
+
+                return (
                   <button
                     key={p.id}
+                    disabled={isLocked}
                     onClick={() => handleSelectNewBowler(p.id)}
-                    className="w-full p-3 rounded-2xl flex items-center justify-between text-left hover:bg-slate-50 border border-slate-200 transition group"
+                    className={`w-full p-3 rounded-2xl flex items-center justify-between text-left border transition ${
+                      isLocked
+                        ? 'bg-slate-100/70 border-slate-200 opacity-60 cursor-not-allowed'
+                        : 'hover:bg-slate-50 border-slate-200 group'
+                    }`}
                   >
                     <div>
-                      <span className="font-bold text-xs text-slate-900 block group-hover:text-cricket-700">{p.fullName}</span>
-                      <span className="text-[11px] text-slate-500 capitalize">{p.role.replace(/_/g, ' ')} • {p.bowlingStyle.replace(/_/g, ' ')}</span>
+                      <span className={`font-bold text-xs block ${isLocked ? 'text-slate-500' : 'text-slate-900 group-hover:text-cricket-700'}`}>
+                        {p.fullName}
+                      </span>
+                      <span className="text-[11px] text-slate-500 capitalize">
+                        {p.role.replace(/_/g, ' ')} • {eligibility.oversStr} ov bowled
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold text-cricket-600">Select →</span>
+
+                    {isLocked ? (
+                      <span className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Lock size={10} /> {lockoutReason}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-cricket-600">Select →</span>
+                    )}
                   </button>
-                ))}
+                );
+              })}
             </div>
           </div>
         </div>
