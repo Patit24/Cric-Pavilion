@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Delivery, DismissalType, ExtrasType, Innings, Match, Player } from '@/lib/types';
 import { store } from '@/lib/store/mock-db';
 import { generateCommentaryLine } from '@/lib/cricket-engine/commentary';
@@ -54,6 +55,8 @@ export default function ScoringKeypad({
   const [showWicketModal, setShowWicketModal] = useState(false);
   const [showOverCompleteModal, setShowOverCompleteModal] = useState(false);
   const [showBowlerModal, setShowBowlerModal] = useState(false);
+  const [showInnings1CompleteModal, setShowInnings1CompleteModal] = useState(false);
+  const [showMatchCompleteModal, setShowMatchCompleteModal] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
   // Over complete summary info
@@ -135,6 +138,16 @@ export default function ScoringKeypad({
     assistedByPlayerId?: string | null;
     nextBatterId?: string | null;
   }) => {
+    // Guard: Prevent recording once innings is finished
+    if (innings.isCompleted || innings.legalBalls >= match.overs * 6 || innings.wickets >= 10) {
+      if (innings.inningsNumber === 1) {
+        setShowInnings1CompleteModal(true);
+      } else {
+        setShowMatchCompleteModal(true);
+      }
+      return;
+    }
+
     if (!striker || !nonStriker || !bowler) {
       if (!bowler) {
         setShowOverCompleteModal(true);
@@ -174,6 +187,18 @@ export default function ScoringKeypad({
       nextBatterId: params.nextBatterId,
       commentaryText: commText,
     });
+
+    // Check if Innings 1 is completed
+    if (res.isFirstInningsComplete) {
+      setShowInnings1CompleteModal(true);
+      return;
+    }
+
+    // Check if match won
+    if (res.isMatchWon) {
+      setShowMatchCompleteModal(true);
+      return;
+    }
 
     // Check if over completed!
     if (res.isOverComplete && !res.isMatchWon && !res.isAllOut) {
@@ -416,46 +441,101 @@ export default function ScoringKeypad({
         })}
       </div>
 
-      {/* Big Ergonomic Scoring Keypad (Runs: 0, 1, 2, 3, 4, 6) */}
-      <div className="grid grid-cols-3 gap-3">
-        {[0, 1, 2, 3, 4, 6].map((run) => (
-          <button
-            key={run}
-            onClick={() => handleRecordBall({ runsBatter: run })}
-            className={`py-5 rounded-2xl font-black text-2xl sm:text-3xl shadow-md transition transform active:scale-95 border flex flex-col items-center justify-center ${
-              run === 4
-                ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400 shadow-blue-500/20'
-                : run === 6
-                ? 'bg-purple-600 hover:bg-purple-500 text-white border-purple-400 shadow-purple-500/20'
-                : run === 0
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-                : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-200'
-            }`}
-          >
-            <span>{run}</span>
-            <span className="text-[10px] font-semibold opacity-70 tracking-wider uppercase">
-              {run === 0 ? 'Dot' : run === 4 ? 'Boundary' : run === 6 ? 'Maximum' : 'Runs'}
+      {/* If Innings is completed or over limit reached, lock the keypad */}
+      {innings.isCompleted || innings.legalBalls >= match.overs * 6 || innings.wickets >= 10 ? (
+        <div className="p-6 rounded-3xl bg-slate-900 text-white shadow-xl border border-slate-800 text-center space-y-4 animate-in fade-in">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-2xl">
+            {innings.inningsNumber === 1 ? '🏏' : '🏆'}
+          </div>
+          <div>
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 block mb-1">
+              {innings.inningsNumber === 1 ? 'Innings 1 Completed!' : 'Match Completed!'}
             </span>
-          </button>
-        ))}
-      </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              {innings.totalRuns}/{innings.wickets} ({innings.oversStr}/{match.overs} Overs)
+            </h3>
+            {innings.inningsNumber === 1 ? (
+              <p className="text-xs text-slate-300 mt-2">
+                Target for 2nd Innings: <strong className="text-emerald-400 font-black text-base">{innings.totalRuns + 1} runs</strong> from {match.overs} overs (RRR: {((innings.totalRuns + 1) / match.overs).toFixed(2)})
+              </p>
+            ) : (
+              <p className="text-xs text-slate-300 mt-2">
+                Match concluded. Standings and Net Run Rate have been updated.
+              </p>
+            )}
+          </div>
 
-      {/* Action Row: Extras & Wickets */}
-      <div className="grid grid-cols-2 gap-3 pt-1">
-        <button
-          onClick={() => setShowExtrasModal(true)}
-          className="py-4 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2 border border-amber-300"
-        >
-          <span>EXTRAS (Wd / Nb / B / Lb)</span>
-        </button>
+          {innings.inningsNumber === 1 ? (
+            <button
+              onClick={() => {
+                match.currentInningsNumber = 2;
+                window.location.reload();
+              }}
+              className="py-4 px-8 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95 flex items-center justify-center gap-2 mx-auto"
+            >
+              <span>Start 2nd Innings (Next Team Batting) →</span>
+            </button>
+          ) : (
+            <div className="flex gap-2 justify-center pt-2">
+              <Link
+                href={`/matches/${match.id}`}
+                className="py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+              >
+                View Match Scorecard
+              </Link>
+              <Link
+                href="/tournaments"
+                className="py-3 px-5 rounded-xl bg-cricket-600 hover:bg-cricket-500 text-white font-bold text-xs"
+              >
+                Tournament Standings &amp; NRR
+              </Link>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Big Ergonomic Scoring Keypad (Runs: 0, 1, 2, 3, 4, 6) */}
+          <div className="grid grid-cols-3 gap-3">
+            {[0, 1, 2, 3, 4, 6].map((run) => (
+              <button
+                key={run}
+                onClick={() => handleRecordBall({ runsBatter: run })}
+                className={`py-5 rounded-2xl font-black text-2xl sm:text-3xl shadow-md transition transform active:scale-95 border flex flex-col items-center justify-center ${
+                  run === 4
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400 shadow-blue-500/20'
+                    : run === 6
+                    ? 'bg-purple-600 hover:bg-purple-500 text-white border-purple-400 shadow-purple-500/20'
+                    : run === 0
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                    : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-200'
+                }`}
+              >
+                <span>{run}</span>
+                <span className="text-[10px] font-semibold opacity-70 tracking-wider uppercase">
+                  {run === 0 ? 'Dot' : run === 4 ? 'Boundary' : run === 6 ? 'Maximum' : 'Runs'}
+                </span>
+              </button>
+            ))}
+          </div>
 
-        <button
-          onClick={() => setShowWicketModal(true)}
-          className="py-4 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2 border border-rose-400"
-        >
-          <span>WICKET (OUT!)</span>
-        </button>
-      </div>
+          {/* Action Row: Extras & Wickets */}
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <button
+              onClick={() => setShowExtrasModal(true)}
+              className="py-4 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2 border border-amber-300"
+            >
+              <span>EXTRAS (Wd / Nb / B / Lb)</span>
+            </button>
+
+            <button
+              onClick={() => setShowWicketModal(true)}
+              className="py-4 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2 border border-rose-400"
+            >
+              <span>WICKET (OUT!)</span>
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ============================================================== */}
       {/* 1. AUTOMATIC OVER COMPLETE & SELECT NEXT BOWLER MODAL          */}
@@ -982,6 +1062,80 @@ export default function ScoringKeypad({
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 5. INNINGS 1 COMPLETE MODAL: AUTOMATIC SWITCH TO NEXT TEAM     */}
+      {/* ============================================================== */}
+      {showInnings1CompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl">
+              🏏
+            </div>
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase tracking-wider inline-block">
+              INNINGS 1 COMPLETED!
+            </span>
+            <h3 className="text-2xl font-black text-slate-900">
+              {innings.totalRuns}/{innings.wickets} ({innings.oversStr} Overs)
+            </h3>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+              <span className="font-bold text-slate-900 block">Target for 2nd Innings:</span>
+              <strong className="text-emerald-600 font-black text-2xl block">
+                {innings.totalRuns + 1} RUNS
+              </strong>
+              <span>Required Run Rate: {((innings.totalRuns + 1) / match.overs).toFixed(2)} RPO</span>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowInnings1CompleteModal(false);
+                match.currentInningsNumber = 2;
+                window.location.reload();
+              }}
+              className="w-full py-4 rounded-2xl bg-cricket-600 hover:bg-cricket-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-cricket-600/25 transition active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Start 2nd Innings (Next Team Batting) →</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 6. MATCH COMPLETE MODAL                                        */}
+      {/* ============================================================== */}
+      {showMatchCompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-3xl">
+              🏆
+            </div>
+            <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-black uppercase tracking-wider inline-block">
+              MATCH COMPLETED!
+            </span>
+            <h3 className="text-2xl font-black text-slate-900">
+              {match.winnerId ? `${store.getState().teams.find((t) => t.id === match.winnerId)?.name} WON!` : 'MATCH TIED!'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {match.winMargin ? `Won by ${match.winMargin} ${match.winType}` : 'Match concluded with tied scores.'}
+            </p>
+
+            <div className="flex gap-2 pt-2">
+              <Link
+                href={`/matches/${match.id}`}
+                className="flex-1 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider text-center"
+              >
+                Scorecard
+              </Link>
+              <Link
+                href="/tournaments"
+                className="flex-1 py-3.5 rounded-2xl bg-cricket-600 hover:bg-cricket-500 text-white font-black text-xs uppercase tracking-wider text-center"
+              >
+                Standings &amp; NRR
+              </Link>
             </div>
           </div>
         </div>

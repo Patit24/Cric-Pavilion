@@ -1029,9 +1029,21 @@ class PlatformStore {
   private loadInitialState(): PlatformState {
     if (this.isBrowser) {
       try {
-        const stored = localStorage.getItem('cricket_platform_db_v2');
+        const stored = localStorage.getItem('cricket_platform_db_v5');
         if (stored) {
           const parsed = JSON.parse(stored);
+          // Sanitize: ensure no innings exceeds maxOvers * 6
+          if (parsed?.innings && Array.isArray(parsed.innings)) {
+            for (const inn of parsed.innings) {
+              const m = parsed.matches?.find((x: any) => x.id === inn.matchId);
+              const maxBalls = (m?.overs || 20) * 6;
+              if (inn.legalBalls > maxBalls) {
+                inn.legalBalls = maxBalls;
+                inn.oversStr = `${m?.overs || 20}.0`;
+                inn.isCompleted = true;
+              }
+            }
+          }
           return parsed;
         }
       } catch (e) {
@@ -1094,7 +1106,7 @@ class PlatformStore {
   private persistAndNotify() {
     if (this.isBrowser) {
       try {
-        localStorage.setItem('cricket_platform_db_v2', JSON.stringify(this.state));
+        localStorage.setItem('cricket_platform_db_v5', JSON.stringify(this.state));
       } catch (e) {
         console.error('Failed to persist to localStorage:', e);
       }
@@ -1349,6 +1361,8 @@ class PlatformStore {
     isOverComplete?: boolean;
     isMatchWon?: boolean;
     isAllOut?: boolean;
+    isFirstInningsComplete?: boolean;
+    nextInningsId?: string;
     updatedInnings?: Innings;
     error?: string;
   } {
@@ -1360,6 +1374,14 @@ class PlatformStore {
     const match = this.state.matches.find((m) => m.id === innings.matchId);
     if (!match) {
       return { success: false, error: 'Match not found' };
+    }
+
+    // Guard: Prevent recording deliveries once an innings is completed or reaches overs quota
+    if (innings.isCompleted || innings.legalBalls >= match.overs * 6 || innings.wickets >= 10) {
+      return {
+        success: false,
+        error: `Innings ${innings.inningsNumber} is already completed (${innings.oversStr}/${match.overs} ov).`,
+      };
     }
 
     // Process delivery via domain engine
@@ -1396,7 +1418,65 @@ class PlatformStore {
       .filter((b) => b.inningsId !== innings.id)
       .concat(scorecards.bowlingScorecards);
 
-    // Check if match won or innings completed
+    // Check if Innings 1 is completed
+    let isFirstInningsComplete = false;
+    let nextInningsId: string | undefined = undefined;
+
+    if (result.updatedInnings.isCompleted && innings.inningsNumber === 1) {
+      isFirstInningsComplete = true;
+      match.status = 'innings_break';
+      const targetRuns = result.updatedInnings.totalRuns + 1;
+
+      // Find or create Innings 2 for the chasing team
+      let inn2 = this.state.innings.find(
+        (i) => i.matchId === match.id && i.inningsNumber === 2
+      );
+
+      const team2PlayerIds = this.state.tournamentPlayers
+        .filter((tp) => tp.teamId === innings.bowlingTeamId)
+        .map((tp) => tp.playerId);
+      const team1PlayerIds = this.state.tournamentPlayers
+        .filter((tp) => tp.teamId === innings.battingTeamId)
+        .map((tp) => tp.playerId);
+
+      if (!inn2) {
+        inn2 = {
+          id: `inn_${match.id}_2`,
+          matchId: match.id,
+          inningsNumber: 2,
+          battingTeamId: innings.bowlingTeamId,
+          bowlingTeamId: innings.battingTeamId,
+          totalRuns: 0,
+          wickets: 0,
+          legalBalls: 0,
+          oversStr: '0.0',
+          extrasWides: 0,
+          extrasNoBalls: 0,
+          extrasByes: 0,
+          extrasLegByes: 0,
+          extrasPenalty: 0,
+          totalExtras: 0,
+          isCompleted: false,
+          targetRuns,
+          currentStrikerId: team2PlayerIds[0] || null,
+          currentNonStrikerId: team2PlayerIds[1] || null,
+          currentBowlerId: team1PlayerIds[team1PlayerIds.length - 1] || null,
+        };
+        this.state.innings.push(inn2);
+      } else {
+        inn2.targetRuns = targetRuns;
+        inn2.battingTeamId = innings.bowlingTeamId;
+        inn2.bowlingTeamId = innings.battingTeamId;
+        if (!inn2.currentStrikerId) inn2.currentStrikerId = team2PlayerIds[0] || null;
+        if (!inn2.currentNonStrikerId) inn2.currentNonStrikerId = team2PlayerIds[1] || null;
+        if (!inn2.currentBowlerId) inn2.currentBowlerId = team1PlayerIds[team1PlayerIds.length - 1] || null;
+      }
+
+      match.currentInningsNumber = 2;
+      nextInningsId = inn2.id;
+    }
+
+    // Check if match won or innings completed in 2nd innings
     if (result.isMatchWon) {
       match.status = 'completed';
       match.winnerId = innings.battingTeamId;
@@ -1425,8 +1505,196 @@ class PlatformStore {
       isOverComplete: result.isOverComplete,
       isMatchWon: result.isMatchWon,
       isAllOut: result.isAllOut,
+      isFirstInningsComplete,
+      nextInningsId,
       updatedInnings: result.updatedInnings,
     };
+  }
+
+  /**
+   * Conducts match toss, sets batting/bowling orders, and initializes Innings 1.
+   */
+  public startMatchWithToss(params: {
+    matchId: string;
+    tossWinnerId: string;
+    tossDecision: 'bat' | 'bowl';
+    strikerId: string;
+    nonStrikerId: string;
+    bowlerId: string;
+  }): { success: boolean; match?: Match; innings?: Innings; error?: string } {
+    const match = this.state.matches.find((m) => m.id === params.matchId);
+    if (!match) return { success: false, error: 'Match not found' };
+
+    match.tossWonBy = params.tossWinnerId;
+    match.tossDecision = params.tossDecision;
+
+    // Determine batting first
+    const otherTeamId = match.teamAId === params.tossWinnerId ? match.teamBId : match.teamAId;
+    const battingFirstId = params.tossDecision === 'bat' ? params.tossWinnerId : otherTeamId;
+    const bowlingFirstId = battingFirstId === match.teamAId ? match.teamBId : match.teamAId;
+
+    match.battingFirstId = battingFirstId;
+    match.status = 'live';
+    match.currentInningsNumber = 1;
+
+    // Reset deliveries & scorecards for clean match start
+    this.state.deliveries = this.state.deliveries.filter((d) => d.matchId !== match.id);
+    this.state.battingScorecards = this.state.battingScorecards.filter((b) => b.matchId !== match.id);
+    this.state.bowlingScorecards = this.state.bowlingScorecards.filter((b) => b.matchId !== match.id);
+
+    // Initialize fresh Innings 1
+    let inn1 = this.state.innings.find((i) => i.matchId === match.id && i.inningsNumber === 1);
+    if (!inn1) {
+      inn1 = {
+        id: `inn_${match.id}_1`,
+        matchId: match.id,
+        inningsNumber: 1,
+        battingTeamId: battingFirstId,
+        bowlingTeamId: bowlingFirstId,
+        totalRuns: 0,
+        wickets: 0,
+        legalBalls: 0,
+        oversStr: '0.0',
+        extrasWides: 0,
+        extrasNoBalls: 0,
+        extrasByes: 0,
+        extrasLegByes: 0,
+        extrasPenalty: 0,
+        totalExtras: 0,
+        isCompleted: false,
+        currentStrikerId: params.strikerId,
+        currentNonStrikerId: params.nonStrikerId,
+        currentBowlerId: params.bowlerId,
+      };
+      this.state.innings.push(inn1);
+    } else {
+      inn1.battingTeamId = battingFirstId;
+      inn1.bowlingTeamId = bowlingFirstId;
+      inn1.totalRuns = 0;
+      inn1.wickets = 0;
+      inn1.legalBalls = 0;
+      inn1.oversStr = '0.0';
+      inn1.extrasWides = 0;
+      inn1.extrasNoBalls = 0;
+      inn1.extrasByes = 0;
+      inn1.extrasLegByes = 0;
+      inn1.extrasPenalty = 0;
+      inn1.totalExtras = 0;
+      inn1.isCompleted = false;
+      inn1.currentStrikerId = params.strikerId;
+      inn1.currentNonStrikerId = params.nonStrikerId;
+      inn1.currentBowlerId = params.bowlerId;
+    }
+
+    // Remove any old Innings 2
+    this.state.innings = this.state.innings.filter((i) => !(i.matchId === match.id && i.inningsNumber === 2));
+
+    this.persistAndNotify();
+    return { success: true, match, innings: inn1 };
+  }
+
+  /**
+   * Resets an active match back to its fresh state or conducts a restart.
+   */
+  public resetMatch(matchId: string): boolean {
+    const match = this.state.matches.find((m) => m.id === matchId);
+    if (!match) return false;
+
+    // Clean deliveries and scorecards
+    this.state.deliveries = this.state.deliveries.filter((d) => d.matchId !== matchId);
+    this.state.battingScorecards = this.state.battingScorecards.filter((b) => b.matchId !== matchId);
+    this.state.bowlingScorecards = this.state.bowlingScorecards.filter((b) => b.matchId !== matchId);
+    this.state.innings = this.state.innings.filter((i) => i.matchId !== matchId);
+
+    // Reset match fields
+    match.status = 'scheduled';
+    match.tossWonBy = null;
+    match.tossDecision = null;
+    match.battingFirstId = null;
+    match.winnerId = null;
+    match.winMargin = null;
+    match.winType = null;
+    match.currentInningsNumber = 1;
+
+    this.persistAndNotify();
+    return true;
+  }
+
+  /**
+   * Schedules a new fixture in the tournament.
+   */
+  public createMatch(params: {
+    tournamentId: string;
+    teamAId: string;
+    teamBId: string;
+    venue: string;
+    dateTime: string;
+    overs: number;
+    stage: string;
+  }): Match {
+    const newMatch: Match = {
+      id: `match_${Date.now()}`,
+      tournamentId: params.tournamentId,
+      matchNumber: this.state.matches.length + 1,
+      stage: params.stage || `League Match ${this.state.matches.length + 1}`,
+      teamAId: params.teamAId,
+      teamBId: params.teamBId,
+      venue: params.venue || 'Eden Gardens, Kolkata',
+      dateTime: params.dateTime || new Date().toISOString(),
+      overs: params.overs || 20,
+      status: 'scheduled',
+      currentInningsNumber: 1,
+    };
+
+    this.state.matches.push(newMatch);
+    this.persistAndNotify();
+    return newMatch;
+  }
+
+  /**
+   * Registers a player and assigns them to a team squad.
+   */
+  public addPlayerToTeam(params: {
+    teamId: string;
+    tournamentId: string;
+    fullName: string;
+    role: Player['role'];
+    battingStyle: Player['battingStyle'];
+    bowlingStyle: Player['bowlingStyle'];
+  }): Player {
+    const newPlayerId = `pl_${Date.now()}`;
+    const newPlayer: Player = {
+      id: newPlayerId,
+      fullName: params.fullName,
+      displayName: params.fullName.split(' ').slice(0, 2).join(' '),
+      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&auto=format&fit=crop&q=80',
+      role: params.role,
+      battingStyle: params.battingStyle,
+      bowlingStyle: params.bowlingStyle,
+      city: 'Kolkata',
+      matches: 0,
+      runs: 0,
+      highestScore: 0,
+      battingAverage: 0,
+      strikeRate: 0,
+      wickets: 0,
+      bestBowling: '0/0',
+      economy: 0,
+    };
+
+    this.state.players.push(newPlayer);
+    this.state.tournamentPlayers.push({
+      id: `tp_${Date.now()}`,
+      tournamentId: params.tournamentId,
+      playerId: newPlayerId,
+      teamId: params.teamId,
+      status: 'sold',
+      basePrice: 50000,
+      finalPrice: 50000,
+    });
+
+    this.persistAndNotify();
+    return newPlayer;
   }
 
   public setBowler(inningsId: string, bowlerId: string): boolean {
@@ -1620,6 +1888,9 @@ class PlatformStore {
   public resetToDefaults() {
     if (this.isBrowser) {
       localStorage.removeItem('cricket_platform_db_v2');
+      localStorage.removeItem('cricket_platform_db_v3');
+      localStorage.removeItem('cricket_platform_db_v4');
+      localStorage.removeItem('cricket_platform_db_v5');
     }
     this.state = this.loadInitialState();
     this.persistAndNotify();

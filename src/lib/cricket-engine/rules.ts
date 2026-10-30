@@ -90,6 +90,13 @@ export function processDelivery(input: RecordDeliveryInput): DeliveryExecutionRe
     maxOvers = 20,
   } = input;
 
+  // HARD CAP: If innings is already completed (all overs bowled, all out, or target chased), no more deliveries can be recorded
+  if (innings.isCompleted || innings.legalBalls >= maxOvers * 6 || innings.wickets >= 10) {
+    throw new Error(
+      `Innings ${innings.inningsNumber} is already completed (${innings.oversStr} overs, ${innings.wickets} wickets). Maximum ${maxOvers} overs reached.`
+    );
+  }
+
   const isLegal = isDeliveryLegal(extrasType);
   
   // Calculate total runs scored on this delivery

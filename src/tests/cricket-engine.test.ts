@@ -382,4 +382,79 @@ describe('Bowler Eligibility & Dismissed Batsman Rules', () => {
     });
     expect(checkAAtOver3.isEligible).toBe(true);
   });
+
+  it('enforces strict max overs cap (e.g. 20 overs / 120 balls) and rejects deliveries once complete', () => {
+    const fullInnings: Innings = {
+      id: 'inn_capped',
+      matchId: 'm1',
+      inningsNumber: 1,
+      battingTeamId: 'team_a',
+      bowlingTeamId: 'team_b',
+      totalRuns: 180,
+      wickets: 4,
+      legalBalls: 120, // 20.0 overs bowled
+      oversStr: '20.0',
+      extrasWides: 0,
+      extrasNoBalls: 0,
+      extrasByes: 0,
+      extrasLegByes: 0,
+      extrasPenalty: 0,
+      totalExtras: 0,
+      isCompleted: true,
+      currentStrikerId: 'p1',
+      currentNonStrikerId: 'p2',
+      currentBowlerId: 'b1',
+    };
+
+    // Attempting to bowl ball 121 must throw an error and be rejected
+    expect(() => {
+      processDelivery({
+        innings: fullInnings,
+        strikerId: 'p1',
+        nonStrikerId: 'p2',
+        bowlerId: 'b1',
+        runsBatter: 1,
+        maxOvers: 20,
+      });
+    }).toThrow(/already completed/);
+  });
+
+  it('marks innings as complete upon bowling ball 120 (20.0 overs)', () => {
+    const over19Point5Innings: Innings = {
+      id: 'inn_last_ball',
+      matchId: 'm1',
+      inningsNumber: 1,
+      battingTeamId: 'team_a',
+      bowlingTeamId: 'team_b',
+      totalRuns: 190,
+      wickets: 3,
+      legalBalls: 119, // 19.5 overs
+      oversStr: '19.5',
+      extrasWides: 0,
+      extrasNoBalls: 0,
+      extrasByes: 0,
+      extrasLegByes: 0,
+      extrasPenalty: 0,
+      totalExtras: 0,
+      isCompleted: false,
+      currentStrikerId: 'p1',
+      currentNonStrikerId: 'p2',
+      currentBowlerId: 'b1',
+    };
+
+    const result = processDelivery({
+      innings: over19Point5Innings,
+      strikerId: 'p1',
+      nonStrikerId: 'p2',
+      bowlerId: 'b1',
+      runsBatter: 4,
+      maxOvers: 20,
+    });
+
+    expect(result.updatedInnings.legalBalls).toBe(120);
+    expect(result.updatedInnings.oversStr).toBe('20.0');
+    expect(result.updatedInnings.totalRuns).toBe(194);
+    expect(result.updatedInnings.isCompleted).toBe(true);
+    expect(result.isOverComplete).toBe(true);
+  });
 });
