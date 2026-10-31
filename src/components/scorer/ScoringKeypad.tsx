@@ -57,6 +57,7 @@ export default function ScoringKeypad({
   const [showBowlerModal, setShowBowlerModal] = useState(false);
   const [showInnings1CompleteModal, setShowInnings1CompleteModal] = useState(false);
   const [showMatchCompleteModal, setShowMatchCompleteModal] = useState(false);
+  const [showFullScorecardModal, setShowFullScorecardModal] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
   // Over complete summary info
@@ -79,6 +80,38 @@ export default function ScoringKeypad({
   const [wicketStep, setWicketStep] = useState<1 | 2>(1); // 1 = dismissal details, 2 = select new batsman
 
   const maxOversPerBowler = Math.ceil(match.overs / 5); // 4 overs in T20
+
+  // Real-time Batting and Bowling Scorecards from Store
+  const allBattingCards = store.getState().battingScorecards.filter(
+    (b) => b.inningsId === innings.id
+  );
+  const allBowlingCards = store.getState().bowlingScorecards.filter(
+    (b) => b.inningsId === innings.id
+  );
+
+  const strikerScorecard = allBattingCards.find((b) => b.playerId === striker?.id) || {
+    runs: 0,
+    balls: 0,
+    fours: 0,
+    sixes: 0,
+    strikeRate: 0,
+  };
+
+  const nonStrikerScorecard = allBattingCards.find((b) => b.playerId === nonStriker?.id) || {
+    runs: 0,
+    balls: 0,
+    fours: 0,
+    sixes: 0,
+    strikeRate: 0,
+  };
+
+  const bowlerScorecard = allBowlingCards.find((b) => b.playerId === bowler?.id) || {
+    oversStr: '0.0',
+    maidens: 0,
+    runsConceded: 0,
+    wickets: 0,
+    economy: 0,
+  };
 
   // Derive previous over bowler from official cricket rules
   const rulePrevBowlerId = getPreviousOverBowlerId(
@@ -275,14 +308,24 @@ export default function ScoringKeypad({
             </>
           )}
         </div>
-        <button
-          onClick={handleUndo}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 active:scale-95 shadow-xs"
-          title="Undo last recorded delivery"
-        >
-          <RotateCcw size={13} />
-          <span>Undo Delivery</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFullScorecardModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cricket-700 hover:bg-cricket-600 text-white font-bold text-xs transition border border-cricket-600 active:scale-95 shadow-xs"
+            title="Inspect full batting and bowling scorecard"
+          >
+            <span>📊 Full Scorecard</span>
+          </button>
+
+          <button
+            onClick={handleUndo}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition border border-slate-700 active:scale-95 shadow-xs"
+            title="Undo last recorded delivery"
+          >
+            <RotateCcw size={13} />
+            <span>Undo</span>
+          </button>
+        </div>
       </div>
 
       {/* Main High-Contrast Scoreboard Banner */}
@@ -313,73 +356,144 @@ export default function ScoringKeypad({
           </div>
         </div>
 
-        {/* Batters & Bowler at Crease */}
-        <div className="mt-4 pt-3 border-t border-cricket-800/80 grid grid-cols-2 gap-3 text-xs">
-          {/* Batters on Crease */}
-          <div className="p-3 rounded-2xl bg-cricket-950/70 border border-cricket-800/50 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-cricket-400 uppercase font-bold tracking-wider">Batters</span>
+        {/* Real-Time Batters & Bowler at Crease HUD */}
+        <div className="mt-4 pt-3 border-t border-cricket-800/80 space-y-3 text-xs">
+          {/* Batters on Crease Table */}
+          <div className="p-3.5 rounded-2xl bg-cricket-950/80 border border-cricket-800/60 shadow-inner space-y-2">
+            <div className="flex items-center justify-between pb-1.5 border-b border-cricket-800/60">
+              <span className="text-[10px] text-cricket-400 uppercase font-black tracking-widest">
+                Batters at Crease
+              </span>
               <button
                 onClick={handleSwapEnds}
-                className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold underline"
+                className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold underline transition"
                 title="Swap striker and non-striker ends"
               >
-                <ArrowRightLeft size={10} /> Swap Ends
+                <ArrowRightLeft size={11} />
+                <span>Swap Ends</span>
               </button>
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-white font-bold p-1 rounded-lg bg-cricket-900/60 border border-cricket-700/50">
-                <span className="flex items-center gap-1.5 truncate">
-                  <span className="text-amber-400">★</span> {striker?.displayName || 'Striker'}
+
+            {/* Batters Table Header */}
+            <div className="grid grid-cols-12 text-[10px] font-black uppercase text-slate-400 pb-0.5 px-1">
+              <span className="col-span-5">Batter</span>
+              <span className="col-span-2 text-right">R (B)</span>
+              <span className="col-span-1 text-right">4s</span>
+              <span className="col-span-1 text-right">6s</span>
+              <span className="col-span-3 text-right">SR</span>
+            </div>
+
+            {/* Striker Row */}
+            <div className="grid grid-cols-12 items-center py-1.5 px-2 rounded-xl bg-cricket-900/80 border border-cricket-700/60 text-white font-bold text-xs">
+              <div className="col-span-5 flex items-center gap-1.5 truncate">
+                <span className="text-amber-400 text-sm">★</span>
+                <span className="truncate">{striker?.displayName || 'Striker'}</span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-amber-400/25 text-amber-300 font-mono shrink-0 uppercase tracking-tighter">
+                  Strike
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-mono shrink-0">Strike</span>
               </div>
-              <div className="flex items-center justify-between text-slate-300 px-1 py-0.5">
+              <div className="col-span-2 text-right font-black text-amber-300">
+                {strikerScorecard.runs} <span className="text-slate-400 font-normal text-[10px]">({strikerScorecard.balls})</span>
+              </div>
+              <div className="col-span-1 text-right text-slate-300 font-mono">
+                {strikerScorecard.fours}
+              </div>
+              <div className="col-span-1 text-right text-slate-300 font-mono">
+                {strikerScorecard.sixes}
+              </div>
+              <div className="col-span-3 text-right font-mono text-emerald-400 text-[11px]">
+                {strikerScorecard.strikeRate.toFixed(1)}
+              </div>
+            </div>
+
+            {/* Non-Striker Row */}
+            <div className="grid grid-cols-12 items-center py-1.5 px-2 rounded-xl text-slate-300 font-medium text-xs hover:bg-cricket-900/40">
+              <div className="col-span-5 flex items-center gap-1.5 truncate text-slate-200">
+                <span className="text-slate-600 text-sm">•</span>
                 <span className="truncate">{nonStriker?.displayName || 'Non-Striker'}</span>
-                <span className="text-slate-500 text-[10px]">Non-Strike</span>
+              </div>
+              <div className="col-span-2 text-right font-bold text-slate-200">
+                {nonStrikerScorecard.runs} <span className="text-slate-400 font-normal text-[10px]">({nonStrikerScorecard.balls})</span>
+              </div>
+              <div className="col-span-1 text-right text-slate-400 font-mono">
+                {nonStrikerScorecard.fours}
+              </div>
+              <div className="col-span-1 text-right text-slate-400 font-mono">
+                {nonStrikerScorecard.sixes}
+              </div>
+              <div className="col-span-3 text-right font-mono text-slate-400 text-[11px]">
+                {nonStrikerScorecard.strikeRate.toFixed(1)}
               </div>
             </div>
           </div>
 
-          {/* Bowler on Crease */}
-          <div className={`p-3 rounded-2xl border flex flex-col justify-between ${
+          {/* Bowler on Crease Table */}
+          <div className={`p-3.5 rounded-2xl border space-y-2 ${
             !bowler
               ? 'bg-amber-950/60 border-amber-500/80 ring-2 ring-amber-500/50'
-              : 'bg-cricket-950/70 border-cricket-800/50'
+              : 'bg-cricket-950/80 border-cricket-800/60 shadow-inner'
           }`}>
-            <div>
-              <span className="text-[10px] text-cricket-400 uppercase font-bold tracking-wider block">Current Bowler</span>
-              {bowler ? (
-                <>
-                  <div className="mt-1 font-bold text-white truncate text-sm">
-                    {bowler.displayName}
-                  </div>
-                  <span className="text-[10px] text-slate-400 capitalize block truncate">
-                    {bowler.bowlingStyle.replace(/_/g, ' ')}
-                  </span>
-                </>
-              ) : (
-                <div className="mt-1">
-                  <span className="text-amber-400 font-black text-sm block animate-pulse">
-                    Select Next Bowler
-                  </span>
-                  <span className="text-[10px] text-amber-200/80 block">
-                    Over completed
-                  </span>
-                </div>
-              )}
+            <div className="flex items-center justify-between pb-1.5 border-b border-cricket-800/60">
+              <span className="text-[10px] text-cricket-400 uppercase font-black tracking-widest">
+                Active Bowler
+              </span>
+              <button
+                onClick={() => setShowBowlerModal(true)}
+                className={`py-1 px-2.5 rounded-lg text-[11px] font-black transition flex items-center gap-1 border ${
+                  !bowler
+                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-400 shadow-sm'
+                    : 'bg-cricket-900 hover:bg-cricket-800 text-cricket-300 border-cricket-700/60'
+                }`}
+              >
+                <span>{bowler ? 'Change Bowler' : 'Choose Bowler'}</span>
+                <ChevronRight size={11} />
+              </button>
             </div>
-            <button
-              onClick={() => setShowOverCompleteModal(true)}
-              className={`mt-2 py-1.5 px-2.5 rounded-lg text-[11px] font-black transition flex items-center justify-between border ${
-                !bowler
-                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-400 shadow-sm'
-                  : 'bg-cricket-900 hover:bg-cricket-800 text-cricket-300 border-cricket-700/60'
-              }`}
-            >
-              <span>{bowler ? 'Change Bowler' : 'Choose Bowler'}</span>
-              <ChevronRight size={12} />
-            </button>
+
+            {bowler ? (
+              <>
+                {/* Bowling Table Header */}
+                <div className="grid grid-cols-12 text-[10px] font-black uppercase text-slate-400 pb-0.5 px-1">
+                  <span className="col-span-4">Bowler</span>
+                  <span className="col-span-2 text-right">O</span>
+                  <span className="col-span-1 text-right">M</span>
+                  <span className="col-span-2 text-right">R</span>
+                  <span className="col-span-1 text-right">W</span>
+                  <span className="col-span-2 text-right">ECON</span>
+                </div>
+
+                {/* Bowler Row */}
+                <div className="grid grid-cols-12 items-center py-1.5 px-2 rounded-xl bg-cricket-900/80 border border-cricket-700/60 text-white font-bold text-xs">
+                  <div className="col-span-4 truncate">
+                    <span className="block truncate font-bold text-white">{bowler.displayName}</span>
+                    <span className="text-[10px] text-slate-400 capitalize font-normal truncate block">
+                      {bowler.bowlingStyle.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="col-span-2 text-right font-mono text-white">
+                    {bowlerScorecard.oversStr}
+                  </div>
+                  <div className="col-span-1 text-right font-mono text-slate-300">
+                    {bowlerScorecard.maidens}
+                  </div>
+                  <div className="col-span-2 text-right font-mono text-white font-black">
+                    {bowlerScorecard.runsConceded}
+                  </div>
+                  <div className="col-span-1 text-right font-mono text-amber-300 font-black">
+                    {bowlerScorecard.wickets}
+                  </div>
+                  <div className="col-span-2 text-right font-mono text-emerald-400 text-[11px]">
+                    {bowlerScorecard.economy.toFixed(2)}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="py-2 text-center">
+                <span className="text-amber-400 font-bold text-xs block animate-pulse">
+                  ⚠️ Over completed — Select bowler for next over
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1137,6 +1251,126 @@ export default function ScoringKeypad({
                 Standings &amp; NRR
               </Link>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 7. FULL LIVE SCORECARD MODAL                                   */}
+      {/* ============================================================== */}
+      {showFullScorecardModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-black text-slate-900">
+                  {match.stage} • Innings {innings.inningsNumber} Scorecard
+                </h3>
+                <span className="text-xs text-slate-500 font-bold">
+                  {innings.totalRuns}/{innings.wickets} in {innings.oversStr} Overs
+                </span>
+              </div>
+              <button
+                onClick={() => setShowFullScorecardModal(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* BATTING SCORECARD */}
+            <div className="space-y-2">
+              <span className="text-xs font-black text-slate-700 uppercase tracking-wider block">
+                Batting Scorecard
+              </span>
+              <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase font-black border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">Batter</th>
+                      <th className="py-2.5 px-2">Dismissal</th>
+                      <th className="py-2.5 px-2 text-right">R</th>
+                      <th className="py-2.5 px-2 text-right">B</th>
+                      <th className="py-2.5 px-2 text-right">4s</th>
+                      <th className="py-2.5 px-2 text-right">6s</th>
+                      <th className="py-2.5 px-3 text-right">SR</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {allBattingCards.map((b) => (
+                      <tr key={b.id} className="hover:bg-slate-50/50">
+                        <td className="py-2 px-3 font-bold text-slate-900">
+                          {b.playerName}
+                          {b.playerId === striker?.id && <span className="text-amber-500 ml-1">★</span>}
+                        </td>
+                        <td className="py-2 px-2 text-[11px] text-slate-500">
+                          {b.isOut ? (
+                            <span className="text-rose-600 font-medium">{b.dismissalText}</span>
+                          ) : (
+                            <span className="text-emerald-600 font-bold">not out</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 text-right font-black text-slate-900">{b.runs}</td>
+                        <td className="py-2 px-2 text-right text-slate-600">{b.balls}</td>
+                        <td className="py-2 px-2 text-right text-slate-600">{b.fours}</td>
+                        <td className="py-2 px-2 text-right text-slate-600">{b.sixes}</td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">{b.strikeRate.toFixed(1)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Extras Line */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex justify-between font-medium">
+                <span>Extras:</span>
+                <span className="font-bold">
+                  {innings.totalExtras} (w {innings.extrasWides}, nb {innings.extrasNoBalls}, b {innings.extrasByes}, lb {innings.extrasLegByes})
+                </span>
+              </div>
+            </div>
+
+            {/* BOWLING SCORECARD */}
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-black text-slate-700 uppercase tracking-wider block">
+                Bowling Figures
+              </span>
+              <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase font-black border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">Bowler</th>
+                      <th className="py-2.5 px-2 text-right">O</th>
+                      <th className="py-2.5 px-2 text-right">M</th>
+                      <th className="py-2.5 px-2 text-right">R</th>
+                      <th className="py-2.5 px-2 text-right">W</th>
+                      <th className="py-2.5 px-2 text-right">ECON</th>
+                      <th className="py-2.5 px-3 text-right">0s</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {allBowlingCards.map((b) => (
+                      <tr key={b.id} className="hover:bg-slate-50/50">
+                        <td className="py-2 px-3 font-bold text-slate-900">{b.playerName}</td>
+                        <td className="py-2 px-2 text-right font-mono text-slate-700">{b.oversStr}</td>
+                        <td className="py-2 px-2 text-right font-mono text-slate-600">{b.maidens}</td>
+                        <td className="py-2 px-2 text-right font-mono font-bold text-slate-900">{b.runsConceded}</td>
+                        <td className="py-2 px-2 text-right font-mono font-black text-rose-600">{b.wickets}</td>
+                        <td className="py-2 px-2 text-right font-mono text-emerald-600">{b.economy.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-500">{b.dots}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowFullScorecardModal(false)}
+              className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider"
+            >
+              Close Scorecard
+            </button>
           </div>
         </div>
       )}

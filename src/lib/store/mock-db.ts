@@ -855,6 +855,27 @@ const DEFAULT_BIDS: AuctionBid[] = [
 
 const DEFAULT_MATCHES: Match[] = [
   {
+    id: 'match_past_1',
+    tournamentId: 'tourn_bpl_2026',
+    matchNumber: 0,
+    stage: 'Opening League Fixture',
+    groupName: 'Group A',
+    teamAId: 'team_barasat',
+    teamBId: 'team_howrah',
+    venue: 'Eden Gardens, Kolkata',
+    dateTime: new Date(Date.now() - 86400000).toISOString(),
+    overs: 20,
+    status: 'completed',
+    tossWonBy: 'team_barasat',
+    tossDecision: 'bat',
+    battingFirstId: 'team_barasat',
+    winnerId: 'team_barasat',
+    winMargin: 24,
+    winType: 'runs',
+    playerOfMatchId: 'pl_1',
+    currentInningsNumber: 2,
+  },
+  {
     id: 'match_1',
     tournamentId: 'tourn_bpl_2026',
     matchNumber: 1,
@@ -901,6 +922,43 @@ const DEFAULT_MATCHES: Match[] = [
 ];
 
 const DEFAULT_INNINGS: Innings[] = [
+  {
+    id: 'inn_past_1',
+    matchId: 'match_past_1',
+    inningsNumber: 1,
+    battingTeamId: 'team_barasat',
+    bowlingTeamId: 'team_howrah',
+    totalRuns: 172,
+    wickets: 5,
+    legalBalls: 120,
+    oversStr: '20.0',
+    extrasWides: 6,
+    extrasNoBalls: 2,
+    extrasByes: 1,
+    extrasLegByes: 3,
+    extrasPenalty: 0,
+    totalExtras: 12,
+    isCompleted: true,
+  },
+  {
+    id: 'inn_past_2',
+    matchId: 'match_past_1',
+    inningsNumber: 2,
+    battingTeamId: 'team_howrah',
+    bowlingTeamId: 'team_barasat',
+    totalRuns: 148,
+    wickets: 8,
+    legalBalls: 120,
+    oversStr: '20.0',
+    extrasWides: 4,
+    extrasNoBalls: 1,
+    extrasByes: 2,
+    extrasLegByes: 1,
+    extrasPenalty: 0,
+    totalExtras: 8,
+    isCompleted: true,
+    targetRuns: 173,
+  },
   {
     id: 'inn_1',
     matchId: 'match_1',
@@ -1017,6 +1075,196 @@ const DEFAULT_DELIVERIES: Delivery[] = [
   },
 ];
 
+const PAST_BATTING_SCORECARDS: BattingScorecard[] = [
+  // Innings 1: Team Barasat (172/5)
+  {
+    id: 'bat_past_1',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_1',
+    teamId: 'team_barasat',
+    playerName: 'Rahul Das',
+    battingPosition: 1,
+    runs: 68,
+    balls: 42,
+    fours: 7,
+    sixes: 3,
+    strikeRate: 161.9,
+    dismissalText: 'c Manoj Tiwary b Akash Deep',
+    isOut: true,
+  },
+  {
+    id: 'bat_past_2',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_3',
+    teamId: 'team_barasat',
+    playerName: 'Subham Dey',
+    battingPosition: 2,
+    runs: 44,
+    balls: 31,
+    fours: 4,
+    sixes: 1,
+    strikeRate: 141.9,
+    dismissalText: 'b Shahbaz Ahmed',
+    isOut: true,
+  },
+  {
+    id: 'bat_past_3',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_5',
+    teamId: 'team_barasat',
+    playerName: 'Pritam Ghosh',
+    battingPosition: 3,
+    runs: 35,
+    balls: 24,
+    fours: 3,
+    sixes: 2,
+    strikeRate: 145.8,
+    dismissalText: 'not out',
+    isOut: false,
+  },
+  {
+    id: 'bat_past_4',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_7',
+    teamId: 'team_barasat',
+    playerName: 'Debayan Paul',
+    battingPosition: 4,
+    runs: 16,
+    balls: 14,
+    fours: 1,
+    sixes: 0,
+    strikeRate: 114.3,
+    dismissalText: 'run out (Shahbaz Ahmed)',
+    isOut: true,
+  },
+  // Innings 2: Team Howrah (148/8)
+  {
+    id: 'bat_past_5',
+    inningsId: 'inn_past_2',
+    matchId: 'match_past_1',
+    playerId: 'pl_14',
+    teamId: 'team_howrah',
+    playerName: 'Manoj Tiwary',
+    battingPosition: 1,
+    runs: 54,
+    balls: 38,
+    fours: 5,
+    sixes: 2,
+    strikeRate: 142.1,
+    dismissalText: 'c Subham Dey b Md. Shami',
+    isOut: true,
+  },
+  {
+    id: 'bat_past_6',
+    inningsId: 'inn_past_2',
+    matchId: 'match_past_1',
+    playerId: 'pl_15',
+    teamId: 'team_howrah',
+    playerName: 'Shahbaz Ahmed',
+    battingPosition: 2,
+    runs: 32,
+    balls: 26,
+    fours: 3,
+    sixes: 1,
+    strikeRate: 123.1,
+    dismissalText: 'b Debayan Paul',
+    isOut: true,
+  },
+  {
+    id: 'bat_past_7',
+    inningsId: 'inn_past_2',
+    matchId: 'match_past_1',
+    playerId: 'pl_16',
+    teamId: 'team_howrah',
+    playerName: 'Akash Deep',
+    battingPosition: 3,
+    runs: 18,
+    balls: 15,
+    fours: 2,
+    sixes: 0,
+    strikeRate: 120.0,
+    dismissalText: 'not out',
+    isOut: false,
+  },
+];
+
+const PAST_BOWLING_SCORECARDS: BowlingScorecard[] = [
+  // Innings 1 Bowling
+  {
+    id: 'bowl_past_1',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_16',
+    teamId: 'team_howrah',
+    playerName: 'Akash Deep',
+    oversStr: '4.0',
+    legalBalls: 24,
+    maidens: 0,
+    runsConceded: 32,
+    wickets: 2,
+    dots: 10,
+    wides: 2,
+    noBalls: 0,
+    economy: 8.0,
+  },
+  {
+    id: 'bowl_past_2',
+    inningsId: 'inn_past_1',
+    matchId: 'match_past_1',
+    playerId: 'pl_15',
+    teamId: 'team_howrah',
+    playerName: 'Shahbaz Ahmed',
+    oversStr: '4.0',
+    legalBalls: 24,
+    maidens: 1,
+    runsConceded: 28,
+    wickets: 1,
+    dots: 12,
+    wides: 1,
+    noBalls: 0,
+    economy: 7.0,
+  },
+  // Innings 2 Bowling
+  {
+    id: 'bowl_past_3',
+    inningsId: 'inn_past_2',
+    matchId: 'match_past_1',
+    playerId: 'pl_13',
+    teamId: 'team_barasat',
+    playerName: 'Md. Shami',
+    oversStr: '4.0',
+    legalBalls: 24,
+    maidens: 1,
+    runsConceded: 22,
+    wickets: 3,
+    dots: 14,
+    wides: 1,
+    noBalls: 0,
+    economy: 5.5,
+  },
+  {
+    id: 'bowl_past_4',
+    inningsId: 'inn_past_2',
+    matchId: 'match_past_1',
+    playerId: 'pl_7',
+    teamId: 'team_barasat',
+    playerName: 'Debayan Paul',
+    oversStr: '4.0',
+    legalBalls: 24,
+    maidens: 0,
+    runsConceded: 34,
+    wickets: 2,
+    dots: 8,
+    wides: 2,
+    noBalls: 1,
+    economy: 8.5,
+  },
+];
+
 class PlatformStore {
   private state: PlatformState;
   private subscribers: Set<() => void> = new Set();
@@ -1029,7 +1277,7 @@ class PlatformStore {
   private loadInitialState(): PlatformState {
     if (this.isBrowser) {
       try {
-        const stored = localStorage.getItem('cricket_platform_db_v5');
+        const stored = localStorage.getItem('cricket_platform_db_v7');
         if (stored) {
           const parsed = JSON.parse(stored);
           // Sanitize: ensure no innings exceeds maxOvers * 6
@@ -1097,8 +1345,8 @@ class PlatformStore {
       matches: DEFAULT_MATCHES,
       innings: DEFAULT_INNINGS,
       deliveries: DEFAULT_DELIVERIES,
-      battingScorecards: initialScorecards.battingScorecards,
-      bowlingScorecards: initialScorecards.bowlingScorecards,
+      battingScorecards: [...initialScorecards.battingScorecards, ...PAST_BATTING_SCORECARDS],
+      bowlingScorecards: [...initialScorecards.bowlingScorecards, ...PAST_BOWLING_SCORECARDS],
       tournamentStandings: initialStandings,
     };
   }
@@ -1106,7 +1354,7 @@ class PlatformStore {
   private persistAndNotify() {
     if (this.isBrowser) {
       try {
-        localStorage.setItem('cricket_platform_db_v5', JSON.stringify(this.state));
+        localStorage.setItem('cricket_platform_db_v7', JSON.stringify(this.state));
       } catch (e) {
         console.error('Failed to persist to localStorage:', e);
       }

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { store } from '@/lib/store/mock-db';
 import ScoringKeypad from '@/components/scorer/ScoringKeypad';
 import TossWizard from '@/components/scorer/TossWizard';
@@ -19,9 +20,12 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export default function ScorerPage() {
+function ScorerMainContent() {
+  const searchParams = useSearchParams();
+  const paramMatchId = searchParams?.get('matchId');
+
   const [state, setState] = useState(() => store.getState());
-  const [selectedMatchId, setSelectedMatchId] = useState<string>('match_1');
+  const [selectedMatchId, setSelectedMatchId] = useState<string>(paramMatchId || 'match_1');
   const [showNewMatchModal, setShowNewMatchModal] = useState(false);
   const [selectedInningsNum, setSelectedInningsNum] = useState<number>(1);
 
@@ -36,6 +40,12 @@ export default function ScorerPage() {
       setState({ ...store.getState() });
     });
   }, []);
+
+  useEffect(() => {
+    if (paramMatchId && state.matches.some((m) => m.id === paramMatchId)) {
+      setSelectedMatchId(paramMatchId);
+    }
+  }, [paramMatchId, state.matches]);
 
   const activeMatch = state.matches.find((m) => m.id === selectedMatchId) || state.matches[0];
   const tournament = state.tournaments.find((t) => t.id === activeMatch?.tournamentId);
@@ -122,6 +132,7 @@ export default function ScorerPage() {
   };
 
   const isPreMatch = activeMatch && (activeMatch.status === 'scheduled' || activeMatch.status === 'toss' || !inn1);
+  const isMatchCompleted = activeMatch && activeMatch.status === 'completed';
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -235,7 +246,7 @@ export default function ScorerPage() {
         </div>
       )}
 
-      {/* RENDER VIEW: PRE-MATCH TOSS WIZARD OR LIVE SCORING KEYPAD */}
+      {/* RENDER VIEW: PRE-MATCH TOSS WIZARD, COMPLETED SUMMARY, OR LIVE SCORING KEYPAD */}
       {isPreMatch && teamA && teamB ? (
         <TossWizard
           match={activeMatch}
@@ -247,6 +258,57 @@ export default function ScorerPage() {
             setSelectedInningsNum(1);
           }}
         />
+      ) : isMatchCompleted ? (
+        <div className="p-8 bg-white rounded-3xl border border-slate-200 shadow-md space-y-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
+            <Trophy size={32} />
+          </div>
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Match Concluded</span>
+            <h2 className="text-2xl font-black text-slate-900 mt-1">
+              {state.teams.find((t) => t.id === activeMatch.winnerId)?.name || 'Match Winner'} won by {activeMatch.winMargin || 'runs'}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Both innings have concluded. Official scores have been certified and submitted.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+            {inn1 && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">1st Innings</span>
+                <div className="text-lg font-black text-slate-900 mt-1">
+                  {state.teams.find((t) => t.id === inn1.battingTeamId)?.name}: {inn1.totalRuns}/{inn1.wickets}
+                </div>
+                <span className="text-xs text-slate-500">({inn1.oversStr} ov)</span>
+              </div>
+            )}
+            {inn2 && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">2nd Innings</span>
+                <div className="text-lg font-black text-slate-900 mt-1">
+                  {state.teams.find((t) => t.id === inn2.battingTeamId)?.name}: {inn2.totalRuns}/{inn2.wickets}
+                </div>
+                <span className="text-xs text-slate-500">({inn2.oversStr} ov)</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              href={`/matches/${activeMatch.id}?tab=scorecard`}
+              className="px-6 py-3 rounded-2xl bg-cricket-600 hover:bg-cricket-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-sm"
+            >
+              📊 View Certified Scorecard
+            </Link>
+            <button
+              onClick={handleResetCurrentMatch}
+              className="px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition border border-slate-200"
+            >
+              🔄 Re-Open / Reset Match Scoring
+            </button>
+          </div>
+        </div>
       ) : activeMatch && currentInnings ? (
         <ScoringKeypad
           match={activeMatch}
@@ -321,7 +383,7 @@ export default function ScorerPage() {
                   max="50"
                   value={newMatchOvers}
                   onChange={(e) => setNewMatchOvers(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white"
                 />
               </div>
 
@@ -331,29 +393,37 @@ export default function ScorerPage() {
                   type="text"
                   value={newMatchVenue}
                   onChange={(e) => setNewMatchVenue(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-semibold"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowNewMatchModal(false)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
+                className="py-2.5 px-4 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2.5 rounded-xl bg-cricket-600 hover:bg-cricket-500 text-white text-xs font-bold shadow-md shadow-cricket-600/20"
+                className="py-2.5 px-5 rounded-xl bg-cricket-600 hover:bg-cricket-500 text-white text-xs font-bold shadow-sm"
               >
-                Create &amp; Conduct Toss
+                Schedule & Open Toss
               </button>
             </div>
           </form>
         </div>
       )}
     </div>
+  );
+}
+
+export default function ScorerPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-500">Loading Scorer Console...</div>}>
+      <ScorerMainContent />
+    </Suspense>
   );
 }
