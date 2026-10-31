@@ -148,10 +148,93 @@ void main() {
       final db = MockDatabase();
       final initialBid = db.auction.currentBid ?? 450000;
 
-      db.placeAuctionBid('team_kolkata', 50000);
+      // In BPL auction, all 8 teams are checked in by default
+      final success = db.placeAuctionBid(
+        auctionId: db.auction.id,
+        teamId: 'team_kolkata',
+        increment: 50000,
+      );
 
+      expect(success, isTrue);
       expect(db.auction.currentBid, initialBid + 50000);
       expect(db.auction.highBidderTeamId, 'team_kolkata');
+    });
+
+    test('Host is NOT allowed to bid, and auction blocks bidding if 8 teams not entered', () {
+      final db = MockDatabase();
+
+      // PSL has only 4 teams checked in initially
+      final psl = db.auctions.firstWhere((a) => a.id == 'auc_psl_2026');
+      expect(psl.isReadyToStart, isFalse);
+
+      // Bidding should fail because 8 teams haven't entered
+      final bidBefore8 = db.placeAuctionBid(
+        auctionId: psl.id,
+        teamId: 'team_barasat',
+        increment: 50000,
+      );
+      expect(bidBefore8, isFalse);
+
+      // Check in all 8 teams
+      db.checkInAllTeamsToAuction(psl.id);
+      expect(psl.isReadyToStart, isTrue);
+
+      // If user logs in as Host (admin), host is blocked from bidding!
+      db.enterAuctionAsHost(auctionId: psl.id, adminPasscode: 'admin123');
+      expect(db.isAuctionAdmin, isTrue);
+      final hostBid = db.placeAuctionBid(
+        auctionId: psl.id,
+        teamId: 'team_barasat',
+        increment: 50000,
+      );
+      expect(hostBid, isFalse); // Host cannot bid!
+
+      // Team owner logs in -> can bid!
+      final ownerEnter = db.enterAuctionAsTeamOwner(
+        auctionId: psl.id,
+        teamCode: 'TEAM-BBL-01',
+        passcode: '1234',
+      );
+      expect(ownerEnter, isTrue);
+      expect(db.isAuctionAdmin, isFalse);
+      expect(db.authenticatedTeamId, 'team_barasat');
+
+      final ownerBid = db.placeAuctionBid(
+        auctionId: psl.id,
+        teamId: 'team_barasat',
+        increment: 50000,
+      );
+      expect(ownerBid, isTrue);
+    });
+
+    test('Create Tournament provisions 8 franchise teams, room ID, and linked auction', () {
+      final db = MockDatabase();
+
+      final tourn = db.createTournament(
+        name: 'Super Cup 2026',
+        shortName: 'SC 2026',
+        location: 'Wankhede Stadium',
+        overs: 20,
+        roomId: 'TOURN-SC-2026',
+        passcode: '9999',
+        createAuction: true,
+      );
+
+      expect(tourn.roomId, 'TOURN-SC-2026');
+      expect(tourn.passcode, '9999');
+
+      // Check that 8 teams were created for this tournament
+      final tournTeams = db.teams.where((t) => t.tournamentId == tourn.id).toList();
+      expect(tournTeams.length, 8);
+      for (final t in tournTeams) {
+        expect(t.uniqueTeamCode, startsWith('TEAM-SC2026'));
+        expect(t.minSquadRequirement, 15);
+      }
+
+      // Check that linked auction was created
+      final linkedAuction = db.auctions.where((a) => a.tournamentId == tourn.id).firstOrNull;
+      expect(linkedAuction, isNotNull);
+      expect(linkedAuction!.requiredTeamsCount, 8);
     });
 
     test('Selling auction lot deducts franchise purse and increments squad', () {

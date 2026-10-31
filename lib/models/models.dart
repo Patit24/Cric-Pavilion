@@ -18,6 +18,8 @@ class Tournament {
   final int totalTeams;
   final String status;
   final String bannerUrl;
+  final String roomId;
+  final String passcode;
 
   Tournament({
     required this.id,
@@ -30,29 +32,43 @@ class Tournament {
     required this.totalTeams,
     required this.status,
     required this.bannerUrl,
+    this.roomId = '',
+    this.passcode = '1234',
   });
 }
 
 class Team {
   final String id;
+  final String tournamentId;
   final String name;
   final String shortName;
+  final String uniqueTeamCode; // e.g. "TEAM-BBL-01"
+  final String passcode; // e.g. "1234"
   final Color primaryColor;
   final String logoUrl;
   int purseRemaining;
   final int maxPurse;
   int squadCount;
+  final int minSquadRequirement;
+  final int maxSquadLimit;
 
   Team({
     required this.id,
+    this.tournamentId = 'tourn_bpl_2026',
     required this.name,
     required this.shortName,
+    this.uniqueTeamCode = '',
+    this.passcode = '1234',
     required this.primaryColor,
     required this.logoUrl,
     required this.purseRemaining,
     required this.maxPurse,
     required this.squadCount,
+    this.minSquadRequirement = 15,
+    this.maxSquadLimit = 18,
   });
+
+  int get playersStillNeeded => (minSquadRequirement - squadCount).clamp(0, minSquadRequirement);
 }
 
 class Player {
@@ -299,8 +315,13 @@ class Auction {
   String? currentLotId;
   int? currentBid;
   String? highBidderTeamId;
-  final int totalLots;
+  int totalLots;
   int completedLots;
+  final String adminPasscode;
+  final int minBidIncrement;
+  final int maxPursePerTeam;
+  final int requiredTeamsCount;
+  final Set<String> joinedTeamIds;
 
   Auction({
     required this.id,
@@ -312,7 +333,14 @@ class Auction {
     this.highBidderTeamId,
     required this.totalLots,
     this.completedLots = 0,
-  });
+    this.adminPasscode = 'admin123',
+    this.minBidIncrement = 25000,
+    this.maxPursePerTeam = 10000000,
+    this.requiredTeamsCount = 8,
+    Set<String>? joinedTeamIds,
+  }) : joinedTeamIds = joinedTeamIds ?? {};
+
+  bool get isReadyToStart => joinedTeamIds.length >= requiredTeamsCount;
 }
 
 class AuctionLot {

@@ -2,27 +2,35 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import 'create_auction_dialog.dart';
+import 'add_player_dialog.dart';
 
 class AuctionScreen extends StatefulWidget {
-  const AuctionScreen({super.key});
+  final String? initialAuctionId;
+
+  const AuctionScreen({super.key, this.initialAuctionId});
 
   @override
   State<AuctionScreen> createState() => _AuctionScreenState();
 }
 
 class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProviderStateMixin {
+  String? selectedAuctionId;
+  String? selectedTeamIdForSquadView;
+
   late AnimationController _wheelController;
   late Animation<double> _wheelAnimation;
   double _currentAngle = 0.0;
   bool _isSpinning = false;
-  String selectedBiddingTeamId = 'team_barasat';
 
   final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
   @override
   void initState() {
     super.initState();
+    selectedAuctionId = widget.initialAuctionId ?? 'auc_bpl_2026';
     _wheelController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -35,8 +43,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void _spinWheel(MockDatabase db) {
+  void _spinWheel(MockDatabase db, Auction auction) {
     if (_isSpinning) return;
+    if (!auction.isReadyToStart) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Auction cannot start until all 8 franchise teams enter the room!')),
+      );
+      return;
+    }
+
     setState(() => _isSpinning = true);
 
     final randomExtraSpins = 4 + Random().nextInt(4);
@@ -57,7 +72,202 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
-    final auction = db.auction;
+
+    if (selectedAuctionId == null) {
+      return _buildAuctionDirectory(context, db);
+    }
+
+    final auction = db.auctions.where((a) => a.id == selectedAuctionId).firstOrNull ?? db.auctions.first;
+    return _buildAuctionArena(context, db, auction);
+  }
+
+  // =========================================================================
+  // 1. AUCTION DIRECTORY / HUB (BPL, PSL, IPL Auctions)
+  // =========================================================================
+  Widget _buildAuctionDirectory(BuildContext context, MockDatabase db) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF020617),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0F172A),
+        elevation: 0,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.gavel, size: 16, color: Colors.black),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'FRANCHISE AUCTION DIRECTORY',
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => CreateAuctionDialog(db: db),
+              );
+            },
+            icon: const Icon(Icons.add_circle, color: Colors.amber, size: 16),
+            label: const Text('Host Auction', style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Banner
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('OFFICIAL CRICKET DRAFT ARENA', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                      const SizedBox(height: 6),
+                      const Text('Live Player Auctions & Franchise Purses', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Select an auction to view live player lots, 8-team waiting rooms, spinning wheel reveals, and team bidding.',
+                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => CreateAuctionDialog(db: db),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('Host New', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          const Text(
+            'ACTIVE & UPCOMING AUCTIONS',
+            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+          ),
+          const SizedBox(height: 10),
+
+          ...db.auctions.map((auc) {
+            final tourn = db.tournaments.where((t) => t.id == auc.tournamentId).firstOrNull ?? db.tournament;
+            final isLive = auc.status == AuctionStatus.live;
+            final ready = auc.isReadyToStart;
+
+            return InkWell(
+              onTap: () => setState(() => selectedAuctionId = auc.id),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: isLive ? const Color(0xFF059669) : const Color(0xFF1E293B), width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isLive ? const Color(0xFF064E3B) : Colors.white10,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle, size: 8, color: isLive ? const Color(0xFF34D399) : Colors.white54),
+                              const SizedBox(width: 5),
+                              Text(
+                                isLive ? (ready ? 'LIVE BIDDING' : 'WAITING ROOM (8 TEAMS)') : 'PREVIEW',
+                                style: TextStyle(
+                                  color: isLive ? const Color(0xFF34D399) : Colors.white70,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${auc.joinedTeamIds.length}/${auc.requiredTeamsCount} Teams Ready',
+                          style: TextStyle(
+                            color: ready ? const Color(0xFF34D399) : Colors.amber,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(auc.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text('${tourn.name} • ${tourn.location}', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildStatChip(Icons.monetization_on, 'Purse: ${currencyFormat.format(auc.maxPursePerTeam)}'),
+                        const SizedBox(width: 8),
+                        _buildStatChip(Icons.gavel, 'Min: ${currencyFormat.format(auc.minBidIncrement)}'),
+                        const SizedBox(width: 8),
+                        _buildStatChip(Icons.groups, '8 Franchises'),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(6)),
+      child: Row(
+        children: [
+          Icon(icon, size: 11, color: Colors.amber),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 2. AUCTION ARENA (LIVE STAGE, SPIN WHEEL, BIDDING & SQUADS)
+  // =========================================================================
+  Widget _buildAuctionArena(BuildContext context, MockDatabase db, Auction auction) {
     final currentLot = db.auctionLots.where((l) => l.id == auction.currentLotId).firstOrNull;
     final currentPlayer = currentLot != null
         ? db.players.where((p) => p.id == currentLot.playerId).firstOrNull
@@ -66,43 +276,48 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
     final isUnlocked = db.isAuctionUnlocked;
     final isAdmin = db.isAuctionAdmin;
+    final myTeam = db.currentAuthenticatedTeam;
+
+    final participatingTeams = db.teams.where((t) => t.tournamentId == auction.tournamentId || t.tournamentId == 'tourn_bpl_2026').toList();
+    final safe8Teams = participatingTeams.length >= 8 ? participatingTeams.sublist(0, 8) : db.teams.take(8).toList();
+
+    // Default squad view team
+    selectedTeamIdForSquadView ??= myTeam?.id ?? safe8Teams.first.id;
+    final squadViewTeam = safe8Teams.where((t) => t.id == selectedTeamIdForSquadView).firstOrNull ?? safe8Teams.first;
+    final squadPlayers = db.players.where((p) => p.teamId == squadViewTeam.id).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020617), // Deep cinematic stadium dark
+      backgroundColor: const Color(0xFF020617),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'All Auctions',
+          onPressed: () => setState(() => selectedAuctionId = null),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(6)),
-                  child: const Icon(Icons.gavel, size: 14, color: Colors.black),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'FRANCHISE AUCTION STAGE',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.8),
-                ),
-              ],
+            Text(
+              auction.title,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+              overflow: TextOverflow.ellipsis,
             ),
             Row(
               children: [
                 Icon(
-                  isUnlocked ? Icons.check_circle : Icons.lock_outline,
+                  isUnlocked ? (isAdmin ? Icons.shield : Icons.check_circle) : Icons.visibility,
                   size: 11,
-                  color: isUnlocked ? const Color(0xFF34D399) : Colors.amber,
+                  color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white54,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isUnlocked
-                      ? '${isAdmin ? "Auctioneer Admin" : "Franchise Owner"} (Room: ${db.currentAuctionRoomId ?? "AUCTION-BPL"})'
-                      : 'Spectator Broadcast (Live Watch Only)',
+                      ? (isAdmin ? 'Host / Auctioneer Mode' : 'Owner: ${myTeam?.name ?? "Team Owner"}')
+                      : 'Spectator Mode (Broadcast Watch)',
                   style: TextStyle(
-                    color: isUnlocked ? const Color(0xFF34D399) : Colors.amber.shade300,
+                    color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white70,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -112,48 +327,34 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
-          if (!isUnlocked) ...[
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Add Player to Auction',
+              icon: const Icon(Icons.person_add, color: Color(0xFF34D399), size: 20),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
+                );
+              },
+            ),
+          if (!isUnlocked)
             TextButton.icon(
-              onPressed: () => _showEnterAuctionRoomDialog(context, db),
+              onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
               icon: const Icon(Icons.vpn_key, size: 14, color: Colors.amber),
               label: const Text('Enter Room', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
-            ),
-            IconButton(
-              tooltip: 'Create Auction Room',
-              icon: const Icon(Icons.add_circle_outline, color: Colors.white70, size: 20),
-              onPressed: () => _showCreateAuctionRoomDialog(context, db),
-            ),
-          ] else ...[
+            )
+          else
             TextButton.icon(
               onPressed: () {
-                db.lockAuctionRoom();
+                db.exitAuctionRoom();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Auction console locked. Returned to Spectator Mode.')),
+                  const SnackBar(content: Text('Returned to Spectator Broadcast.')),
                 );
               },
               icon: const Icon(Icons.lock, size: 14, color: Colors.redAccent),
-              label: const Text('Exit Room', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+              label: const Text('Exit', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
-          ],
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.amber.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.circle, size: 7, color: Colors.amber),
-                const SizedBox(width: 5),
-                Text(
-                  'LOT ${currentLot?.lotNumber ?? 1}/${auction.totalLots}',
-                  style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -161,7 +362,141 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // SPINNING WHEEL BANNER
+            // =========================================================
+            // 8-TEAM WAITING ROOM LOBBY BANNER
+            // =========================================================
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: auction.isReadyToStart ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: auction.isReadyToStart ? const Color(0xFF34D399) : Colors.amber.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            auction.isReadyToStart ? Icons.verified : Icons.hourglass_top,
+                            size: 16,
+                            color: auction.isReadyToStart ? const Color(0xFF34D399) : Colors.amber,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            auction.isReadyToStart
+                                ? 'ALL 8 FRANCHISE TEAMS CONNECTED'
+                                : 'WAITING ROOM: 8 TEAMS REQUIRED',
+                            style: TextStyle(
+                              color: auction.isReadyToStart ? const Color(0xFF34D399) : Colors.amber,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${auction.joinedTeamIds.length}/8 Ready',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    auction.isReadyToStart
+                        ? 'Auction is LIVE! Host spins wheel to reveal players and only authenticated team owners place bids.'
+                        : 'Until all 8 teams enter the auction room with their unique Team ID & PIN, bidding and wheel spinning are locked.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 8-Team Connected Status Chips
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: safe8Teams.map((t) {
+                      final isConnected = auction.joinedTeamIds.contains(t.id);
+                      return InkWell(
+                        onTap: () {
+                          // Quick check-in shortcut for testing
+                          if (!isConnected) {
+                            db.checkInTeamToAuction(auction.id, t.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${t.name} entered the room!')),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isConnected ? const Color(0xFF047857) : Colors.white10,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: isConnected ? const Color(0xFF34D399) : Colors.white24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isConnected ? Icons.check_circle : Icons.radio_button_unchecked,
+                                size: 10,
+                                color: isConnected ? Colors.white : Colors.white38,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                t.shortName,
+                                style: TextStyle(
+                                  color: isConnected ? Colors.white : Colors.white60,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  if (!auction.isReadyToStart) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              db.checkInAllTeamsToAuction(auction.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('All 8 teams entered! Auction unlocked.')),
+                              );
+                            },
+                            icon: const Icon(Icons.flash_on, size: 14),
+                            label: const Text('Check-In All 8 Teams (Quick Test)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // =========================================================
+            // SPINNING WHEEL BANNER (HOST CONTROLLED)
+            // =========================================================
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -196,28 +531,29 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       // Center Spin Hub
                       GestureDetector(
                         onTap: () {
-                          if (!isUnlocked) {
+                          if (!auction.isReadyToStart) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Spectator Mode: Spin wheel is reserved for the Auctioneer with Admin PIN.')),
+                              const SnackBar(content: Text('Cannot spin wheel until all 8 teams enter the room!')),
                             );
-                            _showEnterAuctionRoomDialog(context, db);
-                          } else if (!isAdmin) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Franchise Bidder: Spin wheel requires Auctioneer Admin PIN (admin123).')),
-                            );
-                          } else {
-                            if (!_isSpinning) _spinWheel(db);
+                            return;
                           }
+                          if (!isAdmin) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Only the Auctioneer Host can spin the wheel to reveal players!')),
+                            );
+                            return;
+                          }
+                          _spinWheel(db, auction);
                         },
                         child: Container(
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: isUnlocked && isAdmin ? Colors.amber.shade500 : Colors.grey.shade800,
+                            color: auction.isReadyToStart && isAdmin ? Colors.amber.shade500 : Colors.grey.shade800,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: (isUnlocked && isAdmin ? Colors.amber : Colors.black).withValues(alpha: 0.5),
+                                color: (auction.isReadyToStart && isAdmin ? Colors.amber : Colors.black).withValues(alpha: 0.5),
                                 blurRadius: 16,
                                 spreadRadius: 2,
                               ),
@@ -225,11 +561,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            _isSpinning ? '...' : (isUnlocked && isAdmin ? 'SPIN' : 'LOCK'),
+                            _isSpinning
+                                ? '...'
+                                : (!auction.isReadyToStart
+                                    ? '8 TEAMS'
+                                    : (isAdmin ? 'SPIN' : 'HOST')),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: isUnlocked && isAdmin ? Colors.black : Colors.white70,
+                              color: auction.isReadyToStart && isAdmin ? Colors.black : Colors.white70,
                             ),
                           ),
                         ),
@@ -244,10 +584,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   const SizedBox(height: 12),
                   Text(
                     _isSpinning
-                        ? 'Revealing next franchise lot...'
-                        : (isUnlocked && isAdmin
-                            ? 'Tap SPIN to reveal player dynamically'
-                            : 'Wheel operated by Official Auctioneer'),
+                        ? 'Revealing next player lot on all franchise boards...'
+                        : (!auction.isReadyToStart
+                            ? 'Wheel locked: Waiting for 8 teams to check in'
+                            : (isAdmin
+                                ? 'Host: Tap SPIN to reveal next player lot'
+                                : 'Wheel operated exclusively by Auctioneer Host')),
                     style: const TextStyle(color: Colors.white54, fontSize: 11),
                   ),
                 ],
@@ -256,7 +598,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
             const SizedBox(height: 16),
 
-            // CURRENT LOT STAGE CARD
+            // =========================================================
+            // CURRENT LOT STAGE CARD (REVEALED ON ALL BOARDS)
+            // =========================================================
             if (currentLot != null && currentPlayer != null)
               Container(
                 padding: const EdgeInsets.all(16),
@@ -356,7 +700,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text('CURRENT BID', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900)),
+                              const Text('CURRENT HIGH BID', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900)),
                               const SizedBox(height: 2),
                               Text(
                                 currencyFormat.format(currentLot.currentBid ?? currentLot.basePrice),
@@ -373,7 +717,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Text('Leading Bidder: ', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          const Text('Winning Bidder: ', style: TextStyle(color: Colors.white54, fontSize: 11)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
@@ -392,194 +736,185 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                     const SizedBox(height: 16),
 
-                    // CONTROLS SECTION: Unlocked Franchise Console OR Spectator Broadcast Card
-                    if (isUnlocked) ...[
-                      // FRANCHISE BIDDING CONTROLS
-                      const Text('Place Bid for Franchise:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      DropdownButtonFormField<String>(
-                        value: selectedBiddingTeamId,
-                        dropdownColor: const Color(0xFF1E293B),
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          filled: true,
-                          fillColor: const Color(0xFF1E293B),
-                        ),
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                        items: db.teams.map((t) {
-                          return DropdownMenuItem(
-                            value: t.id,
-                            child: Text('${t.name} (Purse: ${currencyFormat.format(t.purseRemaining)})'),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => selectedBiddingTeamId = val ?? 'team_barasat'),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Bid Increment Buttons (+25k, +50k, +1L)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => db.placeAuctionBid(selectedBiddingTeamId, 25000),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber.shade600,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: const Text('+₹25k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => db.placeAuctionBid(selectedBiddingTeamId, 50000),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber.shade500,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: const Text('+₹50k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => db.placeAuctionBid(selectedBiddingTeamId, 100000),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber.shade400,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: const Text('+₹1 Lakh', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Auctioneer Final Action: SOLD / UNSOLD
-                      if (isAdmin) ...[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () => db.sellCurrentLot(),
-                                icon: const Icon(Icons.gavel, size: 16),
-                                label: const Text('HAMMER SOLD', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF059669),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => db.passCurrentLot(),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red.shade400,
-                                  side: BorderSide(color: Colors.red.shade400),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('UNSOLD (PASS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ] else ...[
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'Hammer SOLD / UNSOLD requires Auctioneer Admin PIN (admin123)',
-                            style: TextStyle(color: Colors.white54, fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    ] else ...[
-                      // SPECTATOR BROADCAST LOCK CARD
+                    // =========================================================
+                    // BIDDING ACTION CONTROLS (TEAM OWNERS ONLY vs HOST HAMMER)
+                    // =========================================================
+                    if (isAdmin) ...[
+                      // HOST / AUCTIONEER HAMMER CONTROLS (Host CANNOT bid!)
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Row(
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.visibility, color: Colors.amber, size: 14),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  'LIVE AUCTION BROADCAST',
-                                  style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white10,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text('Spectator Watch', style: TextStyle(color: Colors.white60, fontSize: 9)),
+                                Icon(Icons.shield, color: Colors.amber, size: 14),
+                                SizedBox(width: 6),
+                                Text(
+                                  'HOST AUCTIONEER GAVEL (HOST DOES NOT BID)',
+                                  style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Only registered franchise owners with their Team Room PIN can place live bids, and authorized auctioneers can hammer lots.',
-                              style: TextStyle(color: Colors.white70, fontSize: 10),
-                            ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Row(
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () => _showEnterAuctionRoomDialog(context, db),
-                                    icon: const Icon(Icons.vpn_key, size: 14),
-                                    label: const Text('ENTER AUCTION ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                                    onPressed: () => db.sellCurrentLot(auction.id),
+                                    icon: const Icon(Icons.gavel, size: 16),
+                                    label: const Text('HAMMER SOLD', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber,
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      backgroundColor: const Color(0xFF059669),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 10),
                                 Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () => _showCreateAuctionRoomDialog(context, db),
-                                    icon: const Icon(Icons.add_circle_outline, size: 14),
-                                    label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                  child: OutlinedButton(
+                                    onPressed: () => db.passCurrentLot(auction.id),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      side: const BorderSide(color: Colors.white38),
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      foregroundColor: Colors.red.shade400,
+                                      side: BorderSide(color: Colors.red.shade400),
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
+                                    child: const Text('UNSOLD (PASS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                          ],
+                        ),
+                      ),
+                    ] else if (myTeam != null) ...[
+                      // AUTHENTICATED TEAM OWNER BIDDING CONTROLS
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Bidding as ${myTeam.name}:',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
+                                style: TextStyle(color: myTeam.primaryColor, fontSize: 12, fontWeight: FontWeight.w900),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Bid Increment Buttons (+25k, +50k, +1L)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    final ok = db.placeAuctionBid(
+                                      auctionId: auction.id,
+                                      teamId: myTeam.id,
+                                      increment: auction.minBidIncrement,
+                                    );
+                                    if (!ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade600,
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  child: Text('+${currencyFormat.format(auction.minBidIncrement)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    final ok = db.placeAuctionBid(
+                                      auctionId: auction.id,
+                                      teamId: myTeam.id,
+                                      increment: 50000,
+                                    );
+                                    if (!ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade500,
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  child: const Text('+₹50k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    final ok = db.placeAuctionBid(
+                                      auctionId: auction.id,
+                                      teamId: myTeam.id,
+                                      increment: 100000,
+                                    );
+                                    if (!ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade400,
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  child: const Text('+₹1 Lakh', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      // SPECTATOR BROADCAST NOTICE
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          children: [
                             const Text(
-                              'Demo: Team Owner PIN: 1234  •  Auctioneer PIN: admin123',
+                              'Only registered franchise owners can place bids on this player lot.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white38, fontSize: 9),
+                              style: TextStyle(color: Colors.white70, fontSize: 11),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
+                              icon: const Icon(Icons.vpn_key, size: 14),
+                              label: const Text('Enter with Team ID & PIN to Bid', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                              ),
                             ),
                           ],
                         ),
@@ -591,60 +926,196 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
             const SizedBox(height: 20),
 
-            // FRANCHISE PURSE STATUS
+            // =========================================================
+            // 3. DETAILED FRANCHISE SQUAD & REMAINING PURSE INSPECTOR
+            // =========================================================
             const Text(
-              'FRANCHISE PURSE & SQUAD STATUS',
+              'FRANCHISE SQUAD & REMAINING PURSE VIEWER',
               style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
             ),
+            const SizedBox(height: 6),
+            const Text(
+              'Select any of the 8 teams to inspect remaining purse, bought players, and quota requirements.',
+              style: TextStyle(color: Colors.white38, fontSize: 11),
+            ),
             const SizedBox(height: 10),
-            ...db.teams.map((t) {
-              final spentRatio = (t.maxPurse - t.purseRemaining) / t.maxPurse;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF1E293B)),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(t.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(
-                          '${currencyFormat.format(t.purseRemaining)} left',
-                          style: TextStyle(color: t.primaryColor, fontWeight: FontWeight.w900, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: spentRatio,
-                        backgroundColor: Colors.white10,
-                        valueColor: AlwaysStoppedAnimation<Color>(t.primaryColor),
-                        minHeight: 6,
+
+            // 8 Teams Horizontal Scrollable Selector
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: safe8Teams.map((t) {
+                  final isSelected = t.id == squadViewTeam.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      selected: isSelected,
+                      avatar: CircleAvatar(backgroundImage: NetworkImage(t.logoUrl), radius: 10),
+                      label: Text(t.name),
+                      selectedColor: t.primaryColor,
+                      backgroundColor: const Color(0xFF0F172A),
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
                       ),
+                      onSelected: (val) {
+                        if (val) setState(() => selectedTeamIdForSquadView = t.id);
+                      },
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Squad: ${t.squadCount} players', style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                        Text('Spent: ${(spentRatio * 100).toStringAsFixed(0)}%', style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 12),
 
-            const SizedBox(height: 16),
+            // SELECTED TEAM SQUAD DETAILS CARD
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: squadViewTeam.primaryColor, width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Team Header
+                  Row(
+                    children: [
+                      CircleAvatar(backgroundImage: NetworkImage(squadViewTeam.logoUrl), radius: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              squadViewTeam.name,
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                            ),
+                            Text(
+                              'Code: ${squadViewTeam.uniqueTeamCode} • PIN: ${squadViewTeam.passcode}',
+                              style: TextStyle(color: squadViewTeam.primaryColor, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
-            // RECENT BID LOG
+                  // Purse & Squad Metrics Grid
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('PURSE REMAINING', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text(
+                                currencyFormat.format(squadViewTeam.purseRemaining),
+                                style: TextStyle(color: squadViewTeam.primaryColor, fontSize: 15, fontWeight: FontWeight.w900),
+                              ),
+                              Text('Max: ${currencyFormat.format(squadViewTeam.maxPurse)}', style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('SQUAD STRENGTH', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${squadViewTeam.squadCount} / ${squadViewTeam.maxSquadLimit}',
+                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                              ),
+                              Text(
+                                squadViewTeam.playersStillNeeded > 0
+                                    ? 'Need ${squadViewTeam.playersStillNeeded} more players'
+                                    : 'Quota Fulfilled!',
+                                style: TextStyle(
+                                  color: squadViewTeam.playersStillNeeded > 0 ? Colors.amber : const Color(0xFF34D399),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Purchased Roster List
+                  Text(
+                    'ACQUIRED PLAYERS (${squadPlayers.length})',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  ),
+                  const SizedBox(height: 8),
+
+                  if (squadPlayers.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
+                      alignment: Alignment.center,
+                      child: const Text('No players purchased yet in this auction.', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                    )
+                  else
+                    ...squadPlayers.map((p) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(backgroundImage: NetworkImage(p.photoUrl), radius: 14),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${p.roleString} • ${p.battingStyle}', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF064E3B),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                currencyFormat.format(p.basePrice),
+                                style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 11),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // LIVE BID TIMELINE
             const Text(
               'LIVE BID TIMELINE',
               style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
@@ -680,13 +1151,19 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     );
   }
 
-  // ==========================================
-  // AUCTION ROOM MODALS
-  // ==========================================
-
-  void _showEnterAuctionRoomDialog(BuildContext context, MockDatabase db) {
-    final roomController = TextEditingController(text: 'AUCTION-BPL');
-    final passController = TextEditingController();
+  // =========================================================================
+  // MODALS: ENTER AUCTION ROOM AS TEAM OWNER OR HOST
+  // =========================================================================
+  void _showEnterAuctionRoomDialog(
+    BuildContext context,
+    MockDatabase db,
+    Auction auction,
+    List<Team> safe8Teams,
+  ) {
+    int activeTab = 0; // 0 = Team Owner, 1 = Host Admin
+    final teamCodeController = TextEditingController(text: safe8Teams.first.uniqueTeamCode);
+    final teamPassController = TextEditingController(text: '1234');
+    final hostPassController = TextEditingController(text: 'admin123');
     String? errorMessage;
 
     showDialog(
@@ -707,95 +1184,129 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Enter your franchise bidding PIN or auctioneer administrator PIN.',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  // Tab toggle
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(10)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setDialogState(() => activeTab = 0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                color: activeTab == 0 ? Colors.amber : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Team Owner (Bid)',
+                                style: TextStyle(
+                                  color: activeTab == 0 ? Colors.black : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setDialogState(() => activeTab = 1),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                color: activeTab == 1 ? const Color(0xFF059669) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Host / Admin',
+                                style: TextStyle(
+                                  color: activeTab == 1 ? Colors.white : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: roomController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Auction Room ID',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: 'e.g. AUCTION-BPL',
-                      prefixIcon: const Icon(Icons.meeting_room, color: Colors.white54),
-                      filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: passController,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Passcode PIN',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: 'Team PIN (1234) or Admin PIN',
-                      prefixIcon: const Icon(Icons.password, color: Colors.white54),
-                      filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
 
-                  // Demo quick-fill chips
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
+                  if (activeTab == 0) ...[
+                    // TEAM OWNER LOGIN
+                    const Text('Enter with your unique Team Code & Passcode to place live bids.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: teamCodeController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Unique Team ID',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        hintText: 'e.g. TEAM-BBL-01',
+                        prefixIcon: const Icon(Icons.shield, color: Colors.amber, size: 18),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: teamPassController,
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Team Passcode PIN',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        hintText: 'e.g. 1234',
+                        prefixIcon: const Icon(Icons.password, color: Colors.white54, size: 18),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Quick select from 8 teams
+                    const Text('Or tap your franchise:', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      children: safe8Teams.map((t) {
+                        return ActionChip(
+                          label: Text(t.shortName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          backgroundColor: const Color(0xFF0F172A),
+                          onPressed: () {
                             setDialogState(() {
-                              roomController.text = 'AUCTION-BPL';
-                              passController.text = '1234';
-                              errorMessage = null;
+                              teamCodeController.text = t.uniqueTeamCode;
+                              teamPassController.text = t.passcode;
                             });
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-                            ),
-                            child: const Text(
-                              '⚡ Team PIN: 1234',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
+                        );
+                      }).toList(),
+                    ),
+                  ] else ...[
+                    // HOST LOGIN
+                    const Text('Enter Host PIN to operate spinning wheel and auctioneer hammer.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: hostPassController,
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Auctioneer Host PIN',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        hintText: 'admin123',
+                        prefixIcon: const Icon(Icons.security, color: Color(0xFF34D399), size: 18),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            setDialogState(() {
-                              roomController.text = 'AUCTION-BPL';
-                              passController.text = 'admin123';
-                              errorMessage = null;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF064E3B),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFF34D399)),
-                            ),
-                            child: const Text(
-                              '⚡ Admin: admin123',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
 
                   if (errorMessage != null) ...[
                     const SizedBox(height: 10),
@@ -814,152 +1325,51 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               ),
               ElevatedButton(
                 onPressed: () {
-                  final success = db.unlockAuctionRoom(
-                    roomId: roomController.text,
-                    passcode: passController.text,
-                  );
-                  if (success) {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: const Color(0xFF059669),
-                        content: Text(
-                          db.isAuctionAdmin
-                              ? 'Auctioneer Admin Mode Unlocked! (Hammer & Spin active)'
-                              : 'Franchise Bidding Unlocked for your team!',
-                        ),
-                      ),
+                  if (activeTab == 0) {
+                    final ok = db.enterAuctionAsTeamOwner(
+                      auctionId: auction.id,
+                      teamCode: teamCodeController.text,
+                      passcode: teamPassController.text,
                     );
+                    if (ok) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: const Color(0xFF059669),
+                          content: Text('Welcome, ${db.currentAuthenticatedTeam?.name}! You can now bid.'),
+                        ),
+                      );
+                    } else {
+                      setDialogState(() => errorMessage = 'Invalid Team Code or Passcode.');
+                    }
                   } else {
-                    setDialogState(() {
-                      errorMessage = 'Invalid Room ID or Passcode for this auction.';
-                    });
+                    final ok = db.enterAuctionAsHost(
+                      auctionId: auction.id,
+                      adminPasscode: hostPassController.text,
+                    );
+                    if (ok) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Color(0xFF059669),
+                          content: Text('Host Mode Unlocked! You can spin wheel and hammer sold.'),
+                        ),
+                      );
+                    } else {
+                      setDialogState(() => errorMessage = 'Invalid Host PIN.');
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
+                  backgroundColor: activeTab == 0 ? Colors.amber : const Color(0xFF34D399),
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Unlock Auction', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(activeTab == 0 ? 'Enter & Bid' : 'Unlock Host', style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );
         },
-      ),
-    );
-  }
-
-  void _showCreateAuctionRoomDialog(BuildContext context, MockDatabase db) {
-    final roomController = TextEditingController(text: 'AUCTION-BPL-2026');
-    final passController = TextEditingController(text: '1234');
-    final adminPassController = TextEditingController(text: 'admin123');
-    final nameController = TextEditingController(text: 'BPL Governing Body');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: Row(
-          children: const [
-            Icon(Icons.add_circle, color: Colors.amber, size: 20),
-            SizedBox(width: 8),
-            Text('Create Auction Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Create a franchise auction room. Share Team PIN with franchise owners to bid, and keep Admin PIN for the auctioneer hammer.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: roomController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Auction Room ID',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF0F172A),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: passController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Franchise Bidding PIN',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  hintText: 'e.g. 1234',
-                  filled: true,
-                  fillColor: const Color(0xFF0F172A),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: adminPassController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Auctioneer Admin PIN',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  hintText: 'e.g. admin123',
-                  filled: true,
-                  fillColor: const Color(0xFF0F172A),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Organizer Name',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF0F172A),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (roomController.text.trim().isEmpty || passController.text.trim().isEmpty) return;
-              final newRoom = db.createAuctionRoom(
-                auctionId: db.auction.id,
-                roomId: roomController.text,
-                passcode: passController.text,
-                adminPasscode: adminPassController.text,
-                createdBy: nameController.text,
-              );
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: const Color(0xFF059669),
-                  content: Text('Auction Room "${newRoom.id}" created! Unlocked as Auctioneer Admin.'),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Create & Enter Room', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import 'scorer/scorer_screen.dart';
 import 'scorer/full_scorecard_dialog.dart';
+import 'tournaments/create_tournament_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onTabChange;
@@ -69,6 +70,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Create New Tournament',
+            icon: const Icon(Icons.add_circle, color: Color(0xFF34D399), size: 22),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => CreateTournamentDialog(db: db),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),

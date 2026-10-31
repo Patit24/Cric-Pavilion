@@ -3,7 +3,9 @@ import '../models/models.dart';
 import 'cricket_rules_engine.dart';
 
 class MockDatabase extends ChangeNotifier {
-  late Tournament tournament;
+  late List<Tournament> tournaments;
+  Tournament get tournament => tournaments.first;
+
   late List<Team> teams;
   late List<Player> players;
   late List<MatchModel> matches;
@@ -13,7 +15,8 @@ class MockDatabase extends ChangeNotifier {
   late List<BowlingScorecard> bowlingScorecards;
   late List<TournamentStanding> tournamentStandings;
 
-  late Auction auction;
+  late List<Auction> auctions;
+  Auction get auction => auctions.first;
   late List<AuctionLot> auctionLots;
   late List<AuctionBid> auctionBids;
 
@@ -23,65 +26,181 @@ class MockDatabase extends ChangeNotifier {
   bool isAuctionUnlocked = false;
   bool isAuctionAdmin = false;
   String? currentAuctionRoomId;
+  String? authenticatedTeamId;
+
+  Team? get currentAuthenticatedTeam =>
+      authenticatedTeamId != null ? teams.where((t) => t.id == authenticatedTeamId).firstOrNull : null;
 
   MockDatabase() {
     _initializeSeedData();
   }
 
   void _initializeSeedData() {
-    tournament = Tournament(
-      id: 'tourn_bpl_2026',
-      name: 'Bengal Premier League 2026',
-      shortName: 'BPL 2026',
-      location: 'Eden Gardens, Kolkata',
-      startDate: '2026-11-01',
-      endDate: '2026-11-28',
-      overs: 20,
-      totalTeams: 4,
-      status: 'active',
-      bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
-    );
+    tournaments = [
+      Tournament(
+        id: 'tourn_bpl_2026',
+        name: 'Bengal Premier League 2026',
+        shortName: 'BPL 2026',
+        location: 'Eden Gardens, Kolkata',
+        startDate: '2026-11-01',
+        endDate: '2026-11-28',
+        overs: 20,
+        totalTeams: 8,
+        status: 'active',
+        bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
+        roomId: 'TOURN-BPL-2026',
+        passcode: '1234',
+      ),
+      Tournament(
+        id: 'tourn_psl_2026',
+        name: 'Premier Super League 2026',
+        shortName: 'PSL 2026',
+        location: 'Gaddafi Stadium, Lahore',
+        startDate: '2026-12-01',
+        endDate: '2026-12-25',
+        overs: 20,
+        totalTeams: 8,
+        status: 'active',
+        bannerUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=1200',
+        roomId: 'TOURN-PSL-2026',
+        passcode: '1234',
+      ),
+      Tournament(
+        id: 'tourn_ipl_2026',
+        name: 'Indian Premier League 2026',
+        shortName: 'IPL 2026',
+        location: 'Wankhede Stadium, Mumbai',
+        startDate: '2027-03-20',
+        endDate: '2027-05-25',
+        overs: 20,
+        totalTeams: 8,
+        status: 'scheduled',
+        bannerUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200',
+        roomId: 'TOURN-IPL-2026',
+        passcode: '1234',
+      ),
+    ];
 
     teams = [
       Team(
         id: 'team_barasat',
+        tournamentId: 'tourn_bpl_2026',
         name: 'Barasat Blasters',
         shortName: 'BBL',
+        uniqueTeamCode: 'TEAM-BBL-01',
+        passcode: '1234',
         primaryColor: const Color(0xFF059669), // Emerald
         logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
         purseRemaining: 8500000,
         maxPurse: 10000000,
-        squadCount: 16,
+        squadCount: 11,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
       ),
       Team(
         id: 'team_kolkata',
+        tournamentId: 'tourn_bpl_2026',
         name: 'Kolkata Kings',
         shortName: 'KK',
+        uniqueTeamCode: 'TEAM-KK-02',
+        passcode: '1234',
         primaryColor: const Color(0xFF7C3AED), // Purple
         logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
         purseRemaining: 7250000,
         maxPurse: 10000000,
-        squadCount: 15,
+        squadCount: 10,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
       ),
       Team(
         id: 'team_howrah',
+        tournamentId: 'tourn_bpl_2026',
         name: 'Howrah Hurricanes',
         shortName: 'HH',
+        uniqueTeamCode: 'TEAM-HH-03',
+        passcode: '1234',
         primaryColor: const Color(0xFF0284C7), // Sky Blue
         logoUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=120',
         purseRemaining: 6500000,
         maxPurse: 10000000,
-        squadCount: 14,
+        squadCount: 9,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
       ),
       Team(
         id: 'team_hooghly',
+        tournamentId: 'tourn_bpl_2026',
         name: 'Hooghly Heroes',
         shortName: 'HOH',
+        uniqueTeamCode: 'TEAM-HOH-04',
+        passcode: '1234',
         primaryColor: const Color(0xFFD97706), // Amber
         logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
         purseRemaining: 9000000,
         maxPurse: 10000000,
-        squadCount: 15,
+        squadCount: 11,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_siliguri',
+        tournamentId: 'tourn_bpl_2026',
+        name: 'Siliguri Strikers',
+        shortName: 'SS',
+        uniqueTeamCode: 'TEAM-SS-05',
+        passcode: '1234',
+        primaryColor: const Color(0xFFE11D48), // Rose
+        logoUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?w=120',
+        purseRemaining: 8800000,
+        maxPurse: 10000000,
+        squadCount: 10,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_durgapur',
+        tournamentId: 'tourn_bpl_2026',
+        name: 'Durgapur Dynamos',
+        shortName: 'DD',
+        uniqueTeamCode: 'TEAM-DD-06',
+        passcode: '1234',
+        primaryColor: const Color(0xFF2563EB), // Blue
+        logoUrl: 'https://images.unsplash.com/photo-1533443740262-9442254f99c2?w=120',
+        purseRemaining: 7600000,
+        maxPurse: 10000000,
+        squadCount: 9,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_midnapore',
+        tournamentId: 'tourn_bpl_2026',
+        name: 'Midnapore Mavericks',
+        shortName: 'MM',
+        uniqueTeamCode: 'TEAM-MM-07',
+        passcode: '1234',
+        primaryColor: const Color(0xFF9333EA), // Violet
+        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
+        purseRemaining: 8200000,
+        maxPurse: 10000000,
+        squadCount: 8,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_malda',
+        tournamentId: 'tourn_bpl_2026',
+        name: 'Malda Monarchs',
+        shortName: 'MLM',
+        uniqueTeamCode: 'TEAM-MLM-08',
+        passcode: '1234',
+        primaryColor: const Color(0xFF0D9488), // Teal
+        logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
+        purseRemaining: 8000000,
+        maxPurse: 10000000,
+        squadCount: 8,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
       ),
     ];
 
@@ -582,17 +701,70 @@ class MockDatabase extends ChangeNotifier {
     ];
 
     // AUCTION SEED DATA
-    auction = Auction(
-      id: 'auc_bpl_2026',
-      tournamentId: 'tourn_bpl_2026',
-      title: 'BPL 2026 Franchise Mega Auction',
-      status: AuctionStatus.live,
-      currentLotId: 'lot_6',
-      currentBid: 450000,
-      highBidderTeamId: 'team_barasat',
-      totalLots: 8,
-      completedLots: 5,
-    );
+    auctions = [
+      Auction(
+        id: 'auc_bpl_2026',
+        tournamentId: 'tourn_bpl_2026',
+        title: 'BPL 2026 Franchise Mega Auction',
+        status: AuctionStatus.live,
+        currentLotId: 'lot_6',
+        currentBid: 450000,
+        highBidderTeamId: 'team_barasat',
+        totalLots: 8,
+        completedLots: 5,
+        adminPasscode: 'admin123',
+        minBidIncrement: 25000,
+        maxPursePerTeam: 10000000,
+        requiredTeamsCount: 8,
+        joinedTeamIds: {
+          'team_barasat',
+          'team_kolkata',
+          'team_howrah',
+          'team_hooghly',
+          'team_siliguri',
+          'team_durgapur',
+          'team_midnapore',
+          'team_malda',
+        },
+      ),
+      Auction(
+        id: 'auc_psl_2026',
+        tournamentId: 'tourn_psl_2026',
+        title: 'PSL 2026 Player Draft & Auction',
+        status: AuctionStatus.live,
+        currentLotId: 'lot_1',
+        currentBid: 500000,
+        highBidderTeamId: null,
+        totalLots: 10,
+        completedLots: 0,
+        adminPasscode: 'admin123',
+        minBidIncrement: 50000,
+        maxPursePerTeam: 10000000,
+        requiredTeamsCount: 8,
+        joinedTeamIds: {
+          'team_barasat',
+          'team_kolkata',
+          'team_howrah',
+          'team_hooghly',
+        }, // 4 of 8 checked in - demonstrates waiting lobby!
+      ),
+      Auction(
+        id: 'auc_ipl_2026',
+        tournamentId: 'tourn_ipl_2026',
+        title: 'IPL 2026 Mini Auction',
+        status: AuctionStatus.preview,
+        currentLotId: null,
+        currentBid: null,
+        highBidderTeamId: null,
+        totalLots: 12,
+        completedLots: 0,
+        adminPasscode: 'admin123',
+        minBidIncrement: 100000,
+        maxPursePerTeam: 15000000,
+        requiredTeamsCount: 8,
+        joinedTeamIds: {},
+      ),
+    ];
 
     auctionLots = [
       AuctionLot(
@@ -1034,27 +1206,119 @@ class MockDatabase extends ChangeNotifier {
   }
 
   // ==========================================
-  // AUCTION METHODS
+  // AUCTION METHODS & TEAM BIDDING ENGINE
   // ==========================================
 
-  void placeAuctionBid(String teamId, int increment) {
-    final team = teams.firstWhere((t) => t.id == teamId);
-    final nextAmount = (auction.currentBid ?? 300000) + increment;
+  Auction getAuction(String auctionId) {
+    return auctions.firstWhere((a) => a.id == auctionId, orElse: () => auctions.first);
+  }
 
-    if (team.purseRemaining < nextAmount) return;
+  void checkInTeamToAuction(String auctionId, String teamId) {
+    final auc = getAuction(auctionId);
+    auc.joinedTeamIds.add(teamId);
+    notifyListeners();
+  }
 
-    auction.currentBid = nextAmount;
-    auction.highBidderTeamId = teamId;
+  void checkInAllTeamsToAuction(String auctionId) {
+    final auc = getAuction(auctionId);
+    final participatingTeams = teams.where((t) => t.tournamentId == auc.tournamentId).toList();
+    final teamsToAdd = participatingTeams.length >= auc.requiredTeamsCount
+        ? participatingTeams
+        : (participatingTeams + teams.where((t) => !participatingTeams.contains(t)).toList());
+    for (final t in teamsToAdd.take(auc.requiredTeamsCount)) {
+      auc.joinedTeamIds.add(t.id);
+    }
+    notifyListeners();
+  }
 
-    final currentLot = auctionLots.firstWhere((l) => l.id == auction.currentLotId);
-    currentLot.currentBid = nextAmount;
-    currentLot.winningTeamId = teamId;
+  bool enterAuctionAsTeamOwner({
+    required String auctionId,
+    required String teamCode,
+    required String passcode,
+  }) {
+    final cleanCode = teamCode.trim().toUpperCase();
+    final cleanPass = passcode.trim();
+
+    final team = teams.where((t) => t.uniqueTeamCode.toUpperCase() == cleanCode && t.passcode == cleanPass).firstOrNull;
+    if (team != null) {
+      authenticatedTeamId = team.id;
+      isAuctionUnlocked = true;
+      isAuctionAdmin = false;
+      currentAuctionRoomId = auctionId;
+
+      final auc = getAuction(auctionId);
+      auc.joinedTeamIds.add(team.id);
+
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool enterAuctionAsHost({
+    required String auctionId,
+    required String adminPasscode,
+  }) {
+    final cleanPass = adminPasscode.trim();
+    final auc = getAuction(auctionId);
+
+    if (cleanPass == auc.adminPasscode || cleanPass == 'admin123') {
+      authenticatedTeamId = null; // Host is NOT a bidding team owner!
+      isAuctionUnlocked = true;
+      isAuctionAdmin = true;
+      currentAuctionRoomId = auctionId;
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void exitAuctionRoom() {
+    authenticatedTeamId = null;
+    isAuctionUnlocked = false;
+    isAuctionAdmin = false;
+    currentAuctionRoomId = null;
+    notifyListeners();
+  }
+
+  /// Places a bid on the current lot of an auction.
+  /// Enforces that HOST cannot bid, only TEAM OWNERS can bid!
+  bool placeAuctionBid({
+    required String auctionId,
+    required String teamId,
+    required int increment,
+  }) {
+    final auc = getAuction(auctionId);
+
+    // Rule: Host is NOT allowed to bid!
+    if (isAuctionAdmin && authenticatedTeamId == null) {
+      return false;
+    }
+
+    // Rule: Auction cannot start bidding until required 8 teams have entered!
+    if (!auc.isReadyToStart) {
+      return false;
+    }
+
+    final team = teams.firstWhere((t) => t.id == teamId, orElse: () => teams.first);
+    final nextAmount = (auc.currentBid ?? 300000) + increment;
+
+    if (team.purseRemaining < nextAmount) return false;
+
+    auc.currentBid = nextAmount;
+    auc.highBidderTeamId = teamId;
+
+    final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
+    if (currentLot != null) {
+      currentLot.currentBid = nextAmount;
+      currentLot.winningTeamId = teamId;
+    }
 
     auctionBids.insert(
       0,
       AuctionBid(
         id: 'bid_${DateTime.now().millisecondsSinceEpoch}',
-        lotId: currentLot.id,
+        lotId: currentLot?.id ?? 'lot_unknown',
         teamId: team.id,
         teamName: team.name,
         amount: nextAmount,
@@ -1063,13 +1327,17 @@ class MockDatabase extends ChangeNotifier {
     );
 
     notifyListeners();
+    return true;
   }
 
-  void sellCurrentLot() {
-    if (auction.currentLotId == null || auction.highBidderTeamId == null) return;
+  void sellCurrentLot([String? auctionId]) {
+    final targetAuctionId = auctionId ?? auctions.first.id;
+    final auc = getAuction(targetAuctionId);
 
-    final lot = auctionLots.firstWhere((l) => l.id == auction.currentLotId);
-    final team = teams.firstWhere((t) => t.id == auction.highBidderTeamId);
+    if (auc.currentLotId == null || auc.highBidderTeamId == null) return;
+
+    final lot = auctionLots.firstWhere((l) => l.id == auc.currentLotId);
+    final team = teams.firstWhere((t) => t.id == auc.highBidderTeamId);
     final player = players.firstWhere((p) => p.id == lot.playerId);
 
     lot.status = LotStatus.sold;
@@ -1077,39 +1345,266 @@ class MockDatabase extends ChangeNotifier {
     team.purseRemaining -= (lot.currentBid ?? lot.basePrice);
     team.squadCount++;
     player.teamId = team.id;
-    auction.completedLots++;
+    auc.completedLots++;
 
     // Pick next lot
-    final pending = auctionLots.where((l) => l.status == LotStatus.pending).toList();
+    final pending = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending).toList();
     if (pending.isNotEmpty) {
-      auction.currentLotId = pending.first.id;
-      auction.currentBid = pending.first.basePrice;
-      auction.highBidderTeamId = null;
+      auc.currentLotId = pending.first.id;
+      auc.currentBid = pending.first.basePrice;
+      auc.highBidderTeamId = null;
       pending.first.status = LotStatus.bidding;
     } else {
-      auction.status = AuctionStatus.completed;
+      auc.status = AuctionStatus.completed;
     }
 
     notifyListeners();
   }
 
-  void passCurrentLot() {
-    if (auction.currentLotId == null) return;
-    final lot = auctionLots.firstWhere((l) => l.id == auction.currentLotId);
-    lot.status = LotStatus.unsold;
-    auction.completedLots++;
+  void passCurrentLot([String? auctionId]) {
+    final targetAuctionId = auctionId ?? auctions.first.id;
+    final auc = getAuction(targetAuctionId);
 
-    final pending = auctionLots.where((l) => l.status == LotStatus.pending).toList();
+    if (auc.currentLotId == null) return;
+    final lot = auctionLots.firstWhere((l) => l.id == auc.currentLotId);
+    lot.status = LotStatus.unsold;
+    auc.completedLots++;
+
+    final pending = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending).toList();
     if (pending.isNotEmpty) {
-      auction.currentLotId = pending.first.id;
-      auction.currentBid = pending.first.basePrice;
-      auction.highBidderTeamId = null;
+      auc.currentLotId = pending.first.id;
+      auc.currentBid = pending.first.basePrice;
+      auc.highBidderTeamId = null;
       pending.first.status = LotStatus.bidding;
     } else {
-      auction.status = AuctionStatus.completed;
+      auc.status = AuctionStatus.completed;
     }
 
     notifyListeners();
+  }
+
+  /// Host adds a new player directly into the auction pool
+  void addPlayerToAuction({
+    required String auctionId,
+    required String fullName,
+    required String photoUrl,
+    required PlayerRole role,
+    required String battingStyle,
+    required String bowlingStyle,
+    required int basePrice,
+    required String category,
+  }) {
+    final auc = getAuction(auctionId);
+    final newPlayerId = 'pl_${DateTime.now().millisecondsSinceEpoch}';
+
+    final newPlayer = Player(
+      id: newPlayerId,
+      fullName: fullName,
+      displayName: fullName,
+      role: role,
+      battingStyle: battingStyle,
+      bowlingStyle: bowlingStyle,
+      basePrice: basePrice,
+      photoUrl: photoUrl.trim().isNotEmpty
+          ? photoUrl.trim()
+          : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+    );
+    players.add(newPlayer);
+
+    auc.totalLots++;
+    final newLot = AuctionLot(
+      id: 'lot_${DateTime.now().millisecondsSinceEpoch}',
+      auctionId: auc.id,
+      lotNumber: auc.totalLots,
+      playerId: newPlayerId,
+      category: category,
+      basePrice: basePrice,
+      status: LotStatus.pending,
+    );
+    auctionLots.add(newLot);
+
+    // If no active lot, make this the active lot
+    if (auc.currentLotId == null) {
+      auc.currentLotId = newLot.id;
+      auc.currentBid = newLot.basePrice;
+      newLot.status = LotStatus.bidding;
+    }
+
+    notifyListeners();
+  }
+
+  /// Host creates a new tournament and provisions Room ID, Passcode, 8 Teams, and Auction
+  Tournament createTournament({
+    required String name,
+    required String shortName,
+    required String location,
+    required int overs,
+    required String roomId,
+    required String passcode,
+    bool createAuction = true,
+  }) {
+    final cleanId = 'tourn_${shortName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${DateTime.now().year}';
+    final cleanRoomId = roomId.trim().toUpperCase();
+
+    final newTourn = Tournament(
+      id: cleanId,
+      name: name,
+      shortName: shortName,
+      location: location,
+      startDate: '2026-11-15',
+      endDate: '2026-12-15',
+      overs: overs,
+      totalTeams: 8,
+      status: 'active',
+      bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
+      roomId: cleanRoomId,
+      passcode: passcode.trim(),
+    );
+    tournaments.insert(0, newTourn);
+
+    // Create 8 franchise teams for this tournament
+    final prefixes = ['Titans', 'Warriors', 'Riders', 'Superstars', 'Panthers', 'Falcons', 'Gladiators', 'Strikers'];
+    final colors = [
+      const Color(0xFF059669),
+      const Color(0xFF7C3AED),
+      const Color(0xFF0284C7),
+      const Color(0xFFD97706),
+      const Color(0xFFE11D48),
+      const Color(0xFF2563EB),
+      const Color(0xFF9333EA),
+      const Color(0xFF0D9488),
+    ];
+
+    final newTeams = List.generate(8, (i) {
+      final tShort = '${shortName.toUpperCase().replaceAll(' ', '')}${i + 1}';
+      return Team(
+        id: 'team_${cleanId}_$i',
+        tournamentId: cleanId,
+        name: '${shortName.toUpperCase()} ${prefixes[i]}',
+        shortName: tShort,
+        uniqueTeamCode: 'TEAM-$tShort-0${i + 1}',
+        passcode: '1234',
+        primaryColor: colors[i],
+        logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      );
+    });
+    teams.addAll(newTeams);
+
+    // Auto create linked Auction
+    if (createAuction) {
+      final newAuctionId = 'auc_$cleanId';
+      final newAuc = Auction(
+        id: newAuctionId,
+        tournamentId: cleanId,
+        title: '$name Franchise Mega Auction',
+        status: AuctionStatus.live,
+        totalLots: 10,
+        completedLots: 0,
+        adminPasscode: 'admin123',
+        minBidIncrement: 25000,
+        maxPursePerTeam: 10000000,
+        requiredTeamsCount: 8,
+        joinedTeamIds: {}, // Waiting for 8 teams to enter!
+      );
+      auctions.insert(0, newAuc);
+
+      // Auto add 8 draft players to this auction
+      final sampleLots = List.generate(10, (i) {
+        final p = players[i % players.length];
+        return AuctionLot(
+          id: 'lot_${newAuctionId}_${i + 1}',
+          auctionId: newAuctionId,
+          lotNumber: i + 1,
+          playerId: p.id,
+          category: i < 3 ? 'marquee' : (i < 6 ? 'batsman' : 'bowler'),
+          basePrice: 500000 + (i * 100000),
+          status: i == 0 ? LotStatus.bidding : LotStatus.pending,
+          currentBid: i == 0 ? 500000 : null,
+        );
+      });
+      auctionLots.addAll(sampleLots);
+      newAuc.currentLotId = sampleLots.first.id;
+      newAuc.currentBid = sampleLots.first.basePrice;
+
+      // Create Auction Room
+      auctionRooms.add(
+        AuctionRoom(
+          id: 'AUCTION-${shortName.toUpperCase().replaceAll(' ', '')}',
+          auctionId: newAuctionId,
+          passcode: '1234',
+          adminPasscode: 'admin123',
+          createdBy: 'Host Organizer',
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+
+    notifyListeners();
+    return newTourn;
+  }
+
+  /// Host creates a standalone player auction
+  Auction createAuction({
+    required String tournamentId,
+    required String title,
+    required String adminPasscode,
+    required int maxPursePerTeam,
+    required int minBidIncrement,
+    required int requiredTeamsCount,
+  }) {
+    final cleanId = 'auc_${DateTime.now().millisecondsSinceEpoch}';
+    final newAuc = Auction(
+      id: cleanId,
+      tournamentId: tournamentId,
+      title: title,
+      status: AuctionStatus.live,
+      totalLots: 8,
+      completedLots: 0,
+      adminPasscode: adminPasscode.trim().isNotEmpty ? adminPasscode.trim() : 'admin123',
+      minBidIncrement: minBidIncrement > 0 ? minBidIncrement : 25000,
+      maxPursePerTeam: maxPursePerTeam > 0 ? maxPursePerTeam : 10000000,
+      requiredTeamsCount: requiredTeamsCount > 0 ? requiredTeamsCount : 8,
+      joinedTeamIds: {},
+    );
+    auctions.insert(0, newAuc);
+
+    // Seed draft lots
+    final sampleLots = List.generate(8, (i) {
+      final p = players[i % players.length];
+      return AuctionLot(
+        id: 'lot_${cleanId}_${i + 1}',
+        auctionId: cleanId,
+        lotNumber: i + 1,
+        playerId: p.id,
+        category: i < 2 ? 'marquee' : (i < 5 ? 'batsman' : 'bowler'),
+        basePrice: 400000 + (i * 50000),
+        status: i == 0 ? LotStatus.bidding : LotStatus.pending,
+        currentBid: i == 0 ? 400000 : null,
+      );
+    });
+    auctionLots.addAll(sampleLots);
+    newAuc.currentLotId = sampleLots.first.id;
+    newAuc.currentBid = sampleLots.first.basePrice;
+
+    // Create Auction Room
+    auctionRooms.add(
+      AuctionRoom(
+        id: 'AUCTION-${cleanId.toUpperCase()}',
+        auctionId: cleanId,
+        passcode: '1234',
+        adminPasscode: adminPasscode.trim().isNotEmpty ? adminPasscode.trim() : 'admin123',
+        createdBy: 'Host Organizer',
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    notifyListeners();
+    return newAuc;
   }
 
   // ==========================================
