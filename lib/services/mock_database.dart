@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import 'cricket_rules_engine.dart';
@@ -1300,6 +1301,13 @@ class MockDatabase extends ChangeNotifier {
       return false;
     }
 
+    // Rule: Bidding must not be paused or ended
+    if (auc.floorStatus == FloorStatus.paused ||
+        auc.floorStatus == FloorStatus.sold ||
+        auc.floorStatus == FloorStatus.unsold) {
+      return false;
+    }
+
     final team = teams.firstWhere((t) => t.id == teamId, orElse: () => teams.first);
     final nextAmount = (auc.currentBid ?? 300000) + increment;
 
@@ -1307,6 +1315,8 @@ class MockDatabase extends ChangeNotifier {
 
     auc.currentBid = nextAmount;
     auc.highBidderTeamId = teamId;
+    // Counter-bid resets countdown back to open floor!
+    auc.floorStatus = FloorStatus.open;
 
     final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
     if (currentLot != null) {
@@ -1328,6 +1338,94 @@ class MockDatabase extends ChangeNotifier {
 
     notifyListeners();
     return true;
+  }
+
+  void setFloorStatus(String auctionId, FloorStatus status) {
+    final auc = getAuction(auctionId);
+    auc.floorStatus = status;
+
+    if (status == FloorStatus.sold) {
+      sellCurrentLot(auctionId);
+    } else if (status == FloorStatus.unsold) {
+      passCurrentLot(auctionId);
+    }
+
+    notifyListeners();
+  }
+
+  void setLotStartingPrice(String auctionId, String lotId, int price) {
+    final auc = getAuction(auctionId);
+    final lot = auctionLots.where((l) => l.id == lotId).firstOrNull;
+    if (lot != null) {
+      lot.startingPrice = price;
+      lot.currentBid = price;
+      if (auc.currentLotId == lotId) {
+        auc.currentBid = price;
+      }
+      notifyListeners();
+    }
+  }
+
+  void toggleLotForSpin(String lotId, bool selected) {
+    final lot = auctionLots.where((l) => l.id == lotId).firstOrNull;
+    if (lot != null) {
+      lot.isSelectedForSpin = selected;
+      notifyListeners();
+    }
+  }
+
+  void selectAllLotsForSpin(String auctionId, bool selectAll) {
+    for (final lot in auctionLots.where((l) => l.auctionId == auctionId && l.status == LotStatus.pending)) {
+      lot.isSelectedForSpin = selectAll;
+    }
+    notifyListeners();
+  }
+
+  void callPlayerLotToBoard(String auctionId, String lotId) {
+    final auc = getAuction(auctionId);
+    final lot = auctionLots.where((l) => l.id == lotId).firstOrNull;
+    if (lot != null) {
+      auc.currentLotId = lot.id;
+      auc.currentBid = lot.startingPrice ?? lot.basePrice;
+      auc.highBidderTeamId = null;
+      auc.floorStatus = FloorStatus.open;
+      lot.status = LotStatus.bidding;
+      notifyListeners();
+    }
+  }
+
+  void reAuctionUnsoldLots(String auctionId, [double discountRatio = 0.8]) {
+    final auc = getAuction(auctionId);
+    final unsoldLots = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.unsold).toList();
+    for (final lot in unsoldLots) {
+      lot.status = LotStatus.pending;
+      lot.isSelectedForSpin = true;
+      lot.startingPrice = (lot.basePrice * discountRatio).toInt();
+    }
+    if (unsoldLots.isNotEmpty && (auc.currentLotId == null || auc.status == AuctionStatus.completed)) {
+      auc.status = AuctionStatus.live;
+      final first = unsoldLots.first;
+      auc.currentLotId = first.id;
+      auc.currentBid = first.startingPrice ?? first.basePrice;
+      first.status = LotStatus.bidding;
+      auc.floorStatus = FloorStatus.open;
+    }
+    notifyListeners();
+  }
+
+  AuctionLot? spinToRandomEligibleLot(String auctionId) {
+    final auc = getAuction(auctionId);
+    final eligible = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending && l.isSelectedForSpin).toList();
+    if (eligible.isEmpty) return null;
+
+    final picked = eligible[Random().nextInt(eligible.length)];
+    auc.currentLotId = picked.id;
+    auc.currentBid = picked.startingPrice ?? picked.basePrice;
+    auc.highBidderTeamId = null;
+    auc.floorStatus = FloorStatus.open;
+    picked.status = LotStatus.bidding;
+    notifyListeners();
+    return picked;
   }
 
   void sellCurrentLot([String? auctionId]) {

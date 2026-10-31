@@ -313,5 +313,76 @@ void main() {
       expect(db.isAuctionUnlocked, isFalse);
       expect(db.isAuctionAdmin, isFalse);
     });
+
+    test('Host Manual Starting Price & Floor Gavel Warnings', () {
+      final db = MockDatabase();
+      final auc = db.getAuction('auc_bpl_2026');
+      db.checkInAllTeamsToAuction(auc.id);
+
+      // Verify initial floor status is open
+      expect(auc.floorStatus, FloorStatus.open);
+
+      // Host sets manual starting price
+      final lot = db.auctionLots.firstWhere((l) => l.auctionId == auc.id && l.id == auc.currentLotId);
+      db.setLotStartingPrice(auc.id, lot.id, 2500000);
+      expect(lot.startingPrice, 2500000);
+      expect(auc.currentBid, 2500000);
+
+      // Host triggers countdown warnings
+      db.setFloorStatus(auc.id, FloorStatus.goingOnce);
+      expect(auc.floorStatus, FloorStatus.goingOnce);
+
+      db.setFloorStatus(auc.id, FloorStatus.goingTwice);
+      expect(auc.floorStatus, FloorStatus.goingTwice);
+
+      // Counter-bid from team owner resets warning to open
+      final team = db.teams.first;
+      final bidSuccess = db.placeAuctionBid(
+        teamId: team.id,
+        increment: 500000,
+        auctionId: auc.id,
+      );
+      expect(bidSuccess, isTrue);
+      expect(auc.floorStatus, FloorStatus.open);
+      expect(auc.currentBid, 3000000);
+      expect(auc.highBidderTeamId, team.id);
+
+      // Fair warning and gavel sell
+      db.setFloorStatus(auc.id, FloorStatus.fairWarning);
+      expect(auc.floorStatus, FloorStatus.fairWarning);
+
+      db.setFloorStatus(auc.id, FloorStatus.sold);
+      expect(lot.status, LotStatus.sold);
+      expect(lot.winningTeamId, team.id);
+    });
+
+    test('Host Spin Pool Management and Unsold Re-Auctioning', () {
+      final db = MockDatabase();
+      final auc = db.getAuction('auc_bpl_2026');
+
+      // Test deselect all and select all
+      db.selectAllLotsForSpin(auc.id, false);
+      final unselected = db.auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending && !l.isSelectedForSpin);
+      expect(unselected.isNotEmpty, isTrue);
+
+      db.selectAllLotsForSpin(auc.id, true);
+      final allSelected = db.auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending && l.isSelectedForSpin);
+      expect(allSelected.isNotEmpty, isTrue);
+
+      // Spin picks random eligible lot
+      final picked = db.spinToRandomEligibleLot(auc.id);
+      expect(picked, isNotNull);
+      expect(picked!.status, LotStatus.bidding);
+      expect(auc.currentLotId, picked.id);
+
+      // Pass lot as unsold
+      db.setFloorStatus(auc.id, FloorStatus.unsold);
+      expect(picked.status, LotStatus.unsold);
+
+      // Re-auction unsold lots resets them to pending with discounted starting price
+      db.reAuctionUnsoldLots(auc.id, 0.75);
+      expect(picked.status, anyOf(LotStatus.pending, LotStatus.bidding));
+      expect(picked.startingPrice, (picked.basePrice * 0.75).toInt());
+    });
   });
 }

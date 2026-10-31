@@ -6,6 +6,7 @@ enum ExtrasType { none, wide, noBall, bye, legBye, penalty }
 enum PlayerRole { batsman, bowler, allRounder, wicketKeeper }
 enum AuctionStatus { draft, preview, live, paused, completed }
 enum LotStatus { pending, bidding, sold, unsold }
+enum FloorStatus { open, paused, goingOnce, goingTwice, fairWarning, sold, unsold }
 
 class Tournament {
   final String id;
@@ -312,6 +313,7 @@ class Auction {
   final String tournamentId;
   final String title;
   AuctionStatus status;
+  FloorStatus floorStatus;
   String? currentLotId;
   int? currentBid;
   String? highBidderTeamId;
@@ -328,6 +330,7 @@ class Auction {
     required this.tournamentId,
     required this.title,
     this.status = AuctionStatus.live,
+    this.floorStatus = FloorStatus.open,
     this.currentLotId,
     this.currentBid,
     this.highBidderTeamId,
@@ -350,9 +353,11 @@ class AuctionLot {
   final String playerId;
   final String category;
   final int basePrice;
+  int? startingPrice; // Manually set by host
   int? currentBid;
   String? winningTeamId;
   LotStatus status;
+  bool isSelectedForSpin; // Host toggle for active spin wheel pool
 
   AuctionLot({
     required this.id,
@@ -361,9 +366,11 @@ class AuctionLot {
     required this.playerId,
     required this.category,
     required this.basePrice,
+    this.startingPrice,
     this.currentBid,
     this.winningTeamId,
     this.status = LotStatus.pending,
+    this.isSelectedForSpin = true,
   });
 }
 

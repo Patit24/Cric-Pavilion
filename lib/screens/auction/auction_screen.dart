@@ -52,6 +52,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       return;
     }
 
+    final eligibleLots = db.auctionLots
+        .where((l) => l.auctionId == auction.id && l.status == LotStatus.pending && l.isSelectedForSpin)
+        .toList();
+
+    if (eligibleLots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No eligible players selected for spin! Check Host Player Pool.')),
+      );
+      return;
+    }
+
     setState(() => _isSpinning = true);
 
     final randomExtraSpins = 4 + Random().nextInt(4);
@@ -66,6 +77,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     _wheelController.forward(from: 0.0).then((_) {
       _currentAngle = targetAngle % (2 * pi);
       setState(() => _isSpinning = false);
+      db.spinToRandomEligibleLot(auction.id);
     });
   }
 
@@ -286,6 +298,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     final squadViewTeam = safe8Teams.where((t) => t.id == selectedTeamIdForSquadView).firstOrNull ?? safe8Teams.first;
     final squadPlayers = db.players.where((p) => p.teamId == squadViewTeam.id).toList();
 
+    final eligibleSpinCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.pending && l.isSelectedForSpin).length;
+    final totalPendingCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.pending).length;
+    final unsoldLotsCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.unsold).length;
+
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
       appBar: AppBar(
@@ -314,7 +330,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 const SizedBox(width: 4),
                 Text(
                   isUnlocked
-                      ? (isAdmin ? 'Host / Auctioneer Mode' : 'Owner: ${myTeam?.name ?? "Team Owner"}')
+                      ? (isAdmin ? 'Host Auctioneer (Full Control)' : 'Owner: ${myTeam?.name ?? "Team Owner"}')
                       : 'Spectator Mode (Broadcast Watch)',
                   style: TextStyle(
                     color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white70,
@@ -327,7 +343,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
-          if (isAdmin)
+          if (isAdmin) ...[
+            TextButton.icon(
+              onPressed: () => _showHostPlayerPoolManagerDialog(context, db, auction),
+              icon: const Icon(Icons.manage_accounts, color: Colors.amber, size: 16),
+              label: Text(
+                'Spin Pool ($eligibleSpinCount/$totalPendingCount)',
+                style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
             IconButton(
               tooltip: 'Add Player to Auction',
               icon: const Icon(Icons.person_add, color: Color(0xFF34D399), size: 20),
@@ -338,6 +362,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 );
               },
             ),
+          ],
           if (!isUnlocked)
             TextButton.icon(
               onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
@@ -362,6 +387,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // =========================================================
+            // REAL-TIME FLOOR STATUS ALERT BANNER (Going once / Twice / Paused)
+            // =========================================================
+            _buildFloorStatusBanner(auction, highBidderTeam),
+            const SizedBox(height: 12),
+
             // =========================================================
             // 8-TEAM WAITING ROOM LOBBY BANNER
             // =========================================================
@@ -425,7 +456,6 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       final isConnected = auction.joinedTeamIds.contains(t.id);
                       return InkWell(
                         onTap: () {
-                          // Quick check-in shortcut for testing
                           if (!isConnected) {
                             db.checkInTeamToAuction(auction.id, t.id);
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -495,7 +525,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             const SizedBox(height: 16),
 
             // =========================================================
-            // SPINNING WHEEL BANNER (HOST CONTROLLED)
+            // SPINNING WHEEL BANNER (HOST CONTROLLED FROM SELECTED POOL)
             // =========================================================
             Container(
               padding: const EdgeInsets.all(16),
@@ -510,9 +540,36 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               ),
               child: Column(
                 children: [
-                  const Text(
-                    '🎡 PLAYER SELECTION WHEEL',
-                    style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '🎡 PLAYER SELECTION WHEEL',
+                        style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                      ),
+                      if (isAdmin)
+                        InkWell(
+                          onTap: () => _showHostPlayerPoolManagerDialog(context, db, auction),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.amber),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.settings, size: 10, color: Colors.amber),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Wheel Pool: $eligibleSpinCount/$totalPendingCount',
+                                  style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 12),
 
@@ -525,7 +582,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         angle: _isSpinning ? _wheelAnimation.value : _currentAngle,
                         child: CustomPaint(
                           size: const Size(180, 180),
-                          painter: AuctionWheelPainter(itemsCount: 8),
+                          painter: AuctionWheelPainter(itemsCount: max(4, min(8, eligibleSpinCount))),
                         ),
                       ),
                       // Center Spin Hub
@@ -588,7 +645,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         : (!auction.isReadyToStart
                             ? 'Wheel locked: Waiting for 8 teams to check in'
                             : (isAdmin
-                                ? 'Host: Tap SPIN to reveal next player lot'
+                                ? 'Host: Tap SPIN to randomly draw from the $eligibleSpinCount selected players'
                                 : 'Wheel operated exclusively by Auctioneer Host')),
                     style: const TextStyle(color: Colors.white54, fontSize: 11),
                   ),
@@ -692,9 +749,24 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('BASE PRICE', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Row(
+                                children: [
+                                  const Text('STARTING PRICE', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  if (isAdmin)
+                                    InkWell(
+                                      onTap: () => _showManualStartingPriceDialog(context, db, auction, currentLot),
+                                      child: const Padding(
+                                        padding: EdgeInsets.only(left: 6),
+                                        child: Icon(Icons.edit, size: 12, color: Colors.amber),
+                                      ),
+                                    ),
+                                ],
+                              ),
                               const SizedBox(height: 2),
-                              Text(currencyFormat.format(currentLot.basePrice), style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold)),
+                              Text(
+                                currencyFormat.format(currentLot.startingPrice ?? currentLot.basePrice),
+                                style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
                           Column(
@@ -703,7 +775,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               const Text('CURRENT HIGH BID', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900)),
                               const SizedBox(height: 2),
                               Text(
-                                currencyFormat.format(currentLot.currentBid ?? currentLot.basePrice),
+                                currencyFormat.format(currentLot.currentBid ?? (currentLot.startingPrice ?? currentLot.basePrice)),
                                 style: const TextStyle(color: Colors.amber, fontSize: 22, fontWeight: FontWeight.w900),
                               ),
                             ],
@@ -717,7 +789,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Text('Winning Bidder: ', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          const Text('Highest Bidder: ', style: TextStyle(color: Colors.white54, fontSize: 11)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
@@ -737,159 +809,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     const SizedBox(height: 16),
 
                     // =========================================================
-                    // BIDDING ACTION CONTROLS (TEAM OWNERS ONLY vs HOST HAMMER)
+                    // BIDDING ACTION CONTROLS (TEAM OWNERS ONLY vs HOST COCKPIT)
                     // =========================================================
                     if (isAdmin) ...[
-                      // HOST / AUCTIONEER HAMMER CONTROLS (Host CANNOT bid!)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          children: [
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.shield, color: Colors.amber, size: 14),
-                                SizedBox(width: 6),
-                                Text(
-                                  'HOST AUCTIONEER GAVEL (HOST DOES NOT BID)',
-                                  style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () => db.sellCurrentLot(auction.id),
-                                    icon: const Icon(Icons.gavel, size: 16),
-                                    label: const Text('HAMMER SOLD', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF059669),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: () => db.passCurrentLot(auction.id),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.red.shade400,
-                                      side: BorderSide(color: Colors.red.shade400),
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    ),
-                                    child: const Text('UNSOLD (PASS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      // HOST / AUCTIONEER COCKPIT (Host CANNOT bid! Host controls gavel & floor)
+                      _buildHostFloorCockpit(context, db, auction, currentLot),
                     ] else if (myTeam != null) ...[
                       // AUTHENTICATED TEAM OWNER BIDDING CONTROLS
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Bidding as ${myTeam.name}:',
-                                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
-                                style: TextStyle(color: myTeam.primaryColor, fontSize: 12, fontWeight: FontWeight.w900),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Bid Increment Buttons (+25k, +50k, +1L)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    final ok = db.placeAuctionBid(
-                                      auctionId: auction.id,
-                                      teamId: myTeam.id,
-                                      increment: auction.minBidIncrement,
-                                    );
-                                    if (!ok) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.shade600,
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: Text('+${currencyFormat.format(auction.minBidIncrement)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    final ok = db.placeAuctionBid(
-                                      auctionId: auction.id,
-                                      teamId: myTeam.id,
-                                      increment: 50000,
-                                    );
-                                    if (!ok) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.shade500,
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text('+₹50k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    final ok = db.placeAuctionBid(
-                                      auctionId: auction.id,
-                                      teamId: myTeam.id,
-                                      increment: 100000,
-                                    );
-                                    if (!ok) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Cannot place bid: check purse or 8-team check-in requirement.')),
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.shade400,
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text('+₹1 Lakh', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      _buildTeamOwnerBiddingBar(context, db, auction, myTeam),
                     ] else ...[
                       // SPECTATOR BROADCAST NOTICE
                       Container(
@@ -923,6 +850,45 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   ],
                 ),
               ),
+
+            // Accelerated Round Banner for Unsold Players
+            if (unsoldLotsCount > 0 && isAdmin) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.replay, color: Colors.redAccent, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$unsoldLotsCount player(s) unsold. Bring them back in Accelerated Round?',
+                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        db.reAuctionUnsoldLots(auction.id, 0.8);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Unsold players re-entered in Accelerated Round at 20% discount!')),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      ),
+                      child: const Text('Accelerate', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 20),
 
@@ -1152,6 +1118,597 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   }
 
   // =========================================================================
+  // FLOOR STATUS BANNER (REAL-TIME ALERTS FOR ALL USERS)
+  // =========================================================================
+  Widget _buildFloorStatusBanner(Auction auction, Team? highBidder) {
+    if (auction.floorStatus == FloorStatus.goingOnce) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade900,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.amber, width: 2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.warning_amber, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              '⚠️ GOING ONCE at ${currencyFormat.format(auction.currentBid)} to ${highBidder?.name ?? "..."}!',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    } else if (auction.floorStatus == FloorStatus.goingTwice) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.red.shade900,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.redAccent, width: 2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.campaign, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              '🚨 GOING TWICE! LAST CHANCE TO COUNTER-BID!',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    } else if (auction.floorStatus == FloorStatus.fairWarning) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.purple.shade900,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.purpleAccent, width: 2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.gavel, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text(
+              '⚡ FAIR WARNING! GAVEL ABOUT TO FALL!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    } else if (auction.floorStatus == FloorStatus.paused) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF334155),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.pause_circle_filled, color: Colors.white70, size: 18),
+            SizedBox(width: 8),
+            Text(
+              '⏸️ FLOOR PAUSED BY AUCTIONEER',
+              style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  // =========================================================================
+  // HOST AUCTIONEER COCKPIT (GAVEL, WARNINGS, PAUSE, MANUAL PRICE)
+  // =========================================================================
+  Widget _buildHostFloorCockpit(BuildContext context, MockDatabase db, Auction auction, AuctionLot currentLot) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.shield, color: Colors.amber, size: 14),
+                  SizedBox(width: 6),
+                  Text(
+                    'AUCTIONEER COCKPIT (HOST DOES NOT BID)',
+                    style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _showManualStartingPriceDialog(context, db, auction, currentLot),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text('Edit Start Price', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Countdown Warnings Strip (Going Once / Going Twice / Fair Warning)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.goingOnce),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.amber,
+                    side: const BorderSide(color: Colors.amber),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Going Once', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.goingTwice),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Going Twice', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.fairWarning),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.purpleAccent,
+                    side: const BorderSide(color: Colors.purpleAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Fair Warning', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                tooltip: auction.floorStatus == FloorStatus.paused ? 'Resume Floor' : 'Pause Floor',
+                icon: Icon(
+                  auction.floorStatus == FloorStatus.paused ? Icons.play_arrow : Icons.pause,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+                onPressed: () {
+                  final next = auction.floorStatus == FloorStatus.paused ? FloorStatus.open : FloorStatus.paused;
+                  db.setFloorStatus(auction.id, next);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Main Hammer Buttons: SOLD / UNSOLD
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.sold),
+                  icon: const Icon(Icons.gavel, size: 16),
+                  label: const Text('HAMMER SOLD', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF059669),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.unsold),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red.shade400,
+                    side: BorderSide(color: Colors.red.shade400),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('UNSOLD (PASS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // TEAM OWNER BIDDING BAR
+  // =========================================================================
+  Widget _buildTeamOwnerBiddingBar(BuildContext context, MockDatabase db, Auction auction, Team myTeam) {
+    final isPaused = auction.floorStatus == FloorStatus.paused;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Bidding as ${myTeam.name}:',
+              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
+              style: TextStyle(color: myTeam.primaryColor, fontSize: 12, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Bid Increment Buttons (+minBid, +50k, +1L)
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isPaused
+                    ? null
+                    : () {
+                        final ok = db.placeAuctionBid(
+                          auctionId: auction.id,
+                          teamId: myTeam.id,
+                          increment: auction.minBidIncrement,
+                        );
+                        if (!ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber.shade600,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text('+${currencyFormat.format(auction.minBidIncrement)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isPaused
+                    ? null
+                    : () {
+                        final ok = db.placeAuctionBid(
+                          auctionId: auction.id,
+                          teamId: myTeam.id,
+                          increment: 50000,
+                        );
+                        if (!ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber.shade500,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('+₹50k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isPaused
+                    ? null
+                    : () {
+                        final ok = db.placeAuctionBid(
+                          auctionId: auction.id,
+                          teamId: myTeam.id,
+                          increment: 100000,
+                        );
+                        if (!ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber.shade400,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('+₹1 Lakh', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // =========================================================================
+  // HOST MANUAL STARTING PRICE DIALOG
+  // =========================================================================
+  void _showManualStartingPriceDialog(BuildContext context, MockDatabase db, Auction auction, AuctionLot lot) {
+    final priceController = TextEditingController(text: '${lot.startingPrice ?? lot.basePrice}');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: Row(
+          children: const [
+            Icon(Icons.edit, color: Colors.amber, size: 20),
+            SizedBox(width: 8),
+            Text('Set Starting Bidding Price', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Host can manually set or discount the starting price before teams start bidding.',
+              style: TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: priceController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              decoration: InputDecoration(
+                labelText: 'Opening Starting Price (₹)',
+                labelStyle: const TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: const Color(0xFF0F172A),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              children: [200000, 500000, 1000000, 2000000].map((p) {
+                return ActionChip(
+                  label: Text(currencyFormat.format(p), style: const TextStyle(fontSize: 10)),
+                  backgroundColor: const Color(0xFF0F172A),
+                  onPressed: () => priceController.text = '$p',
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            onPressed: () {
+              final newPrice = int.tryParse(priceController.text.trim()) ?? lot.basePrice;
+              db.setLotStartingPrice(auction.id, lot.id, newPrice);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color(0xFF059669),
+                  content: Text('Starting price set to ${currencyFormat.format(newPrice)}!'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+            child: const Text('Update Price', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // HOST PLAYER POOL & WHEEL MANAGER MODAL
+  // =========================================================================
+  void _showHostPlayerPoolManagerDialog(BuildContext context, MockDatabase db, Auction auction) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final lots = db.auctionLots.where((l) => l.auctionId == auction.id).toList();
+            final eligibleCount = lots.where((l) => l.status == LotStatus.pending && l.isSelectedForSpin).length;
+            final pendingCount = lots.where((l) => l.status == LotStatus.pending).length;
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              maxChildSize: 0.95,
+              minChildSize: 0.5,
+              expand: false,
+              builder: (context, scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.manage_accounts, color: Colors.amber, size: 20),
+                              SizedBox(width: 8),
+                              Text('Host Player Pool & Wheel Manager', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white54),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Select which players enter the spin wheel ($eligibleCount of $pendingCount eligible for spin). You can also call any player directly to the board!',
+                        style: const TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Quick Toggle Row
+                      Row(
+                        children: [
+                          TextButton.icon(
+                            onPressed: () {
+                              db.selectAllLotsForSpin(auction.id, true);
+                              setSheetState(() {});
+                            },
+                            icon: const Icon(Icons.select_all, size: 14, color: Color(0xFF34D399)),
+                            label: const Text('Select All', style: TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                          ),
+                          TextButton.icon(
+                            onPressed: () {
+                              db.selectAllLotsForSpin(auction.id, false);
+                              setSheetState(() {});
+                            },
+                            icon: const Icon(Icons.deselect, size: 14, color: Colors.white54),
+                            label: const Text('Deselect All', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          ),
+                          const Spacer(),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              showDialog(
+                                context: context,
+                                builder: (c) => AddPlayerDialog(db: db, auctionId: auction.id),
+                              );
+                            },
+                            icon: const Icon(Icons.person_add, size: 13),
+                            label: const Text('Add Player', style: TextStyle(fontSize: 11)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(color: Color(0xFF1E293B), height: 16),
+
+                      // Player Lots List
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: lots.length,
+                          itemBuilder: (context, i) {
+                            final lot = lots[i];
+                            final player = db.players.where((p) => p.id == lot.playerId).firstOrNull;
+                            final isPending = lot.status == LotStatus.pending;
+                            final isCurrent = lot.id == auction.currentLotId;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: isCurrent ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                                borderRadius: BorderRadius.circular(12),
+                                border: isCurrent ? Border.all(color: const Color(0xFF34D399), width: 1.5) : null,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (isPending)
+                                    Checkbox(
+                                      value: lot.isSelectedForSpin,
+                                      activeColor: const Color(0xFF34D399),
+                                      onChanged: (val) {
+                                        db.toggleLotForSpin(lot.id, val ?? true);
+                                        setSheetState(() {});
+                                      },
+                                    )
+                                  else
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: lot.status == LotStatus.sold ? const Color(0xFF059669) : Colors.red.shade900,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        lot.status.name.toUpperCase(),
+                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  const SizedBox(width: 8),
+                                  CircleAvatar(backgroundImage: NetworkImage(player?.photoUrl ?? ''), radius: 16),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(player?.fullName ?? 'Player ${lot.lotNumber}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        Text(
+                                          '${player?.roleString ?? lot.category} • Start: ${currencyFormat.format(lot.startingPrice ?? lot.basePrice)}',
+                                          style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isPending && !isCurrent) ...[
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        db.callPlayerLotToBoard(auction.id, lot.id);
+                                        Navigator.pop(ctx);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('${player?.fullName} called to the board!')),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF059669),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      ),
+                                      child: const Text('Call Next', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ] else if (isCurrent) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(color: const Color(0xFF34D399), borderRadius: BorderRadius.circular(6)),
+                                      child: const Text('ON BOARD', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w900)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // =========================================================================
   // MODALS: ENTER AUCTION ROOM AS TEAM OWNER OR HOST
   // =========================================================================
   void _showEnterAuctionRoomDialog(
@@ -1290,7 +1847,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     ),
                   ] else ...[
                     // HOST LOGIN
-                    const Text('Enter Host PIN to operate spinning wheel and auctioneer hammer.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const Text('Enter Host PIN to operate spinning wheel, manage floor, and hammer sold.', style: TextStyle(color: Colors.white70, fontSize: 11)),
                     const SizedBox(height: 12),
                     TextField(
                       controller: hostPassController,
@@ -1352,7 +1909,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           backgroundColor: Color(0xFF059669),
-                          content: Text('Host Mode Unlocked! You can spin wheel and hammer sold.'),
+                          content: Text('Host Mode Unlocked! You can control starting prices, spin wheel and hammer sold.'),
                         ),
                       );
                     } else {
