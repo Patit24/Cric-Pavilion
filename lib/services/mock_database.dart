@@ -203,6 +203,254 @@ class MockDatabase extends ChangeNotifier {
         minSquadRequirement: 15,
         maxSquadLimit: 18,
       ),
+
+      // ==========================================
+      // PSL 2026 FRANCHISE TEAMS (Fresh: 0 Squad, 100% Full Purse)
+      // ==========================================
+      Team(
+        id: 'team_psl_lahore',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Lahore Qalandars',
+        shortName: 'LQ',
+        uniqueTeamCode: 'TEAM-LQ-01',
+        passcode: '1234',
+        primaryColor: const Color(0xFF16A34A), // Green
+        logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_karachi',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Karachi Kings',
+        shortName: 'KK',
+        uniqueTeamCode: 'TEAM-KK-02',
+        passcode: '1234',
+        primaryColor: const Color(0xFF2563EB), // Blue
+        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_islamabad',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Islamabad United',
+        shortName: 'IU',
+        uniqueTeamCode: 'TEAM-IU-03',
+        passcode: '1234',
+        primaryColor: const Color(0xFFDC2626), // Red
+        logoUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_peshawar',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Peshawar Zalmi',
+        shortName: 'PZ',
+        uniqueTeamCode: 'TEAM-PZ-04',
+        passcode: '1234',
+        primaryColor: const Color(0xFFD97706), // Amber
+        logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_quetta',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Quetta Gladiators',
+        shortName: 'QG',
+        uniqueTeamCode: 'TEAM-QG-05',
+        passcode: '1234',
+        primaryColor: const Color(0xFF7C3AED), // Purple
+        logoUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_multan',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Multan Sultans',
+        shortName: 'MS',
+        uniqueTeamCode: 'TEAM-MS-06',
+        passcode: '1234',
+        primaryColor: const Color(0xFF059669), // Emerald
+        logoUrl: 'https://images.unsplash.com/photo-1533443740262-9442254f99c2?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_rawalpindi',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Rawalpindi Riders',
+        shortName: 'RR',
+        uniqueTeamCode: 'TEAM-RR-07',
+        passcode: '1234',
+        primaryColor: const Color(0xFF0D9488), // Teal
+        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_psl_sialkot',
+        tournamentId: 'tourn_psl_2026',
+        name: 'Sialkot Stallions',
+        shortName: 'SS',
+        uniqueTeamCode: 'TEAM-SS-08',
+        passcode: '1234',
+        primaryColor: const Color(0xFF4F46E5), // Indigo
+        logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
+        purseRemaining: 10000000,
+        maxPurse: 10000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+
+      // ==========================================
+      // IPL 2026 FRANCHISE TEAMS (Fresh: 0 Squad, 100% Full Purse)
+      // ==========================================
+      Team(
+        id: 'team_ipl_csk',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Chennai Super Kings',
+        shortName: 'CSK',
+        uniqueTeamCode: 'TEAM-CSK-01',
+        passcode: '1234',
+        primaryColor: const Color(0xFFEAB308), // Yellow
+        logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_mi',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Mumbai Indians',
+        shortName: 'MI',
+        uniqueTeamCode: 'TEAM-MI-02',
+        passcode: '1234',
+        primaryColor: const Color(0xFF2563EB), // Blue
+        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_rcb',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Royal Challengers Bengaluru',
+        shortName: 'RCB',
+        uniqueTeamCode: 'TEAM-RCB-03',
+        passcode: '1234',
+        primaryColor: const Color(0xFFDC2626), // Red
+        logoUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_kkr',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Kolkata Knight Riders',
+        shortName: 'KKR',
+        uniqueTeamCode: 'TEAM-KKR-04',
+        passcode: '1234',
+        primaryColor: const Color(0xFF7C3AED), // Purple
+        logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_gt',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Gujarat Titans',
+        shortName: 'GT',
+        uniqueTeamCode: 'TEAM-GT-05',
+        passcode: '1234',
+        primaryColor: const Color(0xFF0D9488), // Teal
+        logoUrl: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_rr',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Rajasthan Royals',
+        shortName: 'RR',
+        uniqueTeamCode: 'TEAM-RR-06',
+        passcode: '1234',
+        primaryColor: const Color(0xFFEC4899), // Pink
+        logoUrl: 'https://images.unsplash.com/photo-1533443740262-9442254f99c2?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_srh',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Sunrisers Hyderabad',
+        shortName: 'SRH',
+        uniqueTeamCode: 'TEAM-SRH-07',
+        passcode: '1234',
+        primaryColor: const Color(0xFFEA580C), // Orange
+        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
+      Team(
+        id: 'team_ipl_dc',
+        tournamentId: 'tourn_ipl_2026',
+        name: 'Delhi Capitals',
+        shortName: 'DC',
+        uniqueTeamCode: 'TEAM-DC-08',
+        passcode: '1234',
+        primaryColor: const Color(0xFF0284C7), // Sky Blue
+        logoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=120',
+        purseRemaining: 15000000,
+        maxPurse: 15000000,
+        squadCount: 0,
+        minSquadRequirement: 15,
+        maxSquadLimit: 18,
+      ),
     ];
 
     players = [
@@ -359,6 +607,234 @@ class MockDatabase extends ChangeNotifier {
         runs: 12,
         wickets: 9,
         matches: 3,
+      ),
+
+      // ==========================================
+      // PSL 2026 AUCTION PLAYERS (Unassigned: teamId is null)
+      // ==========================================
+      Player(
+        id: 'pl_psl_1',
+        fullName: 'Babar Azam',
+        displayName: 'Babar Azam',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 1000000,
+        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_2',
+        fullName: 'Shaheen Afridi',
+        displayName: 'Shaheen Afridi',
+        role: PlayerRole.bowler,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'Left Arm Fast',
+        basePrice: 900000,
+        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_3',
+        fullName: 'Mohammad Rizwan',
+        displayName: 'Mohammad Rizwan',
+        role: PlayerRole.wicketKeeper,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'None',
+        basePrice: 850000,
+        photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_4',
+        fullName: 'Fakhar Zaman',
+        displayName: 'Fakhar Zaman',
+        role: PlayerRole.batsman,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'Slow Left Arm',
+        basePrice: 600000,
+        photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_5',
+        fullName: 'Shadab Khan',
+        displayName: 'Shadab Khan',
+        role: PlayerRole.allRounder,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Leg Break',
+        basePrice: 750000,
+        photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_6',
+        fullName: 'Haris Rauf',
+        displayName: 'Haris Rauf',
+        role: PlayerRole.bowler,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Fast',
+        basePrice: 700000,
+        photoUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_7',
+        fullName: 'Naseem Shah',
+        displayName: 'Naseem Shah',
+        role: PlayerRole.bowler,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Fast',
+        basePrice: 650000,
+        photoUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_8',
+        fullName: 'Saim Ayub',
+        displayName: 'Saim Ayub',
+        role: PlayerRole.batsman,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 500000,
+        photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_9',
+        fullName: 'Iftikhar Ahmed',
+        displayName: 'Iftikhar Ahmed',
+        role: PlayerRole.allRounder,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 450000,
+        photoUrl: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_psl_10',
+        fullName: 'Imad Wasim',
+        displayName: 'Imad Wasim',
+        role: PlayerRole.allRounder,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'Slow Left Arm',
+        basePrice: 550000,
+        photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256',
+        teamId: null,
+      ),
+
+      // ==========================================
+      // IPL 2026 AUCTION PLAYERS (Unassigned: teamId is null)
+      // ==========================================
+      Player(
+        id: 'pl_ipl_1',
+        fullName: 'Virat Kohli',
+        displayName: 'Virat Kohli',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Medium',
+        basePrice: 2000000,
+        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_2',
+        fullName: 'Rohit Sharma',
+        displayName: 'Rohit Sharma',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 1800000,
+        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_3',
+        fullName: 'MS Dhoni',
+        displayName: 'MS Dhoni',
+        role: PlayerRole.wicketKeeper,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Medium',
+        basePrice: 1500000,
+        photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_4',
+        fullName: 'Jasprit Bumrah',
+        displayName: 'Jasprit Bumrah',
+        role: PlayerRole.bowler,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Fast',
+        basePrice: 1800000,
+        photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_5',
+        fullName: 'Hardik Pandya',
+        displayName: 'Hardik Pandya',
+        role: PlayerRole.allRounder,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Fast Medium',
+        basePrice: 1500000,
+        photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_6',
+        fullName: 'Suryakumar Yadav',
+        displayName: 'Suryakumar Yadav',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 1400000,
+        photoUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_7',
+        fullName: 'Shubman Gill',
+        displayName: 'Shubman Gill',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Off Break',
+        basePrice: 1200000,
+        photoUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_8',
+        fullName: 'Ravindra Jadeja',
+        displayName: 'Ravindra Jadeja',
+        role: PlayerRole.allRounder,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'Slow Left Arm Orthodox',
+        basePrice: 1300000,
+        photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_9',
+        fullName: 'Rishabh Pant',
+        displayName: 'Rishabh Pant',
+        role: PlayerRole.wicketKeeper,
+        battingStyle: 'Left Hand Bat',
+        bowlingStyle: 'None',
+        basePrice: 1200000,
+        photoUrl: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=256',
+        teamId: null,
+      ),
+      Player(
+        id: 'pl_ipl_10',
+        fullName: 'KL Rahul',
+        displayName: 'KL Rahul',
+        role: PlayerRole.batsman,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'None',
+        basePrice: 1100000,
+        photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256',
+        teamId: null,
       ),
     ];
 
@@ -733,8 +1209,8 @@ class MockDatabase extends ChangeNotifier {
         tournamentId: 'tourn_psl_2026',
         title: 'PSL 2026 Player Draft & Auction',
         status: AuctionStatus.live,
-        currentLotId: 'lot_1',
-        currentBid: 500000,
+        currentLotId: 'lot_psl_1',
+        currentBid: 1000000,
         highBidderTeamId: null,
         totalLots: 10,
         completedLots: 0,
@@ -742,22 +1218,17 @@ class MockDatabase extends ChangeNotifier {
         minBidIncrement: 50000,
         maxPursePerTeam: 10000000,
         requiredTeamsCount: 8,
-        joinedTeamIds: {
-          'team_barasat',
-          'team_kolkata',
-          'team_howrah',
-          'team_hooghly',
-        }, // 4 of 8 checked in - demonstrates waiting lobby!
+        joinedTeamIds: {}, // Fresh 8-team waiting lobby!
       ),
       Auction(
         id: 'auc_ipl_2026',
         tournamentId: 'tourn_ipl_2026',
         title: 'IPL 2026 Mini Auction',
         status: AuctionStatus.preview,
-        currentLotId: null,
-        currentBid: null,
+        currentLotId: 'lot_ipl_1',
+        currentBid: 2000000,
         highBidderTeamId: null,
-        totalLots: 12,
+        totalLots: 10,
         completedLots: 0,
         adminPasscode: 'admin123',
         minBidIncrement: 100000,
@@ -850,6 +1321,196 @@ class MockDatabase extends ChangeNotifier {
         playerId: 'pl_11', // Ishan Porel
         category: 'bowler',
         basePrice: 450000,
+        status: LotStatus.pending,
+      ),
+
+      // ==========================================
+      // PSL 2026 AUCTION LOTS (Fresh: 0 sold, all pending/bidding)
+      // ==========================================
+      AuctionLot(
+        id: 'lot_psl_1',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 1,
+        playerId: 'pl_psl_1', // Babar Azam
+        category: 'marquee',
+        basePrice: 1000000,
+        currentBid: 1000000,
+        status: LotStatus.bidding,
+      ),
+      AuctionLot(
+        id: 'lot_psl_2',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 2,
+        playerId: 'pl_psl_2', // Shaheen Afridi
+        category: 'marquee',
+        basePrice: 900000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_3',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 3,
+        playerId: 'pl_psl_3', // Mohammad Rizwan
+        category: 'wicket_keeper',
+        basePrice: 850000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_4',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 4,
+        playerId: 'pl_psl_4', // Fakhar Zaman
+        category: 'batsman',
+        basePrice: 600000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_5',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 5,
+        playerId: 'pl_psl_5', // Shadab Khan
+        category: 'all_rounder',
+        basePrice: 750000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_6',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 6,
+        playerId: 'pl_psl_6', // Haris Rauf
+        category: 'bowler',
+        basePrice: 700000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_7',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 7,
+        playerId: 'pl_psl_7', // Naseem Shah
+        category: 'bowler',
+        basePrice: 650000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_8',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 8,
+        playerId: 'pl_psl_8', // Saim Ayub
+        category: 'batsman',
+        basePrice: 500000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_9',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 9,
+        playerId: 'pl_psl_9', // Iftikhar Ahmed
+        category: 'all_rounder',
+        basePrice: 450000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_psl_10',
+        auctionId: 'auc_psl_2026',
+        lotNumber: 10,
+        playerId: 'pl_psl_10', // Imad Wasim
+        category: 'all_rounder',
+        basePrice: 550000,
+        status: LotStatus.pending,
+      ),
+
+      // ==========================================
+      // IPL 2026 AUCTION LOTS (Fresh)
+      // ==========================================
+      AuctionLot(
+        id: 'lot_ipl_1',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 1,
+        playerId: 'pl_ipl_1', // Virat Kohli
+        category: 'marquee',
+        basePrice: 2000000,
+        currentBid: 2000000,
+        status: LotStatus.bidding,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_2',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 2,
+        playerId: 'pl_ipl_2', // Rohit Sharma
+        category: 'marquee',
+        basePrice: 1800000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_3',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 3,
+        playerId: 'pl_ipl_3', // MS Dhoni
+        category: 'wicket_keeper',
+        basePrice: 1500000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_4',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 4,
+        playerId: 'pl_ipl_4', // Jasprit Bumrah
+        category: 'bowler',
+        basePrice: 1800000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_5',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 5,
+        playerId: 'pl_ipl_5', // Hardik Pandya
+        category: 'all_rounder',
+        basePrice: 1500000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_6',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 6,
+        playerId: 'pl_ipl_6', // Suryakumar Yadav
+        category: 'batsman',
+        basePrice: 1400000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_7',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 7,
+        playerId: 'pl_ipl_7', // Shubman Gill
+        category: 'batsman',
+        basePrice: 1200000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_8',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 8,
+        playerId: 'pl_ipl_8', // Ravindra Jadeja
+        category: 'all_rounder',
+        basePrice: 1300000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_9',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 9,
+        playerId: 'pl_ipl_9', // Rishabh Pant
+        category: 'wicket_keeper',
+        basePrice: 1200000,
+        status: LotStatus.pending,
+      ),
+      AuctionLot(
+        id: 'lot_ipl_10',
+        auctionId: 'auc_ipl_2026',
+        lotNumber: 10,
+        playerId: 'pl_ipl_10', // KL Rahul
+        category: 'batsman',
+        basePrice: 1100000,
         status: LotStatus.pending,
       ),
     ];
@@ -1223,10 +1884,7 @@ class MockDatabase extends ChangeNotifier {
   void checkInAllTeamsToAuction(String auctionId) {
     final auc = getAuction(auctionId);
     final participatingTeams = teams.where((t) => t.tournamentId == auc.tournamentId).toList();
-    final teamsToAdd = participatingTeams.length >= auc.requiredTeamsCount
-        ? participatingTeams
-        : (participatingTeams + teams.where((t) => !participatingTeams.contains(t)).toList());
-    for (final t in teamsToAdd.take(auc.requiredTeamsCount)) {
+    for (final t in participatingTeams) {
       auc.joinedTeamIds.add(t.id);
     }
     notifyListeners();
@@ -1611,18 +2269,36 @@ class MockDatabase extends ChangeNotifier {
       );
       auctions.insert(0, newAuc);
 
-      // Auto add 8 draft players to this auction
+      // Auto add 10 fresh unassigned draft players to this auction
+      final draftNames = [
+        'Aakash Sharma', 'Vikram Patel', 'Rohit Verma', 'Deepak Yadav',
+        'Sunil Kumar', 'Manish Pandey', 'Amit Singh', 'Pankaj Mishra',
+        'Ravi Teja', 'Suresh Raina'
+      ];
       final sampleLots = List.generate(10, (i) {
-        final p = players[i % players.length];
+        final pId = 'pl_${cleanId}_$i';
+        final freshPlayer = Player(
+          id: pId,
+          fullName: '${shortName.toUpperCase()} ${draftNames[i % draftNames.length]}',
+          displayName: draftNames[i % draftNames.length],
+          role: i < 3 ? PlayerRole.batsman : (i < 6 ? PlayerRole.bowler : PlayerRole.allRounder),
+          battingStyle: 'Right Hand Bat',
+          bowlingStyle: 'Right Arm Medium',
+          basePrice: 500000 + (i * 100000),
+          photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+          teamId: null, // Completely unassigned!
+        );
+        players.add(freshPlayer);
+
         return AuctionLot(
           id: 'lot_${newAuctionId}_${i + 1}',
           auctionId: newAuctionId,
           lotNumber: i + 1,
-          playerId: p.id,
+          playerId: pId,
           category: i < 3 ? 'marquee' : (i < 6 ? 'batsman' : 'bowler'),
-          basePrice: 500000 + (i * 100000),
+          basePrice: freshPlayer.basePrice,
           status: i == 0 ? LotStatus.bidding : LotStatus.pending,
-          currentBid: i == 0 ? 500000 : null,
+          currentBid: i == 0 ? freshPlayer.basePrice : null,
         );
       });
       auctionLots.addAll(sampleLots);
@@ -1646,7 +2322,7 @@ class MockDatabase extends ChangeNotifier {
     return newTourn;
   }
 
-  /// Host creates a standalone player auction
+  /// Host creates a standalone player auction (supports custom entered team names & custom entered players)
   Auction createAuction({
     required String tournamentId,
     required String title,
@@ -1654,40 +2330,132 @@ class MockDatabase extends ChangeNotifier {
     required int maxPursePerTeam,
     required int minBidIncrement,
     required int requiredTeamsCount,
+    List<String>? customTeamNames,
+    List<Map<String, dynamic>>? customPlayers,
   }) {
     final cleanId = 'auc_${DateTime.now().millisecondsSinceEpoch}';
+    final targetTournamentId = tournamentId.isNotEmpty ? tournamentId : 'tourn_$cleanId';
+
+    // 1. If custom team names provided, create these exact teams fresh
+    if (customTeamNames != null && customTeamNames.isNotEmpty) {
+      final teamColors = [
+        const Color(0xFF059669),
+        const Color(0xFF7C3AED),
+        const Color(0xFF0284C7),
+        const Color(0xFFD97706),
+        const Color(0xFFE11D48),
+        const Color(0xFF2563EB),
+        const Color(0xFF9333EA),
+        const Color(0xFF0D9488),
+        const Color(0xFFF59E0B),
+        const Color(0xFF10B981),
+      ];
+      for (int i = 0; i < customTeamNames.length; i++) {
+        final rawName = customTeamNames[i].trim();
+        if (rawName.isEmpty) continue;
+        final parts = rawName.split(' ');
+        final tShort = parts.length > 1
+            ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
+            : (rawName.length >= 3 ? rawName.substring(0, 3).toUpperCase() : rawName.toUpperCase());
+        final teamId = 'team_${cleanId}_$i';
+
+        teams.add(
+          Team(
+            id: teamId,
+            tournamentId: targetTournamentId,
+            name: rawName,
+            shortName: tShort,
+            uniqueTeamCode: 'TEAM-$tShort-0${i + 1}',
+            passcode: '1234',
+            primaryColor: teamColors[i % teamColors.length],
+            logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+            purseRemaining: maxPursePerTeam,
+            maxPurse: maxPursePerTeam,
+            squadCount: 0,
+            minSquadRequirement: 15,
+            maxSquadLimit: 18,
+          ),
+        );
+      }
+    }
+
+    // 2. If custom player entries provided, create these exact players and lots
+    final createdLots = <AuctionLot>[];
+    if (customPlayers != null && customPlayers.isNotEmpty) {
+      for (int i = 0; i < customPlayers.length; i++) {
+        final pData = customPlayers[i];
+        final pName = (pData['name'] as String? ?? '').trim();
+        if (pName.isEmpty) continue;
+        final role = pData['role'] as PlayerRole? ?? PlayerRole.batsman;
+        final basePrice = (pData['price'] as int?) ?? 100000;
+        final pId = 'pl_${cleanId}_$i';
+
+        final newP = Player(
+          id: pId,
+          fullName: pName,
+          displayName: pName,
+          role: role,
+          battingStyle: pData['battingStyle'] as String? ?? 'Right Hand Bat',
+          bowlingStyle: pData['bowlingStyle'] as String? ?? 'Right Arm Medium',
+          basePrice: basePrice,
+          photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+          teamId: null, // Unassigned!
+        );
+        players.add(newP);
+
+        createdLots.add(
+          AuctionLot(
+            id: 'lot_${cleanId}_${i + 1}',
+            auctionId: cleanId,
+            lotNumber: i + 1,
+            playerId: pId,
+            category: role.name,
+            basePrice: basePrice,
+            status: i == 0 ? LotStatus.bidding : LotStatus.pending,
+            currentBid: i == 0 ? basePrice : null,
+          ),
+        );
+      }
+      auctionLots.addAll(createdLots);
+    } else if (customTeamNames == null || customTeamNames.isEmpty) {
+      // Fallback only if no custom players and no custom teams specified (legacy mode)
+      final sampleLots = List.generate(8, (i) {
+        final p = players[i % players.length];
+        return AuctionLot(
+          id: 'lot_${cleanId}_${i + 1}',
+          auctionId: cleanId,
+          lotNumber: i + 1,
+          playerId: p.id,
+          category: i < 2 ? 'marquee' : (i < 5 ? 'batsman' : 'bowler'),
+          basePrice: 400000 + (i * 50000),
+          status: i == 0 ? LotStatus.bidding : LotStatus.pending,
+          currentBid: i == 0 ? 400000 : null,
+        );
+      });
+      auctionLots.addAll(sampleLots);
+      createdLots.addAll(sampleLots);
+    }
+
+    final effectiveRequiredTeams = (customTeamNames != null && customTeamNames.isNotEmpty)
+        ? customTeamNames.length
+        : requiredTeamsCount;
+
     final newAuc = Auction(
       id: cleanId,
-      tournamentId: tournamentId,
+      tournamentId: targetTournamentId,
       title: title,
       status: AuctionStatus.live,
-      totalLots: 8,
+      totalLots: createdLots.length,
       completedLots: 0,
       adminPasscode: adminPasscode.trim().isNotEmpty ? adminPasscode.trim() : 'admin123',
       minBidIncrement: minBidIncrement > 0 ? minBidIncrement : 25000,
       maxPursePerTeam: maxPursePerTeam > 0 ? maxPursePerTeam : 10000000,
-      requiredTeamsCount: requiredTeamsCount > 0 ? requiredTeamsCount : 8,
+      requiredTeamsCount: effectiveRequiredTeams,
       joinedTeamIds: {},
+      currentLotId: createdLots.isNotEmpty ? createdLots.first.id : null,
+      currentBid: createdLots.isNotEmpty ? createdLots.first.basePrice : null,
     );
     auctions.insert(0, newAuc);
-
-    // Seed draft lots
-    final sampleLots = List.generate(8, (i) {
-      final p = players[i % players.length];
-      return AuctionLot(
-        id: 'lot_${cleanId}_${i + 1}',
-        auctionId: cleanId,
-        lotNumber: i + 1,
-        playerId: p.id,
-        category: i < 2 ? 'marquee' : (i < 5 ? 'batsman' : 'bowler'),
-        basePrice: 400000 + (i * 50000),
-        status: i == 0 ? LotStatus.bidding : LotStatus.pending,
-        currentBid: i == 0 ? 400000 : null,
-      );
-    });
-    auctionLots.addAll(sampleLots);
-    newAuc.currentLotId = sampleLots.first.id;
-    newAuc.currentBid = sampleLots.first.basePrice;
 
     // Create Auction Room
     auctionRooms.add(
@@ -1703,6 +2471,76 @@ class MockDatabase extends ChangeNotifier {
 
     notifyListeners();
     return newAuc;
+  }
+
+  /// Host adds a new franchise team directly into the auction's tournament
+  Team addTeamToAuction({
+    required String auctionId,
+    required String teamName,
+    String? shortName,
+    Color? color,
+  }) {
+    final auc = getAuction(auctionId);
+    final cleanName = teamName.trim();
+    final parts = cleanName.split(' ');
+    final tShort = (shortName != null && shortName.trim().isNotEmpty)
+        ? shortName.trim().toUpperCase()
+        : (parts.length > 1
+            ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
+            : (cleanName.length >= 3 ? cleanName.substring(0, 3).toUpperCase() : cleanName.toUpperCase()));
+    final existingCount = teams.where((t) => t.tournamentId == auc.tournamentId).length;
+    final teamId = 'team_${auc.tournamentId}_${DateTime.now().millisecondsSinceEpoch}';
+
+    final newTeam = Team(
+      id: teamId,
+      tournamentId: auc.tournamentId,
+      name: cleanName,
+      shortName: tShort,
+      uniqueTeamCode: 'TEAM-$tShort-0${existingCount + 1}',
+      passcode: '1234',
+      primaryColor: color ?? const Color(0xFF059669),
+      logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+      purseRemaining: auc.maxPursePerTeam,
+      maxPurse: auc.maxPursePerTeam,
+      squadCount: 0,
+      minSquadRequirement: 15,
+      maxSquadLimit: 18,
+    );
+    teams.add(newTeam);
+    notifyListeners();
+    return newTeam;
+  }
+
+  /// Host resets an auction back to clean slate (all squads 0, 100% purse restored, unassigned players)
+  void resetAuctionSquads(String auctionId) {
+    final auc = getAuction(auctionId);
+    for (final t in teams.where((t) => t.tournamentId == auc.tournamentId)) {
+      t.purseRemaining = t.maxPurse;
+      t.squadCount = 0;
+    }
+    final lots = auctionLots.where((l) => l.auctionId == auctionId).toList();
+    for (final lot in lots) {
+      lot.status = LotStatus.pending;
+      lot.winningTeamId = null;
+      lot.currentBid = lot.startingPrice ?? lot.basePrice;
+      final p = players.where((p) => p.id == lot.playerId).firstOrNull;
+      if (p != null) {
+        p.teamId = null;
+      }
+    }
+    if (lots.isNotEmpty) {
+      lots.first.status = LotStatus.bidding;
+      auc.currentLotId = lots.first.id;
+      auc.currentBid = lots.first.basePrice;
+    } else {
+      auc.currentLotId = null;
+      auc.currentBid = null;
+    }
+    auc.highBidderTeamId = null;
+    auc.completedLots = 0;
+    auc.floorStatus = FloorStatus.open;
+    auc.joinedTeamIds.clear();
+    notifyListeners();
   }
 
   // ==========================================

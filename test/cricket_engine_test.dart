@@ -384,5 +384,87 @@ void main() {
       expect(picked.status, anyOf(LotStatus.pending, LotStatus.bidding));
       expect(picked.startingPrice, (picked.basePrice * 0.75).toInt());
     });
+
+    test('Fresh Auction Isolation & Custom Host Entries', () {
+      final db = MockDatabase();
+
+      // 1. Verify PSL has its OWN fresh teams and NO BPL acquired players
+      final pslAuc = db.getAuction('auc_psl_2026');
+      final pslTeams = db.teams.where((t) => t.tournamentId == pslAuc.tournamentId).toList();
+      expect(pslTeams.length, 8);
+      expect(pslTeams.first.name, 'Lahore Qalandars');
+      expect(pslTeams.first.squadCount, 0); // 0 players acquired!
+      expect(pslTeams.first.purseRemaining, 10000000); // Full purse!
+      final pslAcquiredPlayers = db.players.where((p) => p.teamId == pslTeams.first.id).toList();
+      expect(pslAcquiredPlayers, isEmpty); // Empty squad!
+
+      // 2. Host creates completely custom auction with custom team names & players
+      final customTeams = ['Royal Kings', 'City Knights', 'Delta Warriors', 'Apex Tigers'];
+      final customPlayers = [
+        {'name': 'Sourav Sen', 'role': PlayerRole.batsman, 'price': 500000},
+        {'name': 'Pritam Ghosh', 'role': PlayerRole.bowler, 'price': 400000},
+        {'name': 'Arpan Mitra', 'role': PlayerRole.allRounder, 'price': 600000},
+      ];
+
+      final newAuc = db.createAuction(
+        tournamentId: 'tourn_custom_2026',
+        title: 'Custom GCL 2026 Auction',
+        adminPasscode: 'host999',
+        maxPursePerTeam: 5000000,
+        minBidIncrement: 20000,
+        requiredTeamsCount: 4,
+        customTeamNames: customTeams,
+        customPlayers: customPlayers,
+      );
+
+      // Verify ONLY the entered teams exist for this auction
+      final enteredTeams = db.teams.where((t) => t.tournamentId == newAuc.tournamentId).toList();
+      expect(enteredTeams.length, 4);
+      expect(enteredTeams.map((t) => t.name).toList(), customTeams);
+      for (final t in enteredTeams) {
+        expect(t.squadCount, 0);
+        expect(t.purseRemaining, 5000000);
+        expect(db.players.where((p) => p.teamId == t.id).toList(), isEmpty);
+      }
+
+      // Verify ONLY the entered players exist in this auction
+      final enteredLots = db.auctionLots.where((l) => l.auctionId == newAuc.id).toList();
+      expect(enteredLots.length, 3);
+      final lotPlayerNames = enteredLots.map((l) {
+        return db.players.firstWhere((p) => p.id == l.playerId).fullName;
+      }).toList();
+      expect(lotPlayerNames, ['Sourav Sen', 'Pritam Ghosh', 'Arpan Mitra']);
+
+      // 3. Test check-in & bidding in this fresh auction
+      db.checkInAllTeamsToAuction(newAuc.id);
+      expect(newAuc.isReadyToStart, isTrue);
+
+      final buyer = enteredTeams.first;
+      final bidSuccess = db.placeAuctionBid(
+        auctionId: newAuc.id,
+        teamId: buyer.id,
+        increment: 50000,
+      );
+      expect(bidSuccess, isTrue);
+      expect(newAuc.highBidderTeamId, buyer.id);
+
+      // Sell lot
+      db.setFloorStatus(newAuc.id, FloorStatus.sold);
+      final soldLot = enteredLots.first;
+      expect(soldLot.status, LotStatus.sold);
+      expect(soldLot.winningTeamId, buyer.id);
+      expect(buyer.squadCount, 1);
+      expect(buyer.purseRemaining, 5000000 - (soldLot.currentBid ?? 0));
+
+      final buyerSquad = db.players.where((p) => p.teamId == buyer.id).toList();
+      expect(buyerSquad.length, 1);
+      expect(buyerSquad.first.fullName, 'Sourav Sen');
+
+      // Other teams remain untouched with 0 players
+      for (final other in enteredTeams.skip(1)) {
+        expect(other.squadCount, 0);
+        expect(other.purseRemaining, 5000000);
+      }
+    });
   });
 }
