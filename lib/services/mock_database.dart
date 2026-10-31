@@ -17,6 +17,13 @@ class MockDatabase extends ChangeNotifier {
   late List<AuctionLot> auctionLots;
   late List<AuctionBid> auctionBids;
 
+  late List<ScoringRoom> scoringRooms;
+  late List<AuctionRoom> auctionRooms;
+  final Set<String> authenticatedScoringMatchIds = {};
+  bool isAuctionUnlocked = false;
+  bool isAuctionAdmin = false;
+  String? currentAuctionRoomId;
+
   MockDatabase() {
     _initializeSeedData();
   }
@@ -700,6 +707,41 @@ class MockDatabase extends ChangeNotifier {
         timestamp: DateTime.now().subtract(const Duration(seconds: 5)),
       ),
     ];
+
+    scoringRooms = [
+      ScoringRoom(
+        id: 'ROOM-BPL-01',
+        matchId: 'match_1',
+        passcode: '1234',
+        createdBy: 'Lead Scorer (Eden Gardens)',
+        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+      ),
+      ScoringRoom(
+        id: 'ROOM-BPL-02',
+        matchId: 'match_2',
+        passcode: '1234',
+        createdBy: 'Official Scorer',
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ),
+      ScoringRoom(
+        id: 'ROOM-BPL-03',
+        matchId: 'match_3',
+        passcode: '1234',
+        createdBy: 'Tournament Host',
+        createdAt: DateTime.now(),
+      ),
+    ];
+
+    auctionRooms = [
+      AuctionRoom(
+        id: 'AUCTION-BPL',
+        auctionId: 'auc_bpl_2026',
+        passcode: '1234',
+        adminPasscode: 'admin123',
+        createdBy: 'BPL Governing Council',
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    ];
   }
 
   // ==========================================
@@ -1068,5 +1110,127 @@ class MockDatabase extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  // ==========================================
+  // ROOM MANAGEMENT & AUTHENTICATION METHODS
+  // ==========================================
+
+  bool isScoringUnlockedForMatch(String matchId) {
+    return authenticatedScoringMatchIds.contains(matchId);
+  }
+
+  /// Unlock official scoring for a match using Room ID and Passcode
+  bool unlockScoringRoom({required String matchId, required String roomId, required String passcode}) {
+    final cleanRoomId = roomId.trim().toUpperCase();
+    final cleanPasscode = passcode.trim();
+
+    final room = scoringRooms.where((r) => r.id.toUpperCase() == cleanRoomId && r.matchId == matchId).firstOrNull;
+    if (room != null && room.passcode == cleanPasscode) {
+      authenticatedScoringMatchIds.add(matchId);
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// Lock scoring back to spectator mode
+  void lockScoringRoom(String matchId) {
+    authenticatedScoringMatchIds.remove(matchId);
+    notifyListeners();
+  }
+
+  /// Create a new scoring room for a match
+  ScoringRoom createScoringRoom({
+    required String matchId,
+    required String roomId,
+    required String passcode,
+    required String createdBy,
+  }) {
+    final cleanRoomId = roomId.trim().toUpperCase();
+    final cleanPasscode = passcode.trim();
+
+    // Check if room already exists with this ID, remove old
+    scoringRooms.removeWhere((r) => r.id.toUpperCase() == cleanRoomId);
+    final newRoom = ScoringRoom(
+      id: cleanRoomId,
+      matchId: matchId,
+      passcode: cleanPasscode,
+      createdBy: createdBy.trim().isEmpty ? 'Host Organizer' : createdBy.trim(),
+      createdAt: DateTime.now(),
+    );
+    scoringRooms.add(newRoom);
+
+    // Automatically authenticate the creator!
+    authenticatedScoringMatchIds.add(matchId);
+    notifyListeners();
+    return newRoom;
+  }
+
+  ScoringRoom? getScoringRoomForMatch(String matchId) {
+    return scoringRooms.where((r) => r.matchId == matchId).firstOrNull;
+  }
+
+  /// Unlock auction for bidding or admin controls
+  bool unlockAuctionRoom({required String roomId, required String passcode}) {
+    final cleanRoomId = roomId.trim().toUpperCase();
+    final cleanPasscode = passcode.trim();
+
+    final room = auctionRooms.where((r) => r.id.toUpperCase() == cleanRoomId).firstOrNull;
+    if (room != null) {
+      if (cleanPasscode == room.adminPasscode) {
+        // Admin / Auctioneer access (Hammer, Spin & Bidding)
+        isAuctionUnlocked = true;
+        isAuctionAdmin = true;
+        currentAuctionRoomId = room.id;
+        notifyListeners();
+        return true;
+      } else if (cleanPasscode == room.passcode) {
+        // Team Owner access (Bidding)
+        isAuctionUnlocked = true;
+        isAuctionAdmin = false;
+        currentAuctionRoomId = room.id;
+        notifyListeners();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Lock auction back to spectator mode
+  void lockAuctionRoom() {
+    isAuctionUnlocked = false;
+    isAuctionAdmin = false;
+    currentAuctionRoomId = null;
+    notifyListeners();
+  }
+
+  /// Create a new auction room
+  AuctionRoom createAuctionRoom({
+    required String auctionId,
+    required String roomId,
+    required String passcode,
+    required String adminPasscode,
+    required String createdBy,
+  }) {
+    final cleanRoomId = roomId.trim().toUpperCase();
+    auctionRooms.removeWhere((r) => r.id.toUpperCase() == cleanRoomId);
+
+    final newRoom = AuctionRoom(
+      id: cleanRoomId,
+      auctionId: auctionId,
+      passcode: passcode.trim(),
+      adminPasscode: adminPasscode.trim(),
+      createdBy: createdBy.trim().isEmpty ? 'Tournament Organizer' : createdBy.trim(),
+      createdAt: DateTime.now(),
+    );
+    auctionRooms.add(newRoom);
+
+    // Creator unlocks as admin
+    isAuctionUnlocked = true;
+    isAuctionAdmin = true;
+    currentAuctionRoomId = cleanRoomId;
+    notifyListeners();
+    return newRoom;
   }
 }

@@ -9,8 +9,8 @@ class CreaseHudWidget extends StatelessWidget {
   final BattingScorecard strikerCard;
   final BattingScorecard nonStrikerCard;
   final BowlingScorecard bowlerCard;
-  final VoidCallback onSwapEnds;
-  final VoidCallback onChangeBowler;
+  final VoidCallback? onSwapEnds;
+  final VoidCallback? onChangeBowler;
 
   const CreaseHudWidget({
     super.key,
@@ -21,8 +21,8 @@ class CreaseHudWidget extends StatelessWidget {
     required this.strikerCard,
     required this.nonStrikerCard,
     required this.bowlerCard,
-    required this.onSwapEnds,
-    required this.onChangeBowler,
+    this.onSwapEnds,
+    this.onChangeBowler,
   });
 
   @override
@@ -52,28 +52,29 @@ class CreaseHudWidget extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  InkWell(
-                    onTap: onSwapEnds,
-                    borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      child: Row(
-                        children: [
-                          Icon(Icons.swap_horiz, size: 13, color: Colors.amber),
-                          SizedBox(width: 4),
-                          Text(
-                            'Swap Ends',
-                            style: TextStyle(
-                              color: Colors.amber,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                  if (onSwapEnds != null)
+                    InkWell(
+                      onTap: onSwapEnds,
+                      borderRadius: BorderRadius.circular(6),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Row(
+                          children: [
+                            Icon(Icons.swap_horiz, size: 13, color: Colors.amber),
+                            SizedBox(width: 4),
+                            Text(
+                              'Swap Ends',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -210,34 +211,35 @@ class CreaseHudWidget extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  InkWell(
-                    onTap: onChangeBowler,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: bowler == null ? Colors.amber : const Color(0xFF064E3B),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            bowler == null ? 'Select Bowler' : 'Change',
-                            style: TextStyle(
-                              color: bowler == null ? Colors.black : Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                  if (onChangeBowler != null)
+                    InkWell(
+                      onTap: onChangeBowler,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: bowler == null ? Colors.amber : const Color(0xFF064E3B),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              bowler == null ? 'Select Bowler' : 'Change',
+                              style: TextStyle(
+                                color: bowler == null ? Colors.black : Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 12,
-                            color: bowler == null ? Colors.black : Colors.white,
-                          ),
-                        ],
+                            Icon(
+                              Icons.chevron_right,
+                              size: 12,
+                              color: bowler == null ? Colors.black : Colors.white,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 6),

@@ -36,6 +36,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
       orElse: () => db.matches.first,
     );
 
+    final isScorer = db.isScoringUnlockedForMatch(match.id);
+    final currentRoom = db.getScoringRoomForMatch(match.id);
+
     final teamA = db.teams.firstWhere((t) => t.id == match.teamAId);
     final teamB = db.teams.firstWhere((t) => t.id == match.teamBId);
 
@@ -80,33 +83,86 @@ class _ScorerScreenState extends State<ScorerScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
         elevation: 0,
-        title: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: selectedMatchId,
-            dropdownColor: const Color(0xFF1E293B),
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-            items: db.matches.map((m) {
-              return DropdownMenuItem<String>(
-                value: m.id,
-                child: Text('${m.stage} (${m.status.name.toUpperCase()})'),
-              );
-            }).toList(),
-            onChanged: (val) {
-              if (val != null) {
-                setState(() {
-                  selectedMatchId = val;
-                  final newMatch = db.matches.firstWhere((m) => m.id == val);
-                  selectedInningsNum = newMatch.currentInningsNumber;
-                });
-              }
-            },
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedMatchId,
+                dropdownColor: const Color(0xFF1E293B),
+                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                items: db.matches.map((m) {
+                  return DropdownMenuItem<String>(
+                    value: m.id,
+                    child: Text('${m.stage} (${m.status.name.toUpperCase()})'),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      selectedMatchId = val;
+                      final newMatch = db.matches.firstWhere((m) => m.id == val);
+                      selectedInningsNum = newMatch.currentInningsNumber;
+                    });
+                  }
+                },
+              ),
+            ),
+            Row(
+              children: [
+                Icon(
+                  isScorer ? Icons.check_circle : Icons.lock_outline,
+                  size: 11,
+                  color: isScorer ? const Color(0xFF34D399) : Colors.amber,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isScorer
+                      ? 'Scorer Room: ${currentRoom?.id ?? "ROOM-BPL-01"}'
+                      : 'Spectator Mode (Live Score Only)',
+                  style: TextStyle(
+                    color: isScorer ? const Color(0xFF34D399) : Colors.amber.shade300,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         actions: [
+          if (!isScorer) ...[
+            TextButton.icon(
+              onPressed: () => _showEnterRoomDialog(context, db, match),
+              icon: const Icon(Icons.vpn_key, size: 14, color: Color(0xFF34D399)),
+              label: const Text('Enter Room', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              tooltip: 'Create Scoring Room',
+              icon: const Icon(Icons.add_circle_outline, color: Colors.amber, size: 20),
+              onPressed: () => _showCreateRoomDialog(context, db, match),
+            ),
+          ] else ...[
+            TextButton.icon(
+              onPressed: () {
+                db.lockScoringRoom(match.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Locked scoring console. Returned to Spectator Mode.')),
+                );
+              },
+              icon: const Icon(Icons.lock, size: 14, color: Colors.redAccent),
+              label: const Text('Exit Scorer', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              tooltip: 'Reset Match',
+              icon: const Icon(Icons.refresh, color: Colors.white70, size: 20),
+              onPressed: () => _confirmResetMatch(context, db, match),
+            ),
+          ],
           IconButton(
             tooltip: 'View Full Scorecard',
-            icon: const Icon(Icons.table_chart, color: Color(0xFF34D399)),
+            icon: const Icon(Icons.table_chart, color: Color(0xFF34D399), size: 20),
             onPressed: () {
               showDialog(
                 context: context,
@@ -114,17 +170,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
               );
             },
           ),
-          IconButton(
-            tooltip: 'Reset Match',
-            icon: const Icon(Icons.refresh, color: Colors.white70),
-            onPressed: () => _confirmResetMatch(context, db, match),
-          ),
         ],
       ),
       body: isPreMatch
-          ? _buildPreMatchTossView(context, db, match, teamA, teamB, safeTeamAPlayers, safeTeamBPlayers)
+          ? _buildPreMatchTossView(context, db, match, teamA, teamB, safeTeamAPlayers, safeTeamBPlayers, isScorer, currentRoom)
           : isMatchCompleted
-              ? _buildCompletedMatchView(context, db, match, inn1, inn2)
+              ? _buildCompletedMatchView(context, db, match, inn1, inn2, isScorer)
               : _buildLiveScoringView(
                   context,
                   db,
@@ -140,6 +191,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   bowlerCard,
                   battingTeamPlayers,
                   bowlingTeamPlayers,
+                  isScorer,
+                  currentRoom,
                 ),
     );
   }
@@ -155,9 +208,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
     Team teamB,
     List<Player> teamAPlayers,
     List<Player> teamBPlayers,
+    bool isScorer,
+    ScoringRoom? currentRoom,
   ) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -186,47 +241,119 @@ class _ScorerScreenState extends State<ScorerScreen> {
               '${match.venue} • ${match.overs} Overs T20',
               style: const TextStyle(color: Colors.white38, fontSize: 12),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (ctx) => TossWizardSheet(
-                    match: match,
-                    teamA: teamA,
-                    teamB: teamB,
-                    teamAPlayers: teamAPlayers,
-                    teamBPlayers: teamBPlayers,
-                    onStartMatch: ({
-                      required tossWonBy,
-                      required tossDecision,
-                      required strikerId,
-                      required nonStrikerId,
-                      required bowlerId,
-                    }) {
-                      db.startMatchWithToss(
-                        matchId: match.id,
-                        tossWonBy: tossWonBy,
-                        tossDecision: tossDecision,
-                        strikerId: strikerId,
-                        nonStrikerId: nonStrikerId,
-                        bowlerId: bowlerId,
-                      );
-                      setState(() => selectedInningsNum = 1);
-                    },
-                  ),
-                );
-              },
-              icon: const Icon(Icons.monetization_on, color: Colors.black),
-              label: const Text('CONDUCT COIN TOSS & START MATCH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF34D399),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            const SizedBox(height: 28),
+
+            if (isScorer) ...[
+              // OFFICIAL SCORER UNLOCKED BUTTON
+              ElevatedButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (ctx) => TossWizardSheet(
+                      match: match,
+                      teamA: teamA,
+                      teamB: teamB,
+                      teamAPlayers: teamAPlayers,
+                      teamBPlayers: teamBPlayers,
+                      onStartMatch: ({
+                        required tossWonBy,
+                        required tossDecision,
+                        required strikerId,
+                        required nonStrikerId,
+                        required bowlerId,
+                      }) {
+                        db.startMatchWithToss(
+                          matchId: match.id,
+                          tossWonBy: tossWonBy,
+                          tossDecision: tossDecision,
+                          strikerId: strikerId,
+                          nonStrikerId: nonStrikerId,
+                          bowlerId: bowlerId,
+                        );
+                        setState(() => selectedInningsNum = 1);
+                      },
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.monetization_on, color: Colors.black),
+                label: const Text('CONDUCT COIN TOSS & START MATCH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF34D399),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
               ),
-            ),
+            ] else ...[
+              // SPECTATOR LOCKED BANNER
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.lock, color: Colors.amber, size: 16),
+                        SizedBox(width: 8),
+                        Text(
+                          'Scoring Room Protected',
+                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Toss and lineup setup require official room credentials. Normal spectators can follow live ball-by-ball once the match commences.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showEnterRoomDialog(context, db, match),
+                            icon: const Icon(Icons.vpn_key, size: 14),
+                            label: const Text('Enter Scoring Room', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34D399),
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showCreateRoomDialog(context, db, match),
+                            icon: const Icon(Icons.add_circle_outline, size: 14),
+                            label: const Text('Create Room', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white38),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Demo Room: ${currentRoom?.id ?? "ROOM-BPL-01"}  •  Passcode: 1234',
+                      style: const TextStyle(color: Colors.white38, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -236,7 +363,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
   // ==========================================
   // COMPLETED MATCH VIEW
   // ==========================================
-  Widget _buildCompletedMatchView(BuildContext context, MockDatabase db, MatchModel match, Innings? inn1, Innings? inn2) {
+  Widget _buildCompletedMatchView(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Innings? inn1,
+    Innings? inn2,
+    bool isScorer,
+  ) {
     final winner = db.teams.where((t) => t.id == match.winnerId).firstOrNull;
 
     return Center(
@@ -297,12 +431,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF059669)),
                   child: const Text('View Full Scorecard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-                const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: () => _confirmResetMatch(context, db, match),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
-                  child: const Text('Reset Match'),
-                ),
+                if (isScorer) ...[
+                  const SizedBox(width: 12),
+                  OutlinedButton(
+                    onPressed: () => _confirmResetMatch(context, db, match),
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                    child: const Text('Reset Match'),
+                  ),
+                ],
               ],
             ),
           ],
@@ -329,6 +465,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
     BowlingScorecard bowlerCard,
     List<Player> battingTeamPlayers,
     List<Player> bowlingTeamPlayers,
+    bool isScorer,
+    ScoringRoom? currentRoom,
   ) {
     final runsRemaining = (currentInnings.targetRuns != null) ? (currentInnings.targetRuns! - currentInnings.totalRuns) : null;
     final ballsRemaining = (match.overs * 6) - currentInnings.legalBalls;
@@ -489,158 +627,631 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   strikerCard: strikerCard,
                   nonStrikerCard: nonStrikerCard,
                   bowlerCard: bowlerCard,
-                  onSwapEnds: () => db.swapEnds(currentInnings.id),
-                  onChangeBowler: () {
-                    _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
-                  },
+                  onSwapEnds: isScorer ? () => db.swapEnds(currentInnings.id) : null,
+                  onChangeBowler: isScorer
+                      ? () {
+                          _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
+                        }
+                      : null,
                 ),
               ],
             ),
           ),
         ),
 
-        // FIXED BOTTOM ERGONOMIC KEYPAD
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-          decoration: const BoxDecoration(
-            color: Color(0xFF0B1120),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        // BOTTOM CONSOLE: Either Official Scorer Keypad OR Spectator Mode Console
+        if (isScorer)
+          _buildOfficialScorerKeypad(
+            context,
+            db,
+            match,
+            currentInnings,
+            striker,
+            nonStriker,
+            bowler,
+            battingTeamPlayers,
+            bowlingTeamPlayers,
+            prevBowlerId,
+          )
+        else
+          _buildSpectatorBottomConsole(
+            context,
+            db,
+            match,
+            currentInnings,
+            currentRoom,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      ],
+    );
+  }
+
+  // ==========================================
+  // SPECTATOR BOTTOM CONSOLE (READ-ONLY)
+  // ==========================================
+  Widget _buildSpectatorBottomConsole(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Innings currentInnings,
+    ScoringRoom? currentRoom,
+  ) {
+    final recentDeliveries = db.deliveries
+        .where((d) => d.inningsId == currentInnings.id && !d.isUndone)
+        .toList();
+    final lastBalls = recentDeliveries.reversed.take(6).toList().reversed.toList();
+    final latestDelivery = recentDeliveries.isNotEmpty ? recentDeliveries.last : null;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0B1120),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Live Over Deliveries Strip
+          Row(
             children: [
-              // Top control strip: Undo & Swap Ends
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const Text(
+                'THIS OVER: ',
+                style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 6),
+              if (lastBalls.isEmpty)
+                const Text('Over in progress...', style: TextStyle(color: Colors.white30, fontSize: 11))
+              else
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: lastBalls.map((d) {
+                        final isWicket = d.isWicket;
+                        final isBoundary = d.runsBatter == 4 || d.runsBatter == 6;
+                        final label = isWicket
+                            ? 'W'
+                            : (d.extrasType != ExtrasType.none
+                                ? (d.extrasType == ExtrasType.wide
+                                    ? '${d.totalRuns}wd'
+                                    : (d.extrasType == ExtrasType.noBall ? '${d.totalRuns}nb' : '${d.totalRuns}b'))
+                                : '${d.runsBatter}');
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isWicket
+                                ? Colors.red
+                                : (isBoundary
+                                    ? (d.runsBatter == 4 ? Colors.blue.shade700 : Colors.purple.shade700)
+                                    : const Color(0xFF1E293B)),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          if (latestDelivery != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
                 children: [
-                  TextButton.icon(
-                    onPressed: () => db.undoLastDelivery(currentInnings.id),
-                    icon: const Icon(Icons.undo, size: 14, color: Colors.white70),
-                    label: const Text('Undo', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => db.swapEnds(currentInnings.id),
-                    icon: const Icon(Icons.swap_horiz, size: 14, color: Colors.amber),
-                    label: const Text('Swap Strike', style: TextStyle(color: Colors.amber, fontSize: 11)),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
-                    },
-                    icon: const Icon(Icons.person, size: 14, color: Color(0xFF34D399)),
-                    label: Text(bowler?.displayName ?? 'Pick Bowler', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                  const Icon(Icons.comment, size: 12, color: Color(0xFF34D399)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Ball ${latestDelivery.overNumber}.${latestDelivery.ballInOver}: ${latestDelivery.commentaryText}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+            ),
+          ],
 
-              // Runs Keypad (0, 1, 2, 3, 4, 6)
-              Row(
-                children: [0, 1, 2, 3, 4, 6].map((run) {
-                  final isBoundary = run == 4 || run == 6;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: ElevatedButton(
-                        onPressed: bowler == null
-                            ? () {
-                                _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
-                              }
-                            : () {
+          const SizedBox(height: 12),
+
+          // Spectator Mode Card
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.visibility, size: 14, color: Colors.amber),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'LIVE SPECTATOR BROADCAST',
+                      style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('Read Only', style: TextStyle(color: Colors.white60, fontSize: 9)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Scoring controls are locked. Official scorers can enter the Scoring Room with the Room ID and Passcode PIN to record deliveries.',
+                  style: TextStyle(color: Colors.white60, fontSize: 10),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showEnterRoomDialog(context, db, match),
+                        icon: const Icon(Icons.vpn_key, size: 14),
+                        label: const Text('ENTER SCORING ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF34D399),
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showCreateRoomDialog(context, db, match),
+                        icon: const Icon(Icons.add_circle_outline, size: 14),
+                        label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white38),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Demo: Room: ${currentRoom?.id ?? "ROOM-BPL-01"}  •  PIN: 1234',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white38, fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // OFFICIAL SCORER KEYPAD (UNLOCKED)
+  // ==========================================
+  Widget _buildOfficialScorerKeypad(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Innings currentInnings,
+    Player? striker,
+    Player? nonStriker,
+    Player? bowler,
+    List<Player> battingTeamPlayers,
+    List<Player> bowlingTeamPlayers,
+    String? prevBowlerId,
+  ) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0B1120),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top control strip: Undo & Swap Ends
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                onPressed: () => db.undoLastDelivery(currentInnings.id),
+                icon: const Icon(Icons.undo, size: 14, color: Colors.white70),
+                label: const Text('Undo', style: TextStyle(color: Colors.white70, fontSize: 11)),
+              ),
+              TextButton.icon(
+                onPressed: () => db.swapEnds(currentInnings.id),
+                icon: const Icon(Icons.swap_horiz, size: 14, color: Colors.amber),
+                label: const Text('Swap Strike', style: TextStyle(color: Colors.amber, fontSize: 11)),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
+                },
+                icon: const Icon(Icons.person, size: 14, color: Color(0xFF34D399)),
+                label: Text(bowler?.displayName ?? 'Pick Bowler', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Runs Keypad (0, 1, 2, 3, 4, 6)
+          Row(
+            children: [0, 1, 2, 3, 4, 6].map((run) {
+              final isBoundary = run == 4 || run == 6;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: ElevatedButton(
+                    onPressed: bowler == null
+                        ? () {
+                            _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
+                          }
+                        : () {
+                            db.recordDelivery(
+                              inningsId: currentInnings.id,
+                              runsBatter: run,
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isBoundary
+                          ? (run == 4 ? Colors.blue.shade700 : Colors.purple.shade700)
+                          : (run == 0 ? Colors.grey.shade800 : Colors.white),
+                      foregroundColor: (run == 0 || isBoundary) ? Colors.white : Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      '$run',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Action Row: EXTRAS & WICKET
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: bowler == null
+                      ? null
+                      : () => _showExtrasDialog(context, db, currentInnings),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade700,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('EXTRAS (Wd/Nb/B)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: (bowler == null || striker == null || nonStriker == null)
+                      ? null
+                      : () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => WicketDialog(
+                              striker: striker,
+                              nonStriker: nonStriker,
+                              battingTeamPlayers: battingTeamPlayers,
+                              bowlingTeamPlayers: bowlingTeamPlayers,
+                              deliveries: db.deliveries,
+                              inningsId: currentInnings.id,
+                              currentWickets: currentInnings.wickets,
+                              onConfirmWicket: ({
+                                required dismissalType,
+                                required dismissedPlayerId,
+                                fielderId,
+                                nextBatterId,
+                              }) {
                                 db.recordDelivery(
                                   inningsId: currentInnings.id,
-                                  runsBatter: run,
+                                  runsBatter: 0,
+                                  isWicket: true,
+                                  dismissalType: dismissalType,
+                                  dismissedPlayerId: dismissedPlayerId,
+                                  fielderId: fielderId,
+                                  nextBatterId: nextBatterId,
                                 );
                               },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isBoundary
-                              ? (run == 4 ? Colors.blue.shade700 : Colors.purple.shade700)
-                              : (run == 0 ? Colors.grey.shade800 : Colors.white),
-                          foregroundColor: (run == 0 || isBoundary) ? Colors.white : Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                          '$run',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                            ),
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('WICKET (OUT!)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                ),
               ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-              const SizedBox(height: 10),
+  // ==========================================
+  // ROOM MODALS
+  // ==========================================
 
-              // Action Row: EXTRAS & WICKET
-              Row(
+  void _showEnterRoomDialog(BuildContext context, MockDatabase db, MatchModel match) {
+    final existingRoom = db.getScoringRoomForMatch(match.id);
+    final roomController = TextEditingController(text: existingRoom?.id ?? 'ROOM-BPL-01');
+    final passController = TextEditingController();
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            title: Row(
+              children: const [
+                Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 20),
+                SizedBox(width: 8),
+                Text('Enter Scoring Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: bowler == null
-                          ? null
-                          : () => _showExtrasDialog(context, db, currentInnings),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber.shade700,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: const Text('EXTRAS (Wd/Nb/B)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  Text(
+                    'Unlock official ball-by-ball scoring for ${match.stage}.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: roomController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Scoring Room ID',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: 'e.g. ROOM-BPL-01',
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      prefixIcon: const Icon(Icons.meeting_room, color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: (bowler == null || striker == null || nonStriker == null)
-                          ? null
-                          : () {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) => WicketDialog(
-                                  striker: striker,
-                                  nonStriker: nonStriker,
-                                  battingTeamPlayers: battingTeamPlayers,
-                                  bowlingTeamPlayers: bowlingTeamPlayers,
-                                  deliveries: db.deliveries,
-                                  inningsId: currentInnings.id,
-                                  currentWickets: currentInnings.wickets,
-                                  onConfirmWicket: ({
-                                    required dismissalType,
-                                    required dismissedPlayerId,
-                                    fielderId,
-                                    nextBatterId,
-                                  }) {
-                                    db.recordDelivery(
-                                      inningsId: currentInnings.id,
-                                      runsBatter: 0,
-                                      isWicket: true,
-                                      dismissalType: dismissalType,
-                                      dismissedPlayerId: dismissedPlayerId,
-                                      fielderId: fielderId,
-                                      nextBatterId: nextBatterId,
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: const Text('WICKET (OUT!)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: passController,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Passcode PIN',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: 'e.g. 1234',
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      prefixIcon: const Icon(Icons.password, color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  // Demo autofill chip
+                  InkWell(
+                    onTap: () {
+                      setDialogState(() {
+                        roomController.text = existingRoom?.id ?? 'ROOM-BPL-01';
+                        passController.text = existingRoom?.passcode ?? '1234';
+                        errorMessage = null;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.touch_app, size: 12, color: Colors.amber),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Auto-fill Demo: ${existingRoom?.id ?? "ROOM-BPL-01"} / 1234',
+                              style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final success = db.unlockScoringRoom(
+                    matchId: match.id,
+                    roomId: roomController.text,
+                    passcode: passController.text,
+                  );
+                  if (success) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF059669),
+                        content: Text('Scoring console unlocked for ${match.stage}!'),
+                      ),
+                    );
+                  } else {
+                    setDialogState(() {
+                      errorMessage = 'Invalid Room ID or Passcode for this match.';
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF34D399),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Unlock Console', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showCreateRoomDialog(BuildContext context, MockDatabase db, MatchModel match) {
+    final generatedRoomId = 'ROOM-BPL-0${match.id.replaceAll(RegExp(r'[^0-9]'), '')}';
+    final roomController = TextEditingController(text: generatedRoomId);
+    final passController = TextEditingController(text: '1234');
+    final nameController = TextEditingController(text: 'Host Scorer');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: Row(
+          children: const [
+            Icon(Icons.add_circle, color: Color(0xFF34D399), size: 20),
+            SizedBox(width: 8),
+            Text('Create Scoring Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Create a private room for ${match.stage}. Only individuals who receive the Room ID & PIN will be able to change or conduct scores.',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: roomController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Room ID',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Secret Passcode PIN',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  hintText: 'e.g. 1234',
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Created By (Your Name / Role)',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ],
           ),
         ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (roomController.text.trim().isEmpty || passController.text.trim().isEmpty) return;
+              final newRoom = db.createScoringRoom(
+                matchId: match.id,
+                roomId: roomController.text,
+                passcode: passController.text,
+                createdBy: nameController.text,
+              );
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color(0xFF059669),
+                  content: Text('Room "${newRoom.id}" created! Official scorer mode activated.'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF34D399),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Create & Start Scoring', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
+
+  // ==========================================
+  // HELPER DIALOGS
+  // ==========================================
 
   void _showBowlerSelectDialog(BuildContext context, MockDatabase db, Innings inn, List<Player> bowlers, String? prevBowlerId) {
     showDialog(

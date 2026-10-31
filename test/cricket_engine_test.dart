@@ -166,5 +166,69 @@ void main() {
       expect(buyerTeam.purseRemaining, initialPurse - winningBid);
       expect(buyerTeam.squadCount, initialSquad + 1);
     });
+
+    test('Room Access Control: Spectator mode is locked by default and requires Room ID & Passcode', () {
+      final db = MockDatabase();
+
+      // Default state: Spectator mode (Locked)
+      expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
+      expect(db.isAuctionUnlocked, isFalse);
+      expect(db.isAuctionAdmin, isFalse);
+
+      // Wrong passcode fails
+      final wrongUnlock = db.unlockScoringRoom(
+        matchId: 'match_1',
+        roomId: 'ROOM-BPL-01',
+        passcode: 'wrong_pass',
+      );
+      expect(wrongUnlock, isFalse);
+      expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
+
+      // Correct passcode unlocks scoring for match_1
+      final validUnlock = db.unlockScoringRoom(
+        matchId: 'match_1',
+        roomId: 'ROOM-BPL-01',
+        passcode: '1234',
+      );
+      expect(validUnlock, isTrue);
+      expect(db.isScoringUnlockedForMatch('match_1'), isTrue);
+
+      // Lock scoring returns to spectator mode
+      db.lockScoringRoom('match_1');
+      expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
+
+      // Creating a room auto-authenticates creator
+      final newRoom = db.createScoringRoom(
+        matchId: 'match_2',
+        roomId: 'ROOM-CUSTOM-99',
+        passcode: '5678',
+        createdBy: 'Tournament Admin',
+      );
+      expect(newRoom.id, 'ROOM-CUSTOM-99');
+      expect(db.isScoringUnlockedForMatch('match_2'), isTrue);
+
+      // Auction team PIN unlocks bidding
+      final teamAuctionUnlock = db.unlockAuctionRoom(
+        roomId: 'AUCTION-BPL',
+        passcode: '1234',
+      );
+      expect(teamAuctionUnlock, isTrue);
+      expect(db.isAuctionUnlocked, isTrue);
+      expect(db.isAuctionAdmin, isFalse);
+
+      // Auction admin PIN unlocks admin controls
+      final adminAuctionUnlock = db.unlockAuctionRoom(
+        roomId: 'AUCTION-BPL',
+        passcode: 'admin123',
+      );
+      expect(adminAuctionUnlock, isTrue);
+      expect(db.isAuctionUnlocked, isTrue);
+      expect(db.isAuctionAdmin, isTrue);
+
+      // Lock auction returns to spectator mode
+      db.lockAuctionRoom();
+      expect(db.isAuctionUnlocked, isFalse);
+      expect(db.isAuctionAdmin, isFalse);
+    });
   });
 }

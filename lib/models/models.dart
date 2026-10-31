@@ -380,3 +380,38 @@ class TournamentStanding {
     required this.netRunRate,
   });
 }
+
+class ScoringRoom {
+  final String id; // e.g. "ROOM-BPL-01"
+  final String matchId;
+  final String passcode; // e.g. "1234"
+  final String createdBy;
+  final DateTime createdAt;
+
+  ScoringRoom({
+    required this.id,
+    required this.matchId,
+    required this.passcode,
+    required this.createdBy,
+    required this.createdAt,
+  });
+}
+
+class AuctionRoom {
+  final String id; // e.g. "AUCTION-BPL"
+  final String auctionId;
+  final String passcode; // Team bidding PIN e.g. "1234"
+  final String adminPasscode; // Auctioneer PIN e.g. "admin123"
+  final String createdBy;
+  final DateTime createdAt;
+
+  AuctionRoom({
+    required this.id,
+    required this.auctionId,
+    required this.passcode,
+    required this.adminPasscode,
+    required this.createdBy,
+    required this.createdAt,
+  });
+}
+
