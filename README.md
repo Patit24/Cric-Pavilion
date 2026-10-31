@@ -1,148 +1,135 @@
-# 🏏 CricPavilion Pro — Cricket Tournament Management, Live Scoring & Franchise Player Auction Platform
+# 🏏 CricPavilion Pro — Flutter Cross-Platform Cricket App
+### Tournament Management, Live Ball-by-Ball Scoring & Franchise Player Auction
 
-**CricPavilion Pro** is an end-to-end cricket tournament platform inspired by **CricHeroes** and **Cricbuzz**, featuring an integrated IPL-style franchise player auction system with spinning wheel selection, real-time bidding, automatic squad assignments, team purse deduction, and a ball-by-ball cricket scoring engine.
-
----
-
-## 🌟 Key Features & Tournament Lifecycle
-
-1. **Tournament Creation & Rules Configuration**:
-   - 7-Step Wizard: Basic Information, Competition Format (Round-Robin, Knockout, Groups), Match Rules (Overs, Squad limits, Powerplays), Registered Franchises, Auction Configuration, and Automated Fixtures Scheduling.
-2. **Franchise Player Auction System**:
-   - **Interactive Spinning Wheel**: Server-authoritative random selection from eligible player lots with smooth deceleration, tick audio feedback, and spotlight reveals.
-   - **Live Real-time Bidding**: Server-authoritative bid validation, tiered increments, squad-size limit checks, and purse protection.
-   - **Live Countdown Timer**: 20-second dynamic countdown timer resetting on valid incoming bids.
-   - **Automatic Squad Assignment & Purse Deduction**: When a player is sold, the system atomically deducts the purse from the winning franchise, records the transaction in the financial ledger, assigns the player to the team's tournament roster, and updates squad stats.
-   - **Cinematic Presentation Modes**: Dedicated Organizer Control Room, Team Owner Bidding Console, Team Purse Dashboard, and full-screen TV / Projector Display mode.
-3. **Ball-by-Ball Live Cricket Scoring Engine**:
-   - **Rule-Aware Cricket Logic**: Dot balls, singles, boundaries (4s), sixes, wides, no-balls, byes, leg-byes, penalties.
-   - **Dismissal Handling**: Bowled, Caught, Caught & Bowled, LBW, Stumped, Hit Wicket (credited to bowler) vs Run Out, Timed Out, Retired Out (not credited to bowler).
-   - **Automatic Strike Rotation**: Batter runs, boundary retention, odd-run overthrows, and automatic end-of-over strike rotation.
-   - **Scorecard Generation**: Real-time batting scorecards (runs, balls, 4s, 6s, SR), bowling figures (overs, maidens, runs conceded, wickets, economy, dots), partnerships, and fall-of-wickets.
-   - **One-Tap Reliable Undo**: Instant delivery reversal recalculating all scorecards and overs accurately.
-4. **Standings & Official Net Run Rate (NRR)**:
-   - League points table with automatic ranking.
-   - **Official ICC / BCCI All-Out Quota Rule**: If a team is bowled out (all out) inside their allocated overs, the full quota of overs ({e.g., 20.0}) is used as the divisor for NRR calculation rather than the truncated overs.
-5. **Instant Identity & Role Simulator**:
-   - Built-in floating role-switcher widget allowing users and evaluators to test as:
-     - **Tournament Organizer** (Debasish Dutta)
-     - **Franchise Owner: Barasat Blasters** (Arijit Mukherjee — Purse: ₹68.5L)
-     - **Franchise Owner: Kolkata Knights** (Sanjiv Goenka — Purse: ₹72.0L)
-     - **Official BCCI Match Scorer** (Pritam Saha)
-     - **Public Spectator**
-     - **Super Administrator**
+**CricPavilion Pro** is a complete, production-grade Flutter cross-platform application (iOS, Android, macOS, Web, Windows, Linux) inspired by **CricHeroes** and **Cricbuzz**, featuring an integrated franchise player auction with a spinning wheel, real-time bidding, team purse ledger, and a certified ball-by-ball cricket scoring engine.
 
 ---
 
-## 🛠️ Technology Stack
+## 🌟 App Modules & Features
 
-- **Framework**: Next.js 14 (App Router, Server & Client Components)
-- **Language**: TypeScript (Strict typing across domain models)
-- **Styling**: Tailwind CSS with custom cricket-inspired green, dark navy typography, and stadium gold
-- **Icons**: Lucide React
-- **Animations & Effects**: Custom CSS Keyframes, Canvas-Confetti, Web Audio API sound synthesizer
-- **Backend & Database**:
-  - Full PostgreSQL DDL schema with Foreign Keys, Constraints, and Indexes (`supabase/schema.sql`)
-  - Atomic Stored Procedures & Concurrency Control (`supabase/functions.sql`)
-  - Row Level Security (RLS) Policies (`supabase/rls.sql`)
-  - Full local ACID persistence with dual-mode Supabase client (`src/lib/store/mock-db.ts` & `src/lib/supabase/client.ts`)
-- **Testing**: Vitest automated test suite covering cricket rules, strike rotation, NRR, auction bidding, and purse transactions.
+### 1. 🏠 Home Screen & Cricket Scorecard Centre
+- **Multi-Tab Scorecard Centre**:
+  - 🔴 **Live Scoring Tab**:
+    - Live match banner (e.g., Barasat Blasters vs Kolkata Kings).
+    - Real-time score `142/2 (14.2 ov)`, Current Run Rate (CRR).
+    - **Crease HUD**: Striker (runs, balls, 4s, 6s, SR, strike badge `★`) and Non-Striker details.
+    - **Active Bowler HUD**: Overs, maidens, runs conceded, wickets, economy (`ECON`).
+    - Quick actions: `Detailed Scorecard` and `Open Scorer Console`.
+  - ✅ **Past Match Scoring Tab (Results)**:
+    - Certified completed matches (e.g., Barasat Blasters vs Howrah Hurricanes).
+    - Trophy banner: 🏆 **Barasat Blasters won by 24 runs**.
+    - Innings 1 (172/5) & Innings 2 (148/8) side-by-side breakdowns.
+    - Top batters and bowlers for both teams.
+  - 📅 **Upcoming Fixtures Tab (Scheduled)**:
+    - Fixture cards with venue, date, format (20 Overs T20), and competing squads.
+    - Direct **`🪙 Conduct Toss & Start Scoring →`** button opening the 3-step Coin Toss Wizard!
+- **Franchise Auction Highlight**: Lot reveal and one-tap jump to the live auction.
 
 ---
 
-## 🚀 Getting Started
+### 2. 🔴 Ball-by-Ball Scorer Console
+- **3-Step Pre-Match Toss Wizard**:
+  - Step 1: Coin Toss (Winner selection & Elected to Bat/Bowl).
+  - Step 2: Opening Crease Lineup (Striker, Non-Striker, Opening Bowler).
+  - Step 3: Direct launch into live scoring at Over 0.1.
+- **Crease HUD (Heads-Up Display)**:
+  - Batters Table: Striker with `★ Strike` badge, non-striker, Runs, Balls, 4s, 6s, Strike Rate (`SR`), and `Swap Ends` control.
+  - Active Bowler Table: Overs, Maidens, Runs Conceded, Wickets, Economy (`ECON`), bowling style, and `Change Bowler`.
+- **Strict Cricket Law Enforcement**:
+  - **20.0 Overs Hard Cap**: Disallows deliveries once the 20-over quota is complete.
+  - **ICC Law 17.8**: Prevents the same bowler from bowling consecutive overs.
+  - **Bowler Quota Check**: Maximum 4 overs per bowler in a 20-over match.
+  - **Automatic Over Complete Dialog**: Auto-prompts next bowler selection with consecutive lockout.
+  - **2-Step Wicket Modal**:
+    - Step 1: Dismissal mode (Caught + fielder picker, Run Out + thrower, Bowled, LBW, Stumped).
+    - Step 2: Incoming batsman selection from the dugout (**already-dismissed batsmen are locked out!**).
+- **Innings Automation**:
+  - When 20.0 overs or 10 wickets are reached, Innings 1 automatically finishes, target runs are calculated (`Inn1 + 1`), and Innings 2 is unlocked with defending & chasing teams assigned.
+- **Full Interactive Scorecard**: View detailed batting cards, extras, totals, and bowling figures for both innings.
 
-### 1. Install Dependencies
+---
+
+### 3. 🔨 Franchise Player Auction Stage
+- **Cinematic Dark Stadium Aesthetic**:
+  - Stadium gold highlights, deep dark theme, and high-contrast typography.
+- **Interactive Spinning Wheel**:
+  - Custom-painted multi-color segments.
+  - Realistic spin physics with friction & deceleration.
+  - Dynamically selects and reveals incoming player lots.
+- **Real-Time Bidding**:
+  - Franchise selector dropdown.
+  - Increments: `+₹25,000`, `+₹50,000`, `+₹1,00,000`.
+  - Real-time bid log timeline with franchise names and amounts.
+- **Auctioneer Controls**:
+  - 🔨 **HAMMER SOLD**: Deducts purse from the winning franchise, increments team squad count, assigns player to roster, and advances to the next lot.
+  - ❌ **UNSOLD (PASS)**: Marks player unsold and loads the next lot.
+- **Franchise Purse Ledger**:
+  - Real-time remaining purse balances (e.g. ₹85,00,000 / ₹1,00,00,000) with visual progress bars and squad sizes.
+
+---
+
+### 4. 🏏 Match Centre & Tournament Standings
+- **Match Centre (`Matches`)**:
+  - Filter pills for All, Live, Completed, and Scheduled matches.
+  - Real-time score summaries, venue, and quick links.
+- **Tournament Standings (`Standings`)**:
+  - League Points Table with Played, Won, Lost, Points, and Net Run Rate (NRR) with color formatting.
+
+---
+
+## 🚀 Running the Flutter App
+
+Ensure Flutter is in your PATH:
 ```bash
-npm install
+export PATH="/Users/patitpabanroy/Desktop/flutter/bin:$PATH"
 ```
 
-### 2. Run Automated Test Suite
+### Run Tests:
 ```bash
-npm run test
+flutter test
 ```
-All 16 unit and integration test cases will run and verify cricket rules, strike rotation, all-out NRR calculations, and atomic auction validations.
 
-### 3. Run Development Server
+### Static Analysis:
 ```bash
-npm run dev
+flutter analyze
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. Build for Production
+### Run the App on Connected Device (macOS / Chrome / Simulator / Phone):
 ```bash
-npm run build
-npm run start
+flutter run
+```
+Or specify the target device:
+```bash
+flutter run -d chrome    # Run as Flutter Web
+flutter run -d macos     # Run as macOS Desktop
 ```
 
 ---
 
-## 📁 Project Structure
+## 📁 Flutter Project Architecture
 
 ```
-├── src/
-│   ├── app/
-│   │   ├── page.tsx                       # Home landing & live match ticker
-│   │   ├── layout.tsx                     # Global layout & sports navigation
-│   │   ├── auctions/
-│   │   │   ├── page.tsx                   # Auctions directory & team purse cards
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx               # Main Auction Stage (Wheel + Bidding)
-│   │   │       ├── display/page.tsx       # Fullscreen Projector / TV mode
-│   │   │       ├── control/page.tsx       # Organizer Control Room
-│   │   │       └── purse/page.tsx         # Detailed Team Purses & Squad Rosters
-│   │   ├── matches/
-│   │   │   ├── page.tsx                   # Fixtures & live match directory
-│   │   │   └── [id]/page.tsx              # Public Match Centre (5 live tabs)
-│   │   ├── scorer/
-│   │   │   └── page.tsx                   # Mobile-first Scorer Console
-│   │   ├── tournaments/
-│   │   │   ├── page.tsx                   # Tournaments directory
-│   │   │   └── [id]/standings/page.tsx    # Points Table & ICC NRR
-│   │   ├── organizer/
-│   │   │   ├── page.tsx                   # Organizer Hub
-│   │   │   └── tournaments/new/page.tsx   # 7-Step Tournament Wizard
-│   │   ├── teams/
-│   │   │   ├── page.tsx                   # Teams directory
-│   │   │   └── [id]/page.tsx              # Team profile & auction purchases
-│   │   ├── players/
-│   │   │   ├── page.tsx                   # Verified talent registry
-│   │   │   └── [id]/page.tsx              # Player career statistics
-│   │   └── api/
-│   │       ├── auction/                   # Atomic bid, sold, and spin routes
-│   │       └── scoring/                   # Ball-by-ball delivery & undo routes
-│   ├── components/
-│   │   ├── Navbar.tsx                     # Responsive navigation with live ticker
-│   │   ├── RoleSwitcher.tsx               # Quick role switcher simulator
-│   │   ├── auction/
-│   │   │   ├── SpinningWheel.tsx          # Interactive SVG/Canvas wheel
-│   │   │   ├── PlayerRevealCard.tsx       # Spotlight player reveal card
-│   │   │   ├── BiddingConsole.tsx         # Real-time bidding & countdown
-│   │   │   └── SoldAnimation.tsx          # Confetti & gavel announcement
-│   │   └── scorer/
-│   │       └── ScoringKeypad.tsx          # Large runs buttons, extras, wickets
-│   ├── lib/
-│   │   ├── types.ts                       # Complete domain TypeScript definitions
-│   │   ├── cricket-engine/                # Pure cricket rules, scorecard & NRR
-│   │   ├── auction-engine/                # Bidding validation & Web Audio SFX
-│   │   └── store/                         # Local database & state manager
-│   └── tests/                             # Vitest automated test suite
-└── supabase/
-    ├── schema.sql                         # PostgreSQL production table definitions
-    ├── functions.sql                      # Atomic stored procedures
-    └── rls.sql                            # Row Level Security policies
+lib/
+├── main.dart                               # App entry point, MultiProvider & Bottom Navigation
+├── models/
+│   └── models.dart                         # Strongly-typed models (Tournament, Team, Player, Match, Innings, Delivery, Scorecard, Auction)
+├── services/
+│   ├── cricket_rules_engine.dart           # ICC Law 17.8, over format, bowler & batsman eligibility
+│   └── mock_database.dart                  # ChangeNotifier reactive store with seed data & mutations
+└── screens/
+    ├── home_screen.dart                    # Scorecard Centre (Live, Past, Upcoming) & Auction Highlight
+    ├── scorer/
+    │   ├── scorer_screen.dart              # Ball-by-ball keypad, over summary, innings switcher
+    │   ├── crease_hud_widget.dart          # Live Batters table & Bowler table with R, B, 4s, 6s, SR, O, M, R, W, ECON
+    │   ├── toss_wizard_sheet.dart          # 3-Step Coin Toss & Opening Lineup wizard
+    │   ├── over_complete_dialog.dart       # Automatic next bowler picker with Law 17.8 lockout
+    │   ├── wicket_dialog.dart              # 2-Step dismissal & incoming dugout batsman selector
+    │   └── full_scorecard_dialog.dart      # Fullscreen dual-innings scorecard modal
+    ├── auction/
+    │   └── auction_screen.dart             # Animated spinning wheel, bidding controls, purse ledger
+    ├── matches/
+    │   ├── matches_list_screen.dart        # Filterable fixtures and match scorecards
+    │   └── match_detail_screen.dart        # Deep match details (Live crease, scorecard, commentary, squads)
+    └── tournaments/
+        └── tournament_standings_screen.dart# Points table with Net Run Rate (NRR)
 ```
-
----
-
-## 🔒 Concurrency & Financial Integrity
-
-- **Purse Deductions**: A team's remaining purse can never be deducted twice for the same player lot.
-- **Squad Limits**: Teams cannot exceed maximum squad size ({e.g., 18}). Funds are dynamically reserved to satisfy minimum squad requirements ({₹50,000 per missing slot}).
-- **Self-Outbidding Prevention**: A franchise holding the current highest bid is blocked from bidding against itself.
-- **Server Authority**: The browser UI never decides the winning player or bid amount independently; all states transition through authoritative logic.
-
----
-
-## 📄 License
-MIT License. Built for professional and community cricket tournament management.

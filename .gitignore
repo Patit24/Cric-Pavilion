@@ -1,31 +1,37 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
 .DS_Store
-*.pem
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
 
-# local env files
-.env*.local
-.env
+# Flutter/Dart/Pub related
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Web related
+lib/generated_plugin_registrant.dart
+
+# Exceptions to above rules.
+!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Legacy Web App
+legacy_web_app/node_modules/
+legacy_web_app/.next/
