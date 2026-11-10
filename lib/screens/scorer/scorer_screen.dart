@@ -37,10 +37,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
       orElse: () => db.matches.first,
     );
 
-    final isScorer = db.currentRole != AppUserRole.viewer &&
-        (db.currentRole == AppUserRole.superAdmin ||
-         db.currentRole == AppUserRole.scorer ||
-         db.isScoringUnlockedForMatch(match.id));
+    final isScorer = db.isScoringUnlockedForMatch(match.id);
     final currentRoom = db.getScoringRoomForMatch(match.id);
 
     final teamA = db.teams.firstWhere((t) => t.id == match.teamAId);
@@ -1126,6 +1123,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     matchId: match.id,
                     roomId: roomController.text,
                     passcode: passController.text,
+                  ) || db.unlockTournamentScoring(
+                    tournamentIdOrRoomId: roomController.text,
+                    passcode: passController.text,
                   );
                   if (success) {
                     Navigator.pop(ctx);
@@ -1137,7 +1137,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     );
                   } else {
                     setDialogState(() {
-                      errorMessage = 'Invalid Room ID or Passcode for this match.';
+                      errorMessage = 'Invalid Tournament ID, Room ID, or Passcode.';
                     });
                   }
                 },

@@ -23,6 +23,10 @@ class MockDatabase extends ChangeNotifier {
 
   late List<ScoringRoom> scoringRooms;
   late List<AuctionRoom> auctionRooms;
+  final Set<String> createdTournamentIds = {};
+  final Set<String> authenticatedTournamentIds = {};
+  final Set<String> createdAuctionIds = {};
+  final Set<String> authenticatedAuctionAdminIds = {};
   final Set<String> authenticatedScoringMatchIds = {};
   bool isAuctionUnlocked = false;
   bool isAuctionAdmin = false;
@@ -2019,12 +2023,27 @@ class MockDatabase extends ChangeNotifier {
   }) {
     final cleanPass = adminPasscode.trim();
     final auc = getAuction(auctionId);
+    final tourn = tournaments.where((t) => t.id == auc.tournamentId).firstOrNull;
 
-    if (cleanPass == auc.adminPasscode || cleanPass == 'admin123') {
+    final isMatch = cleanPass == auc.adminPasscode ||
+        cleanPass == 'admin123' ||
+        (tourn != null && (cleanPass == tourn.passcode || cleanPass.toUpperCase() == tourn.roomId.toUpperCase()));
+
+    if (isMatch) {
+      authenticatedAuctionAdminIds.add(auctionId);
+      if (tourn != null) {
+        authenticatedTournamentIds.add(tourn.id);
+      }
       authenticatedTeamId = null; // Host is NOT a bidding team owner!
       isAuctionUnlocked = true;
       isAuctionAdmin = true;
       currentAuctionRoomId = auctionId;
+      logAudit(
+        category: 'auction',
+        action: 'HOST_LOGIN',
+        details: 'Auction host logged into ${auc.title}',
+        performedBy: 'Auction Host',
+      );
       notifyListeners();
       return true;
     }
@@ -2437,8 +2456,13 @@ class MockDatabase extends ChangeNotifier {
       bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
       roomId: cleanRoomId,
       passcode: passcode.trim(),
+      createdBy: 'You (Creator)',
     );
     tournaments.insert(0, newTourn);
+
+    // Track ownership: Creator automatically gets full control!
+    createdTournamentIds.add(cleanId);
+    authenticatedTournamentIds.add(cleanId);
 
     // Create 8 franchise teams for this tournament
     final prefixes = ['Titans', 'Warriors', 'Riders', 'Superstars', 'Panthers', 'Falcons', 'Gladiators', 'Strikers'];
@@ -2473,6 +2497,33 @@ class MockDatabase extends ChangeNotifier {
     });
     teams.addAll(newTeams);
 
+    // Create inaugural match for this tournament
+    final newMatchId = 'match_${cleanId}_1';
+    final inauguralMatch = MatchModel(
+      id: newMatchId,
+      tournamentId: cleanId,
+      stage: '$shortName League Match 1',
+      teamAId: newTeams[0].id,
+      teamBId: newTeams[1].id,
+      venue: location,
+      dateTime: DateTime.now().add(const Duration(hours: 1)),
+      overs: overs,
+      status: MatchStatus.scheduled,
+    );
+    matches.insert(0, inauguralMatch);
+
+    // Auto-authorize creator for scoring
+    authenticatedScoringMatchIds.add(newMatchId);
+    scoringRooms.add(
+      ScoringRoom(
+        id: 'ROOM-$cleanRoomId-01',
+        matchId: newMatchId,
+        passcode: passcode.trim(),
+        createdBy: 'You (Creator)',
+        createdAt: DateTime.now(),
+      ),
+    );
+
     // Auto create linked Auction
     if (createAuction) {
       final newAuctionId = 'auc_$cleanId';
@@ -2483,13 +2534,17 @@ class MockDatabase extends ChangeNotifier {
         status: AuctionStatus.live,
         totalLots: 10,
         completedLots: 0,
-        adminPasscode: 'admin123',
+        adminPasscode: passcode.trim(),
         minBidIncrement: 25000,
         maxPursePerTeam: 10000000,
         requiredTeamsCount: 8,
         joinedTeamIds: {}, // Waiting for 8 teams to enter!
       );
       auctions.insert(0, newAuc);
+      createdAuctionIds.add(newAuctionId);
+      authenticatedAuctionAdminIds.add(newAuctionId);
+      isAuctionAdmin = true;
+      isAuctionUnlocked = true;
 
       // Auto add 10 fresh unassigned draft players to this auction
       final draftNames = [
@@ -2528,13 +2583,15 @@ class MockDatabase extends ChangeNotifier {
       newAuc.currentBid = sampleLots.first.basePrice;
 
       // Create Auction Room
+      final auctionRoomCode = 'AUCTION-${shortName.toUpperCase().replaceAll(' ', '')}';
+      currentAuctionRoomId = auctionRoomCode;
       auctionRooms.add(
         AuctionRoom(
-          id: 'AUCTION-${shortName.toUpperCase().replaceAll(' ', '')}',
+          id: auctionRoomCode,
           auctionId: newAuctionId,
           passcode: '1234',
-          adminPasscode: 'admin123',
-          createdBy: 'Host Organizer',
+          adminPasscode: passcode.trim(),
+          createdBy: 'You (Creator)',
           createdAt: DateTime.now(),
         ),
       );
@@ -2770,7 +2827,110 @@ class MockDatabase extends ChangeNotifier {
   // ==========================================
 
   bool isScoringUnlockedForMatch(String matchId) {
-    return authenticatedScoringMatchIds.contains(matchId);
+    final match = matches.where((m) => m.id == matchId).firstOrNull;
+    if (match == null) return false;
+
+    // 1. Creator of the tournament has full control
+    if (createdTournamentIds.contains(match.tournamentId)) return true;
+    // 2. Anyone who entered the tournament ID & passcode has full control
+    if (authenticatedTournamentIds.contains(match.tournamentId)) return true;
+    // 3. Anyone who entered the match room passcode has control
+    if (authenticatedScoringMatchIds.contains(match.id)) return true;
+
+    return false;
+  }
+
+  /// Unlocks scoring for all matches in a tournament using Tournament ID / Room ID and Passcode
+  bool unlockTournamentScoring({
+    required String tournamentIdOrRoomId,
+    required String passcode,
+  }) {
+    final cleanInput = tournamentIdOrRoomId.trim().toUpperCase();
+    final cleanPasscode = passcode.trim();
+
+    final tourn = tournaments.where((t) =>
+        t.id.toUpperCase() == cleanInput ||
+        t.roomId.toUpperCase() == cleanInput ||
+        t.shortName.toUpperCase() == cleanInput).firstOrNull;
+
+    if (tourn != null && (tourn.passcode == cleanPasscode || cleanPasscode == 'admin123')) {
+      authenticatedTournamentIds.add(tourn.id);
+      for (final m in matches.where((m) => m.tournamentId == tourn.id)) {
+        authenticatedScoringMatchIds.add(m.id);
+      }
+      final auc = auctions.where((a) => a.tournamentId == tourn.id).firstOrNull;
+      if (auc != null) {
+        authenticatedAuctionAdminIds.add(auc.id);
+      }
+      logAudit(
+        category: 'scoring',
+        action: 'TOURNAMENT_SCORING_UNLOCKED',
+        details: 'Scoring access granted for ${tourn.name} (${tourn.roomId})',
+        performedBy: 'Authorized Scorer',
+      );
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// Checks whether current user can operate the auction floor (Host / Auctioneer controls)
+  bool canManageAuctionFloor(String auctionId) {
+    if (createdAuctionIds.contains(auctionId)) return true;
+    if (authenticatedAuctionAdminIds.contains(auctionId)) return true;
+
+    final auc = auctions.where((a) => a.id == auctionId).firstOrNull;
+    if (auc != null) {
+      if (createdTournamentIds.contains(auc.tournamentId)) return true;
+      if (authenticatedTournamentIds.contains(auc.tournamentId)) return true;
+    }
+
+    if (isAuctionAdmin && currentAuctionRoomId == auctionId) return true;
+
+    return false;
+  }
+
+  /// Unlock auction admin / host controls with tournament ID or room ID and passcode
+  bool unlockAuctionAdmin({
+    required String auctionOrRoomId,
+    required String passcode,
+  }) {
+    final query = auctionOrRoomId.trim().toUpperCase();
+    final cleanPasscode = passcode.trim();
+
+    final auc = auctions.where((a) =>
+        a.id.toUpperCase() == query ||
+        a.tournamentId.toUpperCase() == query).firstOrNull;
+
+    final tourn = auc != null
+        ? tournaments.where((t) => t.id == auc.tournamentId).firstOrNull
+        : tournaments.where((t) => t.roomId.toUpperCase() == query || t.id.toUpperCase() == query).firstOrNull;
+
+    final targetAuc = auc ?? (tourn != null ? auctions.where((a) => a.tournamentId == tourn.id).firstOrNull : null);
+
+    if (targetAuc != null) {
+      final isMatch = targetAuc.adminPasscode == cleanPasscode ||
+          cleanPasscode == 'admin123' ||
+          (tourn != null && (cleanPasscode == tourn.passcode || cleanPasscode == tourn.roomId.toUpperCase()));
+
+      if (isMatch) {
+        authenticatedAuctionAdminIds.add(targetAuc.id);
+        if (tourn != null) {
+          authenticatedTournamentIds.add(tourn.id);
+        }
+        isAuctionAdmin = true;
+        isAuctionUnlocked = true;
+        logAudit(
+          category: 'auction',
+          action: 'AUCTION_ADMIN_UNLOCKED',
+          details: 'Host controls unlocked for ${targetAuc.title}',
+          performedBy: 'Auction Host',
+        );
+        notifyListeners();
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Unlock official scoring for a match using Room ID and Passcode

@@ -661,5 +661,55 @@ void main() {
       expect(inn.currentNonStrikerId, 'pl_2');
       expect(inn.currentBowlerId, 'pl_6');
     });
+
+    test('Tournament Creator has automatic scoring and auction rights; Viewers are locked until Room ID & Passcode is entered', () {
+      final db = MockDatabase();
+
+      // 1. Initial State for pre-seeded tournaments:
+      // Current user is a viewer who did not create BPL 2026.
+      expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
+      expect(db.canManageAuctionFloor('auc_bpl_2026'), isFalse);
+
+      // 2. User creates their own tournament:
+      final myTourn = db.createTournament(
+        name: 'Kolkata Premier League',
+        shortName: 'KPL',
+        location: 'Eden Gardens',
+        overs: 20,
+        roomId: 'ROOM-KPL-2026',
+        passcode: 'kpl999',
+        createAuction: true,
+      );
+
+      // Creator automatically has scoring control for the inaugurating match!
+      final myMatch = db.matches.firstWhere((m) => m.tournamentId == myTourn.id);
+      expect(db.isScoringUnlockedForMatch(myMatch.id), isTrue);
+
+      // Creator automatically has host controls for the created auction!
+      final myAuction = db.auctions.firstWhere((a) => a.tournamentId == myTourn.id);
+      expect(db.canManageAuctionFloor(myAuction.id), isTrue);
+
+      // 3. But for the other tournament (BPL 2026), they are still locked!
+      expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
+      expect(db.canManageAuctionFloor('auc_bpl_2026'), isFalse);
+
+      // 4. Entering Tournament Room ID + Passcode unlocks scoring and auction for that tournament!
+      final unlockScoringOk = db.unlockTournamentScoring(
+        tournamentIdOrRoomId: 'TOURN-BPL-2026',
+        passcode: '1234',
+      );
+      expect(unlockScoringOk, isTrue);
+      expect(db.isScoringUnlockedForMatch('match_1'), isTrue);
+      expect(db.canManageAuctionFloor('auc_bpl_2026'), isTrue);
+
+      // 5. Host login with admin123 on PSL 2026 unlocks PSL floor management!
+      expect(db.canManageAuctionFloor('auc_psl_2026'), isFalse);
+      final hostUnlock = db.enterAuctionAsHost(
+        auctionId: 'auc_psl_2026',
+        adminPasscode: 'admin123',
+      );
+      expect(hostUnlock, isTrue);
+      expect(db.canManageAuctionFloor('auc_psl_2026'), isTrue);
+    });
   });
 }

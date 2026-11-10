@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/role_switcher_chip.dart';
 import 'create_tournament_dialog.dart';
@@ -18,6 +19,8 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
     final activeTourn = db.tournaments.where((t) => t.id == selectedTournamentId).firstOrNull ?? db.tournament;
+    final isCreator = db.createdTournamentIds.contains(activeTourn.id);
+    final isUnlocked = db.authenticatedTournamentIds.contains(activeTourn.id);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -108,6 +111,71 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                   Text(activeTourn.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
                   Text('${activeTourn.overs} Overs T20 • ${activeTourn.location} • 8 Franchises', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isCreator
+                              ? const Color(0xFF059669).withValues(alpha: 0.3)
+                              : isUnlocked
+                                  ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                                  : Colors.white10,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isCreator
+                                ? const Color(0xFF34D399)
+                                : isUnlocked
+                                    ? const Color(0xFF38BDF8)
+                                    : Colors.white24,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isCreator ? Icons.star : (isUnlocked ? Icons.check_circle : Icons.visibility),
+                              size: 12,
+                              color: isCreator
+                                  ? const Color(0xFF34D399)
+                                  : isUnlocked
+                                      ? const Color(0xFF38BDF8)
+                                      : Colors.white70,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isCreator
+                                  ? 'Created by You (Full Control)'
+                                  : isUnlocked
+                                      ? 'Scoring Unlocked (Authorized Scorer)'
+                                      : 'Viewer Mode (Public Scores Only)',
+                              style: TextStyle(
+                                color: isCreator
+                                    ? const Color(0xFF34D399)
+                                    : isUnlocked
+                                        ? const Color(0xFF38BDF8)
+                                        : Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!isCreator && !isUnlocked)
+                        ElevatedButton.icon(
+                          onPressed: () => _showUnlockTournamentDialog(context, db, activeTourn),
+                          icon: const Icon(Icons.vpn_key, size: 12),
+                          label: const Text('Unlock to Score', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -183,6 +251,94 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showUnlockTournamentDialog(BuildContext context, MockDatabase db, Tournament tourn) {
+    final roomController = TextEditingController(text: tourn.roomId.isNotEmpty ? tourn.roomId : tourn.id);
+    final passController = TextEditingController();
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            title: Row(
+              children: const [
+                Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 20),
+                SizedBox(width: 8),
+                Text('Unlock Tournament Scoring', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Enter the Tournament ID/Room ID and Passcode set by the tournament organizer to unlock full scoring control for all matches in ${tourn.name}.',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: roomController,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Tournament / Room ID',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Host Passcode / PIN',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    hintText: 'e.g. ${tourn.passcode}',
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                if (errorMessage != null) ...[
+                  const SizedBox(height: 8),
+                  Text(errorMessage!, style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                onPressed: () {
+                  final ok = db.unlockTournamentScoring(
+                    tournamentIdOrRoomId: roomController.text,
+                    passcode: passController.text,
+                  );
+                  if (ok) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF059669),
+                        content: Text('Scoring access unlocked for ${tourn.name}!'),
+                      ),
+                    );
+                  } else {
+                    setDialogState(() => errorMessage = 'Invalid Tournament ID or Passcode PIN.');
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399), foregroundColor: Colors.black),
+                child: const Text('Unlock Scoring', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

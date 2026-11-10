@@ -115,6 +115,7 @@ class Tournament {
   final String bannerUrl;
   final String roomId;
   final String passcode;
+  final String createdBy;
 
   Tournament({
     required this.id,
@@ -129,6 +130,7 @@ class Tournament {
     required this.bannerUrl,
     this.roomId = '',
     this.passcode = '1234',
+    this.createdBy = 'Official Board',
   });
 }
 

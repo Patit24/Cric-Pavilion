@@ -315,9 +315,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         : null;
     final highBidderTeam = db.teams.where((t) => t.id == auction.highBidderTeamId).firstOrNull;
 
-    final isUnlocked = db.isAuctionUnlocked;
-    final isAdmin = db.isAuctionAdmin;
+    final isAdmin = db.canManageAuctionFloor(auction.id);
     final myTeam = db.currentAuthenticatedTeam;
+    final isUnlocked = isAdmin || myTeam != null;
 
     // Strict Tournament Isolation: Only teams belonging to this auction's tournament
     final safe8Teams = db.teams.where((t) => t.tournamentId == auction.tournamentId).toList();
@@ -952,28 +952,57 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     ] else ...[
                       // SPECTATOR BROADCAST NOTICE
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
                         ),
                         child: Column(
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.visibility, size: 14, color: Colors.amber),
+                                SizedBox(width: 6),
+                                Text(
+                                  'SPECTATOR BROADCAST MODE',
+                                  style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
                             const Text(
-                              'Only registered franchise owners can place bids on this player lot.',
+                              'Viewers watch live bids in real-time. Only the tournament creator or host can operate the floor, and verified franchise owners can place bids.',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: Colors.white70, fontSize: 11),
                             ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
-                              icon: const Icon(Icons.vpn_key, size: 14),
-                              label: const Text('Enter with Team ID & PIN to Bid', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber,
-                                foregroundColor: Colors.black,
-                              ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams, initialTab: 0),
+                                  icon: const Icon(Icons.vpn_key, size: 14),
+                                  label: const Text('Enter as Team Owner to Bid', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  ),
+                                ),
+                                OutlinedButton.icon(
+                                  onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams, initialTab: 1),
+                                  icon: const Icon(Icons.gavel, size: 14, color: Color(0xFF34D399)),
+                                  label: const Text('Enter as Host / Admin', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF34D399)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -1123,7 +1152,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
                             ),
                             Text(
-                              'Code: ${squadViewTeam.uniqueTeamCode} • PIN: ${squadViewTeam.passcode}',
+                              isAdmin
+                                  ? 'Code: ${squadViewTeam.uniqueTeamCode} • PIN: ${squadViewTeam.passcode} (Host View)'
+                                  : (myTeam?.id == squadViewTeam.id
+                                      ? 'Code: ${squadViewTeam.uniqueTeamCode} • PIN: ${squadViewTeam.passcode} (Your Franchise)'
+                                      : 'Code: ${squadViewTeam.uniqueTeamCode} • PIN: Protected 🔒'),
                               style: TextStyle(color: squadViewTeam.primaryColor, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -2082,9 +2115,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     BuildContext context,
     MockDatabase db,
     Auction auction,
-    List<Team> safe8Teams,
-  ) {
-    int activeTab = 0; // 0 = Team Owner, 1 = Host Admin
+    List<Team> safe8Teams, {
+    int initialTab = 0,
+  }) {
+    int activeTab = initialTab;
     final teamCodeController = TextEditingController(text: safe8Teams.isNotEmpty ? safe8Teams.first.uniqueTeamCode : '');
     final teamPassController = TextEditingController(text: '1234');
     final hostPassController = TextEditingController(text: 'admin123');
@@ -2216,16 +2250,16 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     ],
                   ] else ...[
                     // HOST LOGIN
-                    const Text('Enter Host PIN to operate spinning wheel, manage floor, and hammer sold.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const Text('Enter Host PIN or Tournament Passcode / Room ID to operate spinning wheel, manage floor, and hammer sold.', style: TextStyle(color: Colors.white70, fontSize: 11)),
                     const SizedBox(height: 12),
                     TextField(
                       controller: hostPassController,
                       obscureText: true,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       decoration: InputDecoration(
-                        labelText: 'Auctioneer Host PIN',
+                        labelText: 'Host PIN / Tournament Passcode',
                         labelStyle: const TextStyle(color: Colors.white70),
-                        hintText: 'admin123',
+                        hintText: 'admin123 or tournament passcode',
                         prefixIcon: const Icon(Icons.security, color: Color(0xFF34D399), size: 18),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
