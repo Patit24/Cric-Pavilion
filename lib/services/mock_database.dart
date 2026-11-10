@@ -29,6 +29,68 @@ class MockDatabase extends ChangeNotifier {
   String? currentAuctionRoomId;
   String? authenticatedTeamId;
 
+  // Role-Based Access Control State
+  AppUserRole currentRole = AppUserRole.superAdmin;
+  final List<AuditLog> auditLogs = [];
+
+  void setRole(AppUserRole role, {String? teamId}) {
+    currentRole = role;
+    if (role == AppUserRole.superAdmin) {
+      isAuctionAdmin = true;
+      isAuctionUnlocked = true;
+    } else if (role == AppUserRole.auctionAdmin) {
+      isAuctionAdmin = true;
+      isAuctionUnlocked = true;
+      authenticatedTeamId = null;
+    } else if (role == AppUserRole.teamOwner) {
+      isAuctionAdmin = false;
+      isAuctionUnlocked = true;
+      if (teamId != null) {
+        authenticatedTeamId = teamId;
+      } else if (authenticatedTeamId == null && teams.isNotEmpty) {
+        authenticatedTeamId = teams.first.id;
+      }
+    } else if (role == AppUserRole.scorer) {
+      isAuctionAdmin = false;
+    } else if (role == AppUserRole.viewer) {
+      isAuctionAdmin = false;
+      isAuctionUnlocked = false;
+      authenticatedTeamId = null;
+    }
+    logAudit(
+      category: 'system',
+      action: 'ROLE_SWITCHED',
+      details: 'Switched persona to ${role.displayName}',
+      performedBy: role.displayName,
+    );
+    notifyListeners();
+  }
+
+  bool get canManageTournaments => currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.tournamentAdmin;
+  bool get canManageAuction => currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctionAdmin;
+  bool get canScoreMatches => currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.scorer;
+  bool get isTeamOwner => currentRole == AppUserRole.teamOwner;
+  bool get isViewer => currentRole == AppUserRole.viewer;
+
+  void logAudit({
+    required String category,
+    required String action,
+    required String details,
+    String? performedBy,
+  }) {
+    auditLogs.insert(
+      0,
+      AuditLog(
+        id: 'audit_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}',
+        timestamp: DateTime.now(),
+        category: category,
+        action: action,
+        details: details,
+        performedBy: performedBy ?? currentRole.displayName,
+      ),
+    );
+  }
+
   Team? get currentAuthenticatedTeam =>
       authenticatedTeamId != null ? teams.where((t) => t.id == authenticatedTeamId).firstOrNull : null;
 
@@ -1804,6 +1866,31 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setupMatchPlayingXI({
+    required String matchId,
+    required List<String> playingXIA,
+    required List<String> playingXIB,
+    String? captainAId,
+    String? captainBId,
+    String? keeperAId,
+    String? keeperBId,
+  }) {
+    final match = matches.firstWhere((m) => m.id == matchId);
+    match.playingXIA = playingXIA;
+    match.playingXIB = playingXIB;
+    match.captainAId = captainAId;
+    match.captainBId = captainBId;
+    match.keeperAId = keeperAId;
+    match.keeperBId = keeperBId;
+    logAudit(
+      category: 'scoring',
+      action: 'PLAYING_XI_CONFIRMED',
+      details: 'Playing XI & Captain/WK confirmed for ${match.stage}',
+      performedBy: 'Match Official',
+    );
+    notifyListeners();
+  }
+
   void startMatchWithToss({
     required String matchId,
     required String tossWonBy,
@@ -1811,12 +1898,24 @@ class MockDatabase extends ChangeNotifier {
     required String strikerId,
     required String nonStrikerId,
     required String bowlerId,
+    List<String>? playingXIA,
+    List<String>? playingXIB,
+    String? captainAId,
+    String? captainBId,
+    String? keeperAId,
+    String? keeperBId,
   }) {
     final match = matches.firstWhere((m) => m.id == matchId);
     match.tossWonBy = tossWonBy;
     match.tossDecision = tossDecision;
     match.status = MatchStatus.live;
     match.currentInningsNumber = 1;
+    if (playingXIA != null) match.playingXIA = playingXIA;
+    if (playingXIB != null) match.playingXIB = playingXIB;
+    if (captainAId != null) match.captainAId = captainAId;
+    if (captainBId != null) match.captainBId = captainBId;
+    if (keeperAId != null) match.keeperAId = keeperAId;
+    if (keeperBId != null) match.keeperBId = keeperBId;
 
     final battingFirstId = (tossDecision == 'bat') ? tossWonBy : (tossWonBy == match.teamAId ? match.teamBId : match.teamAId);
     final bowlingFirstId = battingFirstId == match.teamAId ? match.teamBId : match.teamAId;
@@ -1941,7 +2040,13 @@ class MockDatabase extends ChangeNotifier {
   }
 
   /// Places a bid on the current lot of an auction.
-  /// Enforces that HOST cannot bid, only TEAM OWNERS can bid!
+  /// Enforces:
+  /// 1. Host cannot bid, only authenticated Team Owners can bid.
+  /// 2. Auction must have required teams checked in.
+  /// 3. Floor status must be open or in countdown.
+  /// 4. Squad limit check (max 18).
+  /// 5. STRICT MINIMUM REMAINING BUDGET PROTECTION FORMULA:
+  ///    Max Bid = Remaining Purse - (Players Needed * Minimum Price)
   bool placeAuctionBid({
     required String auctionId,
     required String teamId,
@@ -1951,11 +2056,21 @@ class MockDatabase extends ChangeNotifier {
 
     // Rule: Host is NOT allowed to bid!
     if (isAuctionAdmin && authenticatedTeamId == null) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED',
+        details: 'Auction host/admin cannot participate in bidding.',
+      );
       return false;
     }
 
     // Rule: Auction cannot start bidding until required 8 teams have entered!
     if (!auc.isReadyToStart) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED',
+        details: 'Floor locked until all ${auc.requiredTeamsCount} teams have checked in.',
+      );
       return false;
     }
 
@@ -1969,14 +2084,50 @@ class MockDatabase extends ChangeNotifier {
     final team = teams.firstWhere((t) => t.id == teamId, orElse: () => teams.first);
     final nextAmount = (auc.currentBid ?? 300000) + increment;
 
-    if (team.purseRemaining < nextAmount) return false;
+    // Rule: Squad limit check
+    if (team.squadCount >= team.maxSquadLimit) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED_SQUAD_LIMIT',
+        details: 'Max squad limit reached (${team.maxSquadLimit} players) for ${team.name}.',
+        performedBy: team.name,
+      );
+      return false;
+    }
+
+    // Rule: Minimum remaining budget protection formula
+    final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
+    final minLotBasePrice = currentLot?.basePrice ?? 100000;
+    final maxAllowedBid = team.getMaxEligibleBid(minLotBasePrice);
+
+    if (nextAmount > maxAllowedBid) {
+      final reserve = team.getReserveRequired(minLotBasePrice);
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED_BUDGET_PROTECTION',
+        details: 'Bid ₹$nextAmount exceeded max eligible ₹$maxAllowedBid. Required reserve ₹$reserve for remaining players.',
+        performedBy: team.name,
+      );
+      return false;
+    }
+
+    if (team.purseRemaining < nextAmount) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED_INSUFFICIENT_PURSE',
+        details: 'Insufficient purse (Purse: ₹${team.purseRemaining}, Bid: ₹$nextAmount)',
+        performedBy: team.name,
+      );
+      return false;
+    }
 
     auc.currentBid = nextAmount;
     auc.highBidderTeamId = teamId;
-    // Counter-bid resets countdown back to open floor!
+    // Counter-bid resets countdown timer and floor back to open!
     auc.floorStatus = FloorStatus.open;
+    auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+    auc.isTimerRunning = true;
 
-    final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
     if (currentLot != null) {
       currentLot.currentBid = nextAmount;
       currentLot.winningTeamId = teamId;
@@ -1994,8 +2145,53 @@ class MockDatabase extends ChangeNotifier {
       ),
     );
 
+    logAudit(
+      category: 'auction',
+      action: 'BID_PLACED',
+      details: '${team.name} placed bid ₹$nextAmount on Lot #${currentLot?.lotNumber ?? 0}',
+      performedBy: team.name,
+    );
+
     notifyListeners();
     return true;
+  }
+
+  void tickAuctionTimer(String auctionId) {
+    final auc = getAuction(auctionId);
+    if (!auc.isTimerRunning) return;
+    if (auc.biddingSecondsRemaining > 0) {
+      auc.biddingSecondsRemaining--;
+    }
+    if (auc.biddingSecondsRemaining <= 0) {
+      auc.isTimerRunning = false;
+      // Timer expired: auto-advance gavel warnings if high bidder exists, or mark unsold
+      if (auc.highBidderTeamId != null) {
+        if (auc.floorStatus == FloorStatus.open) {
+          auc.floorStatus = FloorStatus.goingOnce;
+        } else if (auc.floorStatus == FloorStatus.goingOnce) {
+          auc.floorStatus = FloorStatus.goingTwice;
+        } else if (auc.floorStatus == FloorStatus.goingTwice) {
+          auc.floorStatus = FloorStatus.fairWarning;
+        }
+      } else {
+        auc.floorStatus = FloorStatus.unsold;
+        passCurrentLot(auctionId);
+      }
+    }
+    notifyListeners();
+  }
+
+  void resetAuctionTimer(String auctionId, {int? seconds}) {
+    final auc = getAuction(auctionId);
+    auc.biddingSecondsRemaining = seconds ?? auc.defaultTimerSeconds;
+    auc.isTimerRunning = true;
+    notifyListeners();
+  }
+
+  void toggleAuctionTimer(String auctionId) {
+    final auc = getAuction(auctionId);
+    auc.isTimerRunning = !auc.isTimerRunning;
+    notifyListeners();
   }
 
   void setFloorStatus(String auctionId, FloorStatus status) {
@@ -2047,6 +2243,8 @@ class MockDatabase extends ChangeNotifier {
       auc.currentBid = lot.startingPrice ?? lot.basePrice;
       auc.highBidderTeamId = null;
       auc.floorStatus = FloorStatus.open;
+      auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+      auc.isTimerRunning = true;
       lot.status = LotStatus.bidding;
       notifyListeners();
     }
@@ -2067,6 +2265,8 @@ class MockDatabase extends ChangeNotifier {
       auc.currentBid = first.startingPrice ?? first.basePrice;
       first.status = LotStatus.bidding;
       auc.floorStatus = FloorStatus.open;
+      auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+      auc.isTimerRunning = true;
     }
     notifyListeners();
   }
@@ -2081,6 +2281,8 @@ class MockDatabase extends ChangeNotifier {
     auc.currentBid = picked.startingPrice ?? picked.basePrice;
     auc.highBidderTeamId = null;
     auc.floorStatus = FloorStatus.open;
+    auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+    auc.isTimerRunning = true;
     picked.status = LotStatus.bidding;
     notifyListeners();
     return picked;
@@ -2103,15 +2305,25 @@ class MockDatabase extends ChangeNotifier {
     player.teamId = team.id;
     auc.completedLots++;
 
+    logAudit(
+      category: 'auction',
+      action: 'LOT_SOLD',
+      details: '${player.fullName} sold to ${team.name} for ₹${lot.currentBid ?? lot.basePrice}',
+      performedBy: 'Auctioneer',
+    );
+
     // Pick next lot
     final pending = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending).toList();
     if (pending.isNotEmpty) {
       auc.currentLotId = pending.first.id;
       auc.currentBid = pending.first.basePrice;
       auc.highBidderTeamId = null;
+      auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+      auc.isTimerRunning = true;
       pending.first.status = LotStatus.bidding;
     } else {
       auc.status = AuctionStatus.completed;
+      auc.isTimerRunning = false;
     }
 
     notifyListeners();
@@ -2126,14 +2338,24 @@ class MockDatabase extends ChangeNotifier {
     lot.status = LotStatus.unsold;
     auc.completedLots++;
 
+    logAudit(
+      category: 'auction',
+      action: 'LOT_UNSOLD',
+      details: 'Lot #${lot.lotNumber} was marked unsold',
+      performedBy: 'Auctioneer',
+    );
+
     final pending = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending).toList();
     if (pending.isNotEmpty) {
       auc.currentLotId = pending.first.id;
       auc.currentBid = pending.first.basePrice;
       auc.highBidderTeamId = null;
+      auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+      auc.isTimerRunning = true;
       pending.first.status = LotStatus.bidding;
     } else {
       auc.status = AuctionStatus.completed;
+      auc.isTimerRunning = false;
     }
 
     notifyListeners();
@@ -2372,7 +2594,7 @@ class MockDatabase extends ChangeNotifier {
             purseRemaining: maxPursePerTeam,
             maxPurse: maxPursePerTeam,
             squadCount: 0,
-            minSquadRequirement: 15,
+            minSquadRequirement: (customPlayers != null && customPlayers.isNotEmpty && customPlayers.length < 15) ? 1 : 15,
             maxSquadLimit: 18,
           ),
         );

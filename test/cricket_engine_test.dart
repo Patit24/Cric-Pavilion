@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cricket_app/models/models.dart';
 import 'package:cricket_app/services/cricket_rules_engine.dart';
@@ -465,6 +466,200 @@ void main() {
         expect(other.squadCount, 0);
         expect(other.purseRemaining, 5000000);
       }
+    });
+
+    test('Role-Based Access Control and Permission Gating', () {
+      final db = MockDatabase();
+
+      // Default role is Super Admin
+      expect(db.currentRole, AppUserRole.superAdmin);
+      expect(db.canManageTournaments, isTrue);
+      expect(db.canManageAuction, isTrue);
+      expect(db.canScoreMatches, isTrue);
+      expect(db.isViewer, isFalse);
+
+      // Switch to Tournament Admin
+      db.setRole(AppUserRole.tournamentAdmin);
+      expect(db.canManageTournaments, isTrue);
+      expect(db.canManageAuction, isFalse);
+      expect(db.canScoreMatches, isFalse);
+
+      // Switch to Auction Admin
+      db.setRole(AppUserRole.auctionAdmin);
+      expect(db.canManageTournaments, isFalse);
+      expect(db.canManageAuction, isTrue);
+      expect(db.isAuctionAdmin, isTrue);
+
+      // Switch to Team Owner
+      db.setRole(AppUserRole.teamOwner, teamId: 'team_barasat');
+      expect(db.isTeamOwner, isTrue);
+      expect(db.authenticatedTeamId, 'team_barasat');
+      expect(db.currentAuthenticatedTeam?.name, 'Barasat Blasters');
+
+      // Switch to Scorer
+      db.setRole(AppUserRole.scorer);
+      expect(db.canScoreMatches, isTrue);
+      expect(db.canManageAuction, isFalse);
+
+      // Switch to Viewer (Read-only Public Spectator)
+      db.setRole(AppUserRole.viewer);
+      expect(db.isViewer, isTrue);
+      expect(db.canScoreMatches, isFalse);
+      expect(db.canManageAuction, isFalse);
+      expect(db.canManageTournaments, isFalse);
+
+      // Verify Audit Trail has logged role transitions
+      expect(db.auditLogs.any((a) => a.action == 'ROLE_SWITCHED'), isTrue);
+    });
+
+    test('Strict Minimum Remaining Budget Protection Formula Enforced', () {
+      final db = MockDatabase();
+      final auc = db.getAuction('auc_bpl_2026');
+
+      // Setup a custom team with exactly ₹2,000 purse, minSquadRequirement: 5, current squad: 2
+      // Players still needed in total = 5 - 2 = 3 players
+      // After buying the current lot, other players needed = 3 - 1 = 2 players
+      // Minimum player base price = ₹500
+      // Required reserve for the other 2 players = 2 * ₹500 = ₹1,000
+      // Max eligible bid on current player = ₹2,000 - ₹1,000 = ₹1,000!
+      final testTeam = Team(
+        id: 'team_test_budget',
+        tournamentId: 'tourn_bpl_2026',
+        name: 'Budget Test FC',
+        shortName: 'BTF',
+        primaryColor: const Color(0xFF0284C7),
+        logoUrl: '',
+        purseRemaining: 2000,
+        maxPurse: 10000,
+        squadCount: 2,
+        minSquadRequirement: 5,
+        maxSquadLimit: 8,
+      );
+      db.teams.add(testTeam);
+
+      expect(testTeam.playersStillNeeded, 3);
+      expect(testTeam.getReserveRequired(500), 1000);
+      expect(testTeam.getMaxEligibleBid(500), 1000);
+
+      // Add active lot with base price ₹500
+      final budgetLot = AuctionLot(
+        id: 'lot_budget_test',
+        auctionId: auc.id,
+        lotNumber: 99,
+        playerId: 'pl_1',
+        category: 'batter',
+        basePrice: 500,
+        status: LotStatus.bidding,
+      );
+      db.auctionLots.add(budgetLot);
+      auc.currentLotId = budgetLot.id;
+      auc.currentBid = 500;
+
+      // Bid within allowed budget (500 + 400 = 900 <= 1000) -> SUCCESS
+      final ok1 = db.placeAuctionBid(
+        auctionId: auc.id,
+        teamId: testTeam.id,
+        increment: 400,
+      );
+      expect(ok1, isTrue);
+      expect(auc.currentBid, 900);
+      expect(auc.highBidderTeamId, testTeam.id);
+
+      // Attempt to bid that would violate budget reserve (900 + 200 = 1100 > 1000) -> REJECTED!
+      final ok2 = db.placeAuctionBid(
+        auctionId: auc.id,
+        teamId: testTeam.id,
+        increment: 200,
+      );
+      expect(ok2, isFalse);
+      expect(auc.currentBid, 900); // Unchanged
+
+      // Verify audit log captured rejection
+      final auditRejection = db.auditLogs.firstWhere((a) => a.action == 'BID_REJECTED_BUDGET_PROTECTION');
+      expect(auditRejection.details, contains('exceeded max eligible'));
+
+      // Test Max Squad Limit: when squadCount reaches maxSquadLimit, max bid is 0
+      testTeam.squadCount = 8;
+      expect(testTeam.getMaxEligibleBid(500), 0);
+      final ok3 = db.placeAuctionBid(
+        auctionId: auc.id,
+        teamId: testTeam.id,
+        increment: 50,
+      );
+      expect(ok3, isFalse);
+    });
+
+    test('Live Auction Countdown Timer Ticking, Reset and Gavel Warnings', () {
+      final db = MockDatabase();
+      final auc = db.getAuction('auc_bpl_2026');
+
+      auc.biddingSecondsRemaining = 15;
+      auc.isTimerRunning = true;
+      expect(auc.biddingSecondsRemaining, 15);
+
+      // 1. Tick timer down
+      db.tickAuctionTimer(auc.id);
+      expect(auc.biddingSecondsRemaining, 14);
+
+      db.tickAuctionTimer(auc.id);
+      expect(auc.biddingSecondsRemaining, 13);
+
+      // 2. Counter-bid resets timer back to 15s
+      db.placeAuctionBid(
+        auctionId: auc.id,
+        teamId: 'team_kolkata',
+        increment: 50000,
+      );
+      expect(auc.biddingSecondsRemaining, 15);
+      expect(auc.isTimerRunning, isTrue);
+
+      // 3. Tick until timer reaches 0 with high bidder
+      for (int i = 0; i < 15; i++) {
+        db.tickAuctionTimer(auc.id);
+      }
+      expect(auc.biddingSecondsRemaining, 0);
+      // Floor status advances to goingOnce
+      expect(auc.floorStatus, FloorStatus.goingOnce);
+    });
+
+    test('Match Setup Playing XI & Lineup Submission', () {
+      final db = MockDatabase();
+      final match = db.matches.first;
+
+      final playingA = ['pl_1', 'pl_2', 'pl_3', 'pl_4', 'pl_5'];
+      final playingB = ['pl_6', 'pl_7', 'pl_8', 'pl_9', 'pl_10'];
+
+      db.setupMatchPlayingXI(
+        matchId: match.id,
+        playingXIA: playingA,
+        playingXIB: playingB,
+        captainAId: 'pl_1',
+        captainBId: 'pl_6',
+        keeperAId: 'pl_2',
+        keeperBId: 'pl_7',
+      );
+
+      expect(match.playingXIA, playingA);
+      expect(match.captainAId, 'pl_1');
+      expect(match.keeperAId, 'pl_2');
+      expect(db.auditLogs.any((a) => a.action == 'PLAYING_XI_CONFIRMED'), isTrue);
+
+      // Start match with toss
+      db.startMatchWithToss(
+        matchId: match.id,
+        tossWonBy: match.teamAId,
+        tossDecision: 'bat',
+        strikerId: 'pl_1',
+        nonStrikerId: 'pl_2',
+        bowlerId: 'pl_6',
+      );
+
+      expect(match.status, MatchStatus.live);
+      expect(match.tossWonBy, match.teamAId);
+      final inn = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 1);
+      expect(inn.currentStrikerId, 'pl_1');
+      expect(inn.currentNonStrikerId, 'pl_2');
+      expect(inn.currentBowlerId, 'pl_6');
     });
   });
 }

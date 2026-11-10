@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../widgets/role_switcher_chip.dart';
 import 'scorer/scorer_screen.dart';
 import 'scorer/full_scorecard_dialog.dart';
 import 'tournaments/create_tournament_dialog.dart';
+import 'auction/auction_projector_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onTabChange;
@@ -71,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          const RoleSwitcherChip(compact: true),
+          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Create New Tournament',
             icon: const Icon(Icons.add_circle, color: Color(0xFF34D399), size: 22),
@@ -81,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -152,6 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            const SizedBox(height: 14),
+            _buildRoleCommandCenter(context, db),
             const SizedBox(height: 20),
 
             // ==========================================
@@ -497,6 +504,213 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoleCommandCenter(BuildContext context, MockDatabase db) {
+    final role = db.currentRole;
+    final team = db.currentAuthenticatedTeam;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: role.color.withValues(alpha: 0.6), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: role.color.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(role.icon, color: role.color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '${role.displayName.toUpperCase()} WORKSPACE',
+                          style: TextStyle(
+                            color: role.color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: role.color.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            role.badgeLabel,
+                            style: TextStyle(color: role.color, fontSize: 8, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      role == AppUserRole.teamOwner && team != null
+                          ? '${team.name} (Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L • Squad: ${team.squadCount}/${team.minSquadRequirement})'
+                          : role.description,
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Action Buttons depending on persona
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (role == AppUserRole.superAdmin || role == AppUserRole.tournamentAdmin) ...[
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => CreateTournamentDialog(db: db),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('+ Tournament', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF059669),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(2),
+                  icon: const Icon(Icons.gavel, size: 14),
+                  label: const Text('Manage Auctions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => widget.onTabChange(3),
+                  icon: const Icon(Icons.calendar_month, size: 14),
+                  label: const Text('Fixtures', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ] else if (role == AppUserRole.auctionAdmin) ...[
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(2),
+                  icon: const Icon(Icons.play_arrow, size: 14),
+                  label: const Text('Enter Auction Floor', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => AuctionProjectorScreen(auctionId: db.auction.id),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.tv, size: 14),
+                  label: const Text('Big Screen Mode', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0284C7),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ] else if (role == AppUserRole.teamOwner) ...[
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(2),
+                  icon: const Icon(Icons.gavel, size: 14),
+                  label: const Text('Go to Live Bidding Room', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => widget.onTabChange(4),
+                  icon: const Icon(Icons.leaderboard, size: 14),
+                  label: const Text('Standings', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ] else if (role == AppUserRole.scorer) ...[
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(1),
+                  icon: const Icon(Icons.sports_score, size: 14),
+                  label: const Text('Open Scorer Console', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF059669),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => widget.onTabChange(3),
+                  icon: const Icon(Icons.schedule, size: 14),
+                  label: const Text('Match Schedule', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(1),
+                  icon: const Icon(Icons.visibility, size: 14),
+                  label: const Text('Watch Live Match', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF059669),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => widget.onTabChange(2),
+                  icon: const Icon(Icons.groups, size: 14),
+                  label: const Text('Auction Squads', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }

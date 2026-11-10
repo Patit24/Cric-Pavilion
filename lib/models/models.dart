@@ -8,6 +8,100 @@ enum AuctionStatus { draft, preview, live, paused, completed }
 enum LotStatus { pending, bidding, sold, unsold }
 enum FloorStatus { open, paused, goingOnce, goingTwice, fairWarning, sold, unsold }
 
+enum AppUserRole {
+  superAdmin,
+  tournamentAdmin,
+  auctionAdmin,
+  teamOwner,
+  scorer,
+  viewer;
+
+  String get displayName {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return 'Super Admin';
+      case AppUserRole.tournamentAdmin:
+        return 'Tournament Admin';
+      case AppUserRole.auctionAdmin:
+        return 'Auction Admin';
+      case AppUserRole.teamOwner:
+        return 'Team Owner';
+      case AppUserRole.scorer:
+        return 'Match Scorer';
+      case AppUserRole.viewer:
+        return 'Viewer (Public)';
+    }
+  }
+
+  String get badgeLabel {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return 'SUPER ADMIN';
+      case AppUserRole.tournamentAdmin:
+        return 'TOURNAMENT ADMIN';
+      case AppUserRole.auctionAdmin:
+        return 'AUCTION ADMIN';
+      case AppUserRole.teamOwner:
+        return 'TEAM OWNER';
+      case AppUserRole.scorer:
+        return 'SCORER';
+      case AppUserRole.viewer:
+        return 'PUBLIC SPECTATOR';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return Icons.admin_panel_settings;
+      case AppUserRole.tournamentAdmin:
+        return Icons.emoji_events;
+      case AppUserRole.auctionAdmin:
+        return Icons.gavel;
+      case AppUserRole.teamOwner:
+        return Icons.business_center;
+      case AppUserRole.scorer:
+        return Icons.sports_score;
+      case AppUserRole.viewer:
+        return Icons.visibility;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return const Color(0xFFE11D48); // Rose
+      case AppUserRole.tournamentAdmin:
+        return const Color(0xFF7C3AED); // Purple
+      case AppUserRole.auctionAdmin:
+        return const Color(0xFFD97706); // Amber
+      case AppUserRole.teamOwner:
+        return const Color(0xFF0284C7); // Sky Blue
+      case AppUserRole.scorer:
+        return const Color(0xFF059669); // Emerald
+      case AppUserRole.viewer:
+        return const Color(0xFF64748B); // Slate
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return 'Full control: tournaments, auctions, teams, scorers, and rules.';
+      case AppUserRole.tournamentAdmin:
+        return 'Create tournaments, manage teams, fixtures, and assign officials.';
+      case AppUserRole.auctionAdmin:
+        return 'Configure auction floor, spin wheel, manage timer, and hammer sold/unsold.';
+      case AppUserRole.teamOwner:
+        return 'Participate in live bidding with budget protection and inspect squad.';
+      case AppUserRole.scorer:
+        return 'Operate ball-by-ball matches, toss, crease hud, and scorecards.';
+      case AppUserRole.viewer:
+        return 'Public live scorecards, commentary, standings, and squad viewer.';
+    }
+  }
+}
+
 class Tournament {
   final String id;
   final String name;
@@ -70,6 +164,22 @@ class Team {
   });
 
   int get playersStillNeeded => (minSquadRequirement - squadCount).clamp(0, minSquadRequirement);
+
+  /// Minimum Remaining Budget Protection Formula:
+  /// Maximum Bid = Remaining Purse - (Other Players Needed * Minimum Player Base Price)
+  /// Where Other Players Needed is max(0, minSquadRequirement - squadCount - 1)
+  int getMaxEligibleBid(int minPlayerBasePrice) {
+    if (squadCount >= maxSquadLimit) return 0;
+    final otherPlayersNeeded = (minSquadRequirement - squadCount - 1).clamp(0, minSquadRequirement);
+    final reserveRequired = otherPlayersNeeded * minPlayerBasePrice;
+    final maxBid = purseRemaining - reserveRequired;
+    return maxBid.clamp(0, purseRemaining);
+  }
+
+  int getReserveRequired(int minPlayerBasePrice) {
+    final otherPlayersNeeded = (minSquadRequirement - squadCount - 1).clamp(0, minSquadRequirement);
+    return otherPlayersNeeded * minPlayerBasePrice;
+  }
 }
 
 class Player {
@@ -131,6 +241,12 @@ class MatchModel {
   String? winnerId;
   String? winMargin;
   int currentInningsNumber;
+  List<String> playingXIA;
+  List<String> playingXIB;
+  String? captainAId;
+  String? captainBId;
+  String? keeperAId;
+  String? keeperBId;
 
   MatchModel({
     required this.id,
@@ -148,7 +264,14 @@ class MatchModel {
     this.winnerId,
     this.winMargin,
     this.currentInningsNumber = 1,
-  });
+    List<String>? playingXIA,
+    List<String>? playingXIB,
+    this.captainAId,
+    this.captainBId,
+    this.keeperAId,
+    this.keeperBId,
+  })  : playingXIA = playingXIA ?? [],
+        playingXIB = playingXIB ?? [];
 }
 
 class Innings {
@@ -324,6 +447,9 @@ class Auction {
   final int maxPursePerTeam;
   final int requiredTeamsCount;
   final Set<String> joinedTeamIds;
+  int biddingSecondsRemaining;
+  int defaultTimerSeconds;
+  bool isTimerRunning;
 
   Auction({
     required this.id,
@@ -341,6 +467,9 @@ class Auction {
     this.maxPursePerTeam = 10000000,
     this.requiredTeamsCount = 8,
     Set<String>? joinedTeamIds,
+    this.biddingSecondsRemaining = 15,
+    this.defaultTimerSeconds = 15,
+    this.isTimerRunning = false,
   }) : joinedTeamIds = joinedTeamIds ?? {};
 
   bool get isReadyToStart => joinedTeamIds.length >= requiredTeamsCount;
@@ -447,6 +576,24 @@ class AuctionRoom {
     required this.adminPasscode,
     required this.createdBy,
     required this.createdAt,
+  });
+}
+
+class AuditLog {
+  final String id;
+  final DateTime timestamp;
+  final String category; // 'auction', 'scoring', 'tournament'
+  final String action;
+  final String details;
+  final String performedBy;
+
+  AuditLog({
+    required this.id,
+    required this.timestamp,
+    required this.category,
+    required this.action,
+    required this.details,
+    required this.performedBy,
   });
 }
 

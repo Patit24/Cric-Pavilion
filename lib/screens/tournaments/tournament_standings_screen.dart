@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/mock_database.dart';
+import '../../widgets/role_switcher_chip.dart';
 import 'create_tournament_dialog.dart';
 
 class TournamentStandingsScreen extends StatefulWidget {
@@ -25,6 +26,8 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
         elevation: 0,
         title: const Text('Tournaments & Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         actions: [
+          const RoleSwitcherChip(compact: true),
+          const SizedBox(width: 4),
           TextButton.icon(
             onPressed: () {
               showDialog(

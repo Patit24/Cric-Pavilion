@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../widgets/role_switcher_chip.dart';
 import 'match_detail_screen.dart';
 import '../scorer/scorer_screen.dart';
 
@@ -32,6 +33,10 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
         backgroundColor: const Color(0xFF0F172A),
         elevation: 0,
         title: const Text('Matches & Scorecards', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: const [
+          RoleSwitcherChip(compact: true),
+          SizedBox(width: 12),
+        ],
       ),
       body: Column(
         children: [

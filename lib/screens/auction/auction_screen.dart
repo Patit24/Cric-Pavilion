@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../widgets/role_switcher_chip.dart';
 import 'create_auction_dialog.dart';
 import 'add_player_dialog.dart';
+import 'auction_projector_screen.dart';
 
 class AuctionScreen extends StatefulWidget {
   final String? initialAuctionId;
@@ -24,6 +27,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   late Animation<double> _wheelAnimation;
   double _currentAngle = 0.0;
   bool _isSpinning = false;
+  Timer? _auctionTimer;
 
   final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
@@ -35,10 +39,21 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       vsync: this,
       duration: const Duration(seconds: 4),
     );
+
+    _auctionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (selectedAuctionId != null && mounted) {
+        final db = Provider.of<MockDatabase>(context, listen: false);
+        final auc = db.auctions.where((a) => a.id == selectedAuctionId).firstOrNull;
+        if (auc != null && auc.isTimerRunning) {
+          db.tickAuctionTimer(auc.id);
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    _auctionTimer?.cancel();
     _wheelController.dispose();
     super.dispose();
   }
@@ -117,6 +132,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
+          const RoleSwitcherChip(compact: true),
+          const SizedBox(width: 8),
           TextButton.icon(
             onPressed: () async {
               final created = await showDialog<Auction>(
@@ -358,6 +375,20 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Ceremony Projector / Big Screen Mode',
+            icon: const Icon(Icons.tv, color: Colors.amber, size: 20),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => AuctionProjectorScreen(auctionId: auction.id),
+                ),
+              );
+            },
+          ),
+          const RoleSwitcherChip(compact: true),
+          const SizedBox(width: 4),
           if (isAdmin) ...[
             TextButton.icon(
               onPressed: () => _showHostPlayerPoolManagerDialog(context, db, auction),
@@ -825,6 +856,87 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         ],
                       ),
                     ],
+
+                    const SizedBox(height: 10),
+
+                    // COUNTDOWN TIMER STRIP
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                            ? Colors.redAccent.withValues(alpha: 0.2)
+                            : const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                              ? Colors.redAccent
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.timer,
+                                size: 16,
+                                color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                                    ? Colors.redAccent
+                                    : const Color(0xFF34D399),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '00:${auction.biddingSecondsRemaining.toString().padLeft(2, '0')}',
+                                style: TextStyle(
+                                  color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                                      ? Colors.redAccent
+                                      : Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                                    ? 'CLOSING SOON!'
+                                    : 'BIDDING TIME LEFT',
+                                style: TextStyle(
+                                  color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                                      ? Colors.redAccent
+                                      : Colors.white54,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (isAdmin)
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () => db.toggleAuctionTimer(auction.id),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    child: Icon(
+                                      auction.isTimerRunning ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                                      color: Colors.amber,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () => db.resetAuctionTimer(auction.id, seconds: 15),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    child: Icon(Icons.replay, color: Colors.white70, size: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
 
                     const SizedBox(height: 16),
 
@@ -1454,109 +1566,251 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   }
 
   // =========================================================================
-  // TEAM OWNER BIDDING BAR
+  // TEAM OWNER BIDDING BAR WITH STRICT BUDGET PROTECTION
   // =========================================================================
   Widget _buildTeamOwnerBiddingBar(BuildContext context, MockDatabase db, Auction auction, Team myTeam) {
     final isPaused = auction.floorStatus == FloorStatus.paused;
+    final currentLot = db.auctionLots.where((l) => l.id == auction.currentLotId).firstOrNull;
+    final minPrice = currentLot?.basePrice ?? 100000;
+    final maxEligibleBid = myTeam.getMaxEligibleBid(minPrice);
+    final reserveRequired = myTeam.getReserveRequired(minPrice);
+    final currentBid = auction.currentBid ?? (currentLot?.startingPrice ?? minPrice);
+    final nextMinBid = currentBid + auction.minBidIncrement;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Bidding as ${myTeam.name}:',
-              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+    final isSquadFull = myTeam.squadCount >= myTeam.maxSquadLimit;
+    final isBudgetExhausted = nextMinBid > maxEligibleBid;
+    final isLeadingBidder = auction.highBidderTeamId == myTeam.id;
+    final canBid = !isPaused && !isSquadFull && !isBudgetExhausted;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: myTeam.primaryColor.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // TEAM PURSE SUMMARY ROW
+          Row(
+            children: [
+              CircleAvatar(backgroundImage: NetworkImage(myTeam.logoUrl), radius: 14),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('TEAM BIDDING • ${myTeam.name.toUpperCase()}',
+                        style: TextStyle(color: myTeam.primaryColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                    Row(
+                      children: [
+                        Text('Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                        const SizedBox(width: 6),
+                        Text('• Squad: ${myTeam.squadCount}/${myTeam.minSquadRequirement} (Max ${myTeam.maxSquadLimit})',
+                            style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (isLeadingBidder)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green),
+                  ),
+                  child: const Text('HIGHEST BIDDER', style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w900)),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // BUDGET PROTECTION SAFETY BADGE
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white12),
             ),
-            Text(
-              'Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
-              style: TextStyle(color: myTeam.primaryColor, fontSize: 12, fontWeight: FontWeight.w900),
+            child: Row(
+              children: [
+                const Icon(Icons.shield_outlined, size: 14, color: Color(0xFF34D399)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Budget Protection: Max Eligible Bid ${currencyFormat.format(maxEligibleBid)} (Reserves ${currencyFormat.format(reserveRequired)} for ${myTeam.playersStillNeeded} slots)',
+                    style: const TextStyle(color: Colors.white70, fontSize: 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // MAIN "PLACE BID" BUTTON
+          ElevatedButton(
+            onPressed: canBid
+                ? () {
+                    final ok = db.placeAuctionBid(
+                      auctionId: auction.id,
+                      teamId: myTeam.id,
+                      increment: auction.minBidIncrement,
+                    );
+                    if (!ok) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Bid blocked: Check squad limits, budget protection reserve, or pause status.')),
+                      );
+                    }
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isLeadingBidder ? Colors.green.shade700 : Colors.amber,
+              foregroundColor: isLeadingBidder ? Colors.white : Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(isLeadingBidder ? Icons.check : Icons.gavel, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  isSquadFull
+                      ? 'Squad Full (${myTeam.maxSquadLimit} players)'
+                      : isBudgetExhausted
+                          ? 'Budget Protection Limit Reached'
+                          : isLeadingBidder
+                              ? 'You Hold High Bid: ${currencyFormat.format(currentBid)}'
+                              : 'PLACE BID: ${currencyFormat.format(nextMinBid)} (+${currencyFormat.format(auction.minBidIncrement)})',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // QUICK INCREMENT ROW (+50k, +1L, +Custom)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: (!canBid || nextMinBid + 50000 - auction.minBidIncrement > maxEligibleBid)
+                      ? null
+                      : () {
+                          db.placeAuctionBid(
+                            auctionId: auction.id,
+                            teamId: myTeam.id,
+                            increment: 50000,
+                          );
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.amber,
+                    side: const BorderSide(color: Colors.amber),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('+₹50k', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: (!canBid || nextMinBid + 100000 - auction.minBidIncrement > maxEligibleBid)
+                      ? null
+                      : () {
+                          db.placeAuctionBid(
+                            auctionId: auction.id,
+                            teamId: myTeam.id,
+                            increment: 100000,
+                          );
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.amber,
+                    side: const BorderSide(color: Colors.amber),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('+₹1 Lakh', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: !canBid
+                      ? null
+                      : () => _showCustomBidDialog(context, db, auction, myTeam, maxEligibleBid),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Custom Bid', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomBidDialog(BuildContext context, MockDatabase db, Auction auction, Team myTeam, int maxEligibleBid) {
+    final currentBid = auction.currentBid ?? 300000;
+    final incrementController = TextEditingController(text: '${auction.minBidIncrement * 2}');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('Place Custom Bid', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Current Bid: ${currencyFormat.format(currentBid)}', style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.bold)),
+            Text('Max Safe Bid: ${currencyFormat.format(maxEligibleBid)}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: incrementController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Bid Increment (₹)',
+                labelStyle: const TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: const Color(0xFF0F172A),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-
-        // Bid Increment Buttons (+minBid, +50k, +1L)
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isPaused
-                    ? null
-                    : () {
-                        final ok = db.placeAuctionBid(
-                          auctionId: auction.id,
-                          teamId: myTeam.id,
-                          increment: auction.minBidIncrement,
-                        );
-                        if (!ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber.shade600,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text('+${currencyFormat.format(auction.minBidIncrement)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isPaused
-                    ? null
-                    : () {
-                        final ok = db.placeAuctionBid(
-                          auctionId: auction.id,
-                          teamId: myTeam.id,
-                          increment: 50000,
-                        );
-                        if (!ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber.shade500,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('+₹50k', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isPaused
-                    ? null
-                    : () {
-                        final ok = db.placeAuctionBid(
-                          auctionId: auction.id,
-                          teamId: myTeam.id,
-                          increment: 100000,
-                        );
-                        if (!ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cannot place bid: check purse or floor pause status.')),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber.shade400,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('+₹1 Lakh', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-              ),
-            ),
-          ],
-        ),
-      ],
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            onPressed: () {
+              final inc = int.tryParse(incrementController.text.trim()) ?? auction.minBidIncrement;
+              final ok = db.placeAuctionBid(auctionId: auction.id, teamId: myTeam.id, increment: inc);
+              Navigator.pop(ctx);
+              if (!ok) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Custom bid rejected: Exceeds budget protection limit or insufficient purse.')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+            child: const Text('Confirm Bid', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../services/cricket_rules_engine.dart';
+import '../../widgets/role_switcher_chip.dart';
 import 'crease_hud_widget.dart';
 import 'over_complete_dialog.dart';
 import 'wicket_dialog.dart';
@@ -36,7 +37,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
       orElse: () => db.matches.first,
     );
 
-    final isScorer = db.isScoringUnlockedForMatch(match.id);
+    final isScorer = db.currentRole != AppUserRole.viewer &&
+        (db.currentRole == AppUserRole.superAdmin ||
+         db.currentRole == AppUserRole.scorer ||
+         db.isScoringUnlockedForMatch(match.id));
     final currentRoom = db.getScoringRoomForMatch(match.id);
 
     final teamA = db.teams.firstWhere((t) => t.id == match.teamAId);
@@ -132,6 +136,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ],
         ),
         actions: [
+          const RoleSwitcherChip(compact: true),
+          const SizedBox(width: 4),
           if (!isScorer) ...[
             TextButton.icon(
               onPressed: () => _showEnterRoomDialog(context, db, match),
