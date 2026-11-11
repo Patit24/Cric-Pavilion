@@ -19,17 +19,17 @@ enum AppUserRole {
   String get displayName {
     switch (this) {
       case AppUserRole.superAdmin:
-        return 'Super Admin';
+        return 'Admin (Master)';
       case AppUserRole.tournamentAdmin:
         return 'Tournament Admin';
       case AppUserRole.auctionAdmin:
-        return 'Auction Admin';
+        return 'Auction Host';
       case AppUserRole.teamOwner:
-        return 'Team Owner';
+        return 'Team Owner (Bidder)';
       case AppUserRole.scorer:
         return 'Match Scorer';
       case AppUserRole.viewer:
-        return 'Viewer (Public)';
+        return 'User (Viewer)';
     }
   }
 

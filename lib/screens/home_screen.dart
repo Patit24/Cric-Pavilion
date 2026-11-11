@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
@@ -42,8 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final bowlerCard = db.bowlingScorecards.where((b) => b.inningsId == liveInnings?.id && b.playerId == liveBowler?.id).firstOrNull;
 
     // Auction Highlight
-    final currentLot = db.auctionLots.where((l) => l.id == db.auction.currentLotId).firstOrNull;
+    final liveAuction = db.auctions.firstWhere((a) => a.status == AuctionStatus.live, orElse: () => db.auctions.first);
+    final currentLot = db.auctionLots.where((l) => l.id == liveAuction.currentLotId).firstOrNull;
     final lotPlayer = currentLot != null ? db.players.where((p) => p.id == currentLot.playerId).firstOrNull : null;
+    final highBidder = db.teams.where((t) => t.id == liveAuction.highBidderTeamId).firstOrNull;
+    final isAuctionHost = db.canManageAuctionFloor(liveAuction.id);
+    final isTeamOwner = db.currentAuthenticatedTeam != null;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -442,20 +447,40 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 4),
                       Text('📍 ${um.venue} • ${um.overs} Overs T20', style: const TextStyle(color: Colors.white38, fontSize: 11)),
                       const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: um.id)),
+                      Builder(builder: (ctx) {
+                        final canScore = db.isScoringUnlockedForMatch(um.id);
+                        if (canScore) {
+                          return ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: um.id)),
+                              );
+                            },
+                            icon: const Icon(Icons.sports_score, size: 14, color: Colors.black),
+                            label: const Text('Conduct Coin Toss & Start Scoring →', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 11)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34D399),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
                           );
-                        },
-                        icon: const Icon(Icons.monetization_on, size: 14, color: Colors.black),
-                        label: const Text('Conduct Coin Toss & Start Scoring →', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 11)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF34D399),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
+                        } else {
+                          return OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: um.id)),
+                              );
+                            },
+                            icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF34D399)),
+                            label: const Text('Watch Match Centre (Viewer Mode) →', style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 11)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF34D399)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      }),
                     ],
                   ),
                 );
@@ -464,44 +489,106 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            // LIVE AUCTION PREVIEW HIGHLIGHT
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.amber.shade600),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: NetworkImage(lotPlayer?.photoUrl ?? 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=256'),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('LIVE MEGA AUCTION', style: TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                        Text(lotPlayer?.fullName ?? 'Anustup Majumdar', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                        Text('Current Bid: ₹4,50,000 (Barasat)', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                      ],
+            // LIVE AUCTION PREVIEW HIGHLIGHT (DYNAMIC & ROLE-AWARE)
+            Builder(builder: (ctx) {
+              final activePrice = currentLot?.currentBid ?? currentLot?.startingPrice ?? currentLot?.basePrice ?? 500000;
+              final priceFormatted = '₹${NumberFormat.decimalPattern('en_IN').format(activePrice)}';
+              final priceSubtitle = highBidder != null
+                  ? 'High Bid: $priceFormatted (${highBidder.name})'
+                  : 'Opening Price: $priceFormatted • Ready for Bids';
+
+              final String buttonLabel;
+              final IconData buttonIcon;
+              final Color buttonBg;
+              final Color buttonFg;
+
+              if (isAuctionHost) {
+                buttonLabel = 'Manage Floor';
+                buttonIcon = Icons.gavel;
+                buttonBg = Colors.amber;
+                buttonFg = Colors.black;
+              } else if (isTeamOwner) {
+                buttonLabel = 'Enter & Bid';
+                buttonIcon = Icons.vpn_key;
+                buttonBg = Colors.amber;
+                buttonFg = Colors.black;
+              } else {
+                buttonLabel = 'Watch Live';
+                buttonIcon = Icons.visibility;
+                buttonBg = const Color(0xFF059669);
+                buttonFg = Colors.white;
+              }
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.amber.shade600),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage(lotPlayer?.photoUrl ?? 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=256'),
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => widget.onTabChange(2), // Go to Auction
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.amber),
+                                ),
+                                child: Text(
+                                  liveAuction.title.toUpperCase(),
+                                  style: const TextStyle(color: Colors.amber, fontSize: 8.5, fontWeight: FontWeight.w900),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            lotPlayer?.fullName ?? 'Player Lot on Stage',
+                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            priceSubtitle,
+                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            '👁️ Viewers watch live • Bids restricted to approved team owners',
+                            style: TextStyle(color: Colors.white38, fontSize: 9.5),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Text('Bid Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => widget.onTabChange(2), // Go to Auction
+                      icon: Icon(buttonIcon, size: 13, color: buttonFg),
+                      label: Text(buttonLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: buttonFg)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonBg,
+                        foregroundColor: buttonFg,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -564,9 +651,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      role == AppUserRole.teamOwner && team != null
-                          ? '${team.name} (Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L • Squad: ${team.squadCount}/${team.minSquadRequirement})'
-                          : role.description,
+                      role == AppUserRole.viewer
+                          ? (db.createdTournamentIds.isNotEmpty || db.createdAuctionIds.isNotEmpty
+                              ? 'You created ${db.createdTournamentIds.length} tournament(s) with full scoring access. All other tournaments are in spectator watch mode.'
+                              : 'You are in Viewer Mode. Watch live scores, scorecards, and live auction bids. Any user can create their own tournament or auction below!')
+                          : (role == AppUserRole.teamOwner && team != null
+                              ? '${team.name} (Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L • Squad: ${team.squadCount}/${team.minSquadRequirement})'
+                              : role.description),
                       style: const TextStyle(color: Colors.white70, fontSize: 11),
                     ),
                   ],
@@ -688,12 +779,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ] else ...[
                 ElevatedButton.icon(
-                  onPressed: () => widget.onTabChange(1),
-                  icon: const Icon(Icons.visibility, size: 14),
-                  label: const Text('Watch Live Match', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => CreateTournamentDialog(db: db),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle, size: 14),
+                  label: const Text('+ Create Tournament', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF059669),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => widget.onTabChange(2),
+                  icon: const Icon(Icons.gavel, size: 14),
+                  label: const Text('Host Auction', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => widget.onTabChange(1),
+                  icon: const Icon(Icons.visibility, size: 14),
+                  label: const Text('Watch Live Match', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 ),

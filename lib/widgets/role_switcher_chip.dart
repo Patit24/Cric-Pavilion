@@ -58,6 +58,7 @@ class RoleSwitcherChip extends StatelessWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
+            final team = db.currentAuthenticatedTeam;
             return SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -97,8 +98,8 @@ class RoleSwitcherChip extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // List of 6 Roles
-                    ...AppUserRole.values.map((role) {
+                    // Primary User Roles (Admin vs Regular User vs Team Owner)
+                    ...[AppUserRole.viewer, AppUserRole.superAdmin, AppUserRole.teamOwner].map((role) {
                       final isSelected = db.currentRole == role;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -142,10 +143,12 @@ class RoleSwitcherChip extends StatelessWidget {
                                       Row(
                                         children: [
                                           Text(
-                                            role.displayName,
+                                            role == AppUserRole.viewer
+                                                ? 'Regular User (Viewer Mode)'
+                                                : (role == AppUserRole.superAdmin ? 'Admin (Master Access)' : 'Franchise Team Owner'),
                                             style: TextStyle(
                                               color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                                              fontSize: 15,
+                                              fontSize: 14,
                                               fontWeight: FontWeight.w900,
                                             ),
                                           ),
@@ -157,7 +160,9 @@ class RoleSwitcherChip extends StatelessWidget {
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
-                                              role.badgeLabel,
+                                              role == AppUserRole.viewer
+                                                  ? 'PUBLIC USER'
+                                                  : (role == AppUserRole.superAdmin ? 'ORGANIZER / HOST' : 'APPROVED TO BID'),
                                               style: TextStyle(
                                                 color: role.color,
                                                 fontSize: 8.5,
@@ -169,7 +174,11 @@ class RoleSwitcherChip extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        role.description,
+                                        role == AppUserRole.viewer
+                                            ? 'Spectator by default. Automatically gets full scoring/auction control over any tournaments you create.'
+                                            : (role == AppUserRole.superAdmin
+                                                ? 'Master administrator with full scoring, match conduct, and auction floor hammer controls.'
+                                                : (team != null ? 'Franchise: ${team.name} • Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L' : 'Franchise owner approved by the auction host to place live bids.')),
                                         style: const TextStyle(color: Colors.white54, fontSize: 11),
                                       ),
                                     ],

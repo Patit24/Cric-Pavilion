@@ -409,6 +409,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               },
             ),
             IconButton(
+              tooltip: 'Franchise Approvals & PINs',
+              icon: const Icon(Icons.badge, color: Color(0xFF38BDF8), size: 20),
+              onPressed: () => _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams),
+            ),
+            IconButton(
               tooltip: 'Add Team to Auction',
               icon: const Icon(Icons.group_add, color: Colors.amber, size: 20),
               onPressed: () => _showAddTeamDialog(context, db, auction),
@@ -507,10 +512,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       final isConnected = auction.joinedTeamIds.contains(t.id);
                       return InkWell(
                         onTap: () {
-                          if (!isConnected) {
+                          if (isAdmin && !isConnected) {
                             db.checkInTeamToAuction(auction.id, t.id);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${t.name} entered the room!')),
+                              SnackBar(content: Text('${t.name} approved to bid by Host!')),
+                            );
+                          } else if (!isAdmin && !isConnected) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${t.name} is waiting for team owner to enter with Code & PIN.')),
                             );
                           }
                         },
@@ -545,27 +554,39 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     }).toList(),
                   ),
 
-                  if (!auction.isReadyToStart) ...[
+                  if (isAdmin) ...[
                     const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              db.checkInAllTeamsToAuction(auction.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('All 8 teams entered! Auction unlocked.')),
-                              );
-                            },
-                            icon: const Icon(Icons.flash_on, size: 14),
-                            label: const Text('Check-In All 8 Teams (Quick Test)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams),
+                            icon: const Icon(Icons.badge, size: 14, color: Colors.amber),
+                            label: const Text('Franchise Permissions & PINs', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.amber),
                               padding: const EdgeInsets.symmetric(vertical: 8),
                             ),
                           ),
                         ),
+                        if (!auction.isReadyToStart) ...[
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              db.checkInAllTeamsToAuction(auction.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('All 8 teams approved & entered! Auction unlocked.')),
+                              );
+                            },
+                            icon: const Icon(Icons.flash_on, size: 14),
+                            label: const Text('Approve All 8', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -1593,6 +1614,19 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () {
+              final safe8Teams = db.teams.where((t) => t.tournamentId == auction.tournamentId).toList();
+              _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams);
+            },
+            icon: const Icon(Icons.badge, size: 14, color: Color(0xFF38BDF8)),
+            label: const Text('Franchise Owner Permissions & PINs', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold)),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFF38BDF8)),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+            ),
+          ),
         ],
       ),
     );
@@ -2457,6 +2491,166 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             child: const Text('Reset Everything', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showHostFranchiseApprovalsDialog(
+    BuildContext context,
+    MockDatabase db,
+    Auction auction,
+    List<Team> safe8Teams,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: const [
+                Icon(Icons.badge, color: Color(0xFF38BDF8), size: 22),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Franchise Owner Permissions & PINs',
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'As Auction Host, you give permission for franchise owners to bid. Share their unique Team Code & PIN, or manually check them in below.',
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Franchises: ${safe8Teams.length}',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                          Text(
+                            'Approved to Bid: ${auction.joinedTeamIds.length} / ${safe8Teams.length}',
+                            style: TextStyle(
+                              color: auction.isReadyToStart ? const Color(0xFF34D399) : Colors.amber,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...safe8Teams.map((team) {
+                      final isConnected = auction.joinedTeamIds.contains(team.id);
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isConnected ? const Color(0xFF059669) : Colors.white12,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(team.logoUrl),
+                              radius: 16,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    team.name,
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Code: ${team.uniqueTeamCode}   •   PIN: ${team.passcode}',
+                                    style: const TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.w900, fontSize: 11),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L • Squad: ${team.squadCount}/${team.minSquadRequirement}',
+                                    style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (isConnected) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF059669).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF059669)),
+                                ),
+                                child: const Text(
+                                  'Ready to Bid',
+                                  style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ] else ...[
+                              ElevatedButton(
+                                onPressed: () {
+                                  db.checkInTeamToAuction(auction.id, team.id);
+                                  setDialogState(() {});
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Approve', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              if (!auction.isReadyToStart)
+                TextButton(
+                  onPressed: () {
+                    db.checkInAllTeamsToAuction(auction.id);
+                    setDialogState(() {});
+                  },
+                  child: const Text('Approve All 8', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close', style: TextStyle(color: Colors.white70)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
