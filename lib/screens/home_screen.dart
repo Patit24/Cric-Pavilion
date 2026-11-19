@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/role_switcher_chip.dart';
+import '../../widgets/app_animations.dart';
 import 'scorer/scorer_screen.dart';
 import 'scorer/full_scorecard_dialog.dart';
 import 'tournaments/create_tournament_dialog.dart';
@@ -493,19 +494,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isLive
-                              ? const Color(0xFFEF4444)
-                              : (isCompleted ? const Color(0xFF009270) : const Color(0xFF374151)),
-                          borderRadius: BorderRadius.circular(4),
+                      if (isLive)
+                        const PulsingLiveBadge(label: 'LIVE', color: Color(0xFFEF4444))
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isCompleted ? const Color(0xFF009270) : const Color(0xFF374151),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            isCompleted ? 'RESULT' : 'UPCOMING',
+                            style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900),
+                          ),
                         ),
-                        child: Text(
-                          isLive ? '● LIVE' : (isCompleted ? 'RESULT' : 'UPCOMING'),
-                          style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900),
-                        ),
-                      ),
                     ],
                   ),
 
@@ -800,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+                    const PulsingLiveDot(color: Color(0xFFEF4444), size: 7.5),
                     const SizedBox(width: 6),
                     Text(
                       '${match.stage.toUpperCase()} • LIVE',
@@ -823,19 +825,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(teamA.name, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${innings.totalRuns}/${innings.wickets} ',
-                            style: const TextStyle(color: Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.w900),
-                          ),
-                          TextSpan(
-                            text: '(${innings.oversStr} ov)',
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
-                          ),
-                        ],
-                      ),
+                    Row(
+                      children: [
+                        ScoreNumberTicker(
+                          text: '${innings.totalRuns}/${innings.wickets} ',
+                          style: const TextStyle(color: Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.w900),
+                        ),
+                        Text(
+                          '(${innings.oversStr} ov)',
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                      ],
                     ),
                   ],
                 ),

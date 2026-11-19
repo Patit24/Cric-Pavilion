@@ -14,33 +14,24 @@ class CreateAuctionDialog extends StatefulWidget {
 class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  final titleController = TextEditingController(text: 'Winter Super League Auction 2026');
-  final adminPassController = TextEditingController(text: 'admin123');
-  final purseController = TextEditingController(text: '10000000'); // ₹1 Crore
-  final minBidController = TextEditingController(text: '50000'); // ₹50,000
+  // Clean Manual Entry Controllers (NO DUMMY PRE-FILLED PLACEHOLDERS)
+  final titleController = TextEditingController();
+  final adminPassController = TextEditingController();
+  final purseController = TextEditingController(text: '50000');
+  final minBidController = TextEditingController(text: '500');
 
-  // Teams entered by Host
+  // Teams entered by Host - starts with 4 clean empty slots
   final List<TextEditingController> teamNameControllers = [
-    TextEditingController(text: 'Royal Strikers'),
-    TextEditingController(text: 'Thunder Warriors'),
-    TextEditingController(text: 'City Champions'),
-    TextEditingController(text: 'Falcon Superstars'),
-    TextEditingController(text: 'Titan Gladiators'),
-    TextEditingController(text: 'Panther Riders'),
-    TextEditingController(text: 'Golden Eagles'),
-    TextEditingController(text: 'Diamond Dynamos'),
+    TextEditingController(),
+    TextEditingController(),
+    TextEditingController(),
+    TextEditingController(),
   ];
 
-  // Players entered by Host
+  // Players entered by Host - starts with 2 clean empty slots
   final List<Map<String, dynamic>> playerEntries = [
-    {'nameController': TextEditingController(text: 'Amitav Roy'), 'role': PlayerRole.batsman, 'priceController': TextEditingController(text: '800000')},
-    {'nameController': TextEditingController(text: 'Bikash Paul'), 'role': PlayerRole.bowler, 'priceController': TextEditingController(text: '650000')},
-    {'nameController': TextEditingController(text: 'Chandan Sen'), 'role': PlayerRole.allRounder, 'priceController': TextEditingController(text: '900000')},
-    {'nameController': TextEditingController(text: 'Debjit Saha'), 'role': PlayerRole.wicketKeeper, 'priceController': TextEditingController(text: '500000')},
-    {'nameController': TextEditingController(text: 'Emon Chakraborty'), 'role': PlayerRole.batsman, 'priceController': TextEditingController(text: '400000')},
-    {'nameController': TextEditingController(text: 'Farhan Sheikh'), 'role': PlayerRole.bowler, 'priceController': TextEditingController(text: '450000')},
-    {'nameController': TextEditingController(text: 'Goutam Ghosh'), 'role': PlayerRole.allRounder, 'priceController': TextEditingController(text: '550000')},
-    {'nameController': TextEditingController(text: 'Harsh Vardhan'), 'role': PlayerRole.batsman, 'priceController': TextEditingController(text: '700000')},
+    {'nameController': TextEditingController(), 'role': PlayerRole.batsman, 'priceController': TextEditingController(text: '500')},
+    {'nameController': TextEditingController(), 'role': PlayerRole.bowler, 'priceController': TextEditingController(text: '500')},
   ];
 
   @override
@@ -68,7 +59,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
 
   void _addTeamField() {
     setState(() {
-      teamNameControllers.add(TextEditingController(text: 'Franchise Team ${teamNameControllers.length + 1}'));
+      teamNameControllers.add(TextEditingController());
     });
   }
 
@@ -88,9 +79,9 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
   void _addPlayerField() {
     setState(() {
       playerEntries.add({
-        'nameController': TextEditingController(text: 'Player ${playerEntries.length + 1}'),
+        'nameController': TextEditingController(),
         'role': PlayerRole.batsman,
-        'priceController': TextEditingController(text: '300000'),
+        'priceController': TextEditingController(text: '500'),
       });
     });
   }
@@ -108,13 +99,40 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
       while (teamNameControllers.length > count) {
         teamNameControllers.removeLast().dispose();
       }
-      final defaultNames = [
-        'Royal Strikers', 'Thunder Warriors', 'City Champions', 'Falcon Superstars',
-        'Titan Gladiators', 'Panther Riders', 'Golden Eagles', 'Diamond Dynamos'
-      ];
       while (teamNameControllers.length < count) {
-        final i = teamNameControllers.length;
-        teamNameControllers.add(TextEditingController(text: defaultNames[i % defaultNames.length]));
+        teamNameControllers.add(TextEditingController());
+      }
+    });
+  }
+
+  void _quickFillSample() {
+    setState(() {
+      titleController.text = 'BPL 2026 Mega Auction';
+      adminPassController.text = 'admin123';
+      purseController.text = '50000';
+      minBidController.text = '500';
+
+      final sampleTeams = ['Barasat Blasters', 'Howrah Hurricanes', 'Kolkata Kings', 'Hooghly Heroes'];
+      while (teamNameControllers.length < sampleTeams.length) {
+        teamNameControllers.add(TextEditingController());
+      }
+      for (int i = 0; i < sampleTeams.length; i++) {
+        teamNameControllers[i].text = sampleTeams[i];
+      }
+
+      final samplePlayers = [
+        {'name': 'Rahul Das', 'role': PlayerRole.batsman, 'price': '800'},
+        {'name': 'Suman Biswas', 'role': PlayerRole.bowler, 'price': '650'},
+        {'name': 'Tanmoy Das', 'role': PlayerRole.allRounder, 'price': '900'},
+        {'name': 'Debayan Paul', 'role': PlayerRole.wicketKeeper, 'price': '500'},
+      ];
+      playerEntries.clear();
+      for (final sp in samplePlayers) {
+        playerEntries.add({
+          'nameController': TextEditingController(text: sp['name'] as String),
+          'role': sp['role'] as PlayerRole,
+          'priceController': TextEditingController(text: sp['price'] as String),
+        });
       }
     });
   }
@@ -124,10 +142,11 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     return Dialog(
       backgroundColor: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
+        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 720),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -136,22 +155,38 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.gavel, color: Colors.amber, size: 24),
+                    decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.gavel, color: Colors.black, size: 20),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
-                        Text('Host New Auction & Tournament', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
-                        Text('Everything is a fresh entry: Host sets Teams & Players manually', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                        Text(
+                          'Host New Player Auction',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Manual tournament draft, team purse budgets & player lots',
+                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
+                  TextButton.icon(
+                    onPressed: _quickFillSample,
+                    icon: const Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
+                    label: const Text('Auto-Fill Sample', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
+                  ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
+                    icon: const Icon(Icons.close, color: Colors.white54, size: 20),
                     onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
@@ -166,11 +201,11 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.amber,
                   unselectedLabelColor: Colors.white60,
-                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  labelStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
                   tabs: [
-                    const Tab(icon: Icon(Icons.tune, size: 16), text: '1. Setup Rules'),
-                    Tab(icon: const Icon(Icons.groups, size: 16), text: '2. Teams (${teamNameControllers.length})'),
-                    Tab(icon: const Icon(Icons.sports_cricket, size: 16), text: '3. Players (${playerEntries.length})'),
+                    const Tab(icon: Icon(Icons.tune, size: 15), text: '1. Setup Rules'),
+                    Tab(icon: const Icon(Icons.groups, size: 15), text: '2. Teams (${teamNameControllers.length})'),
+                    Tab(icon: const Icon(Icons.sports_cricket, size: 15), text: '3. Players (${playerEntries.length})'),
                   ],
                 ),
               ),
@@ -192,65 +227,54 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                             controller: titleController,
                             style: const TextStyle(color: Colors.white, fontSize: 13),
                             decoration: InputDecoration(
-                              labelText: 'Auction & Tournament Title',
-                              labelStyle: const TextStyle(color: Colors.white70),
-                              hintText: 'e.g. Gully Cricket Premier League 2026',
+                              labelText: 'Auction Title *',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              hintText: 'e.g. Bengal Premier League Auction 2026',
+                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11.5),
                               filled: true,
                               fillColor: const Color(0xFF0F172A),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: purseController,
-                                  keyboardType: TextInputType.number,
-                                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                                  decoration: InputDecoration(
-                                    labelText: 'Team Purse Budget (₹)',
-                                    labelStyle: const TextStyle(color: Colors.white70),
-                                    hintText: '10000000',
-                                    filled: true,
-                                    fillColor: const Color(0xFF0F172A),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  controller: minBidController,
-                                  keyboardType: TextInputType.number,
-                                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                                  decoration: InputDecoration(
-                                    labelText: 'Min Bid Inc (₹)',
-                                    labelStyle: const TextStyle(color: Colors.white70),
-                                    hintText: '50000',
-                                    filled: true,
-                                    fillColor: const Color(0xFF0F172A),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 10),
+                          LayoutBuilder(
+                            builder: (ctx, constraints) {
+                              if (constraints.maxWidth < 280) {
+                                return Column(
+                                  children: [
+                                    _buildPurseField(),
+                                    const SizedBox(height: 8),
+                                    _buildMinBidField(),
+                                  ],
+                                );
+                              }
+                              return Row(
+                                children: [
+                                  Expanded(child: _buildPurseField()),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _buildMinBidField()),
+                                ],
+                              );
+                            },
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           TextField(
                             controller: adminPassController,
                             style: const TextStyle(color: Colors.white, fontSize: 13),
                             decoration: InputDecoration(
-                              labelText: 'Host Auctioneer Security PIN',
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelText: 'Host Auctioneer Security PIN *',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
                               hintText: 'e.g. admin123',
+                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11.5),
                               prefixIcon: const Icon(Icons.security, color: Colors.amber, size: 18),
                               filled: true,
                               fillColor: const Color(0xFF0F172A),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -260,11 +284,11 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                             ),
                             child: Row(
                               children: const [
-                                Icon(Icons.check_circle_outline, color: Color(0xFF34D399), size: 20),
+                                Icon(Icons.check_circle_outline, color: Color(0xFF34D399), size: 18),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    '100% Fresh Isolation: This auction starts with 0 acquired players and full purse. Only the teams and players you enter in Tabs 2 & 3 will be shown.',
+                                    'Fresh Isolation: This auction starts with clean budgets and 0 acquired players. Only the teams and players you configure will be auctioned.',
                                     style: TextStyle(color: Color(0xFF34D399), fontSize: 11),
                                   ),
                                 ),
@@ -283,7 +307,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                       children: [
                         Row(
                           children: [
-                            const Text('Quick Presets:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                            const Text('Preset Count:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
                             const SizedBox(width: 8),
                             Wrap(
                               spacing: 6,
@@ -293,7 +317,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                   onTap: () => _setTeamCountPreset(n),
                                   borderRadius: BorderRadius.circular(8),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                                     decoration: BoxDecoration(
                                       color: isSelected ? Colors.amber : const Color(0xFF0F172A),
                                       borderRadius: BorderRadius.circular(8),
@@ -303,7 +327,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                       '$n Teams',
                                       style: TextStyle(
                                         color: isSelected ? Colors.black : Colors.white70,
-                                        fontSize: 10,
+                                        fontSize: 10.5,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -312,10 +336,17 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                               }).toList(),
                             ),
                             const Spacer(),
-                            TextButton.icon(
+                            ElevatedButton.icon(
                               onPressed: _addTeamField,
-                              icon: const Icon(Icons.add, size: 14, color: Colors.amber),
-                              label: const Text('Add Team', style: TextStyle(color: Colors.amber, fontSize: 11)),
+                              icon: const Icon(Icons.add, size: 12),
+                              label: const Text('+ Team', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF009270),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                             ),
                           ],
                         ),
@@ -323,36 +354,44 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                         Expanded(
                           child: ListView.separated(
                             itemCount: teamNameControllers.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 8),
-                            itemBuilder: (context, i) {
-                              return Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: Colors.amber.withValues(alpha: 0.2),
-                                    radius: 14,
-                                    child: Text('${i + 1}', style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: TextField(
-                                      controller: teamNameControllers[i],
-                                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                                      decoration: InputDecoration(
-                                        labelText: 'Team ${i + 1} Name',
-                                        labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
-                                        filled: true,
-                                        fillColor: const Color(0xFF0F172A),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            separatorBuilder: (_, __) => const SizedBox(height: 6),
+                            itemBuilder: (ctx, idx) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F172A),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.white12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 11,
+                                      backgroundColor: const Color(0xFF1E293B),
+                                      child: Text('${idx + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: teamNameControllers[idx],
+                                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                                        decoration: InputDecoration(
+                                          hintText: 'Enter Team ${idx + 1} Name *',
+                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                                          isDense: true,
+                                          border: InputBorder.none,
+                                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 18),
-                                    tooltip: 'Remove Team',
-                                    onPressed: () => _removeTeamField(i),
-                                  ),
-                                ],
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                      onPressed: () => _removeTeamField(idx),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                  ],
+                                ),
                               );
                             },
                           ),
@@ -368,12 +407,22 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                       children: [
                         Row(
                           children: [
-                            const Text('Add Players for Auction:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text(
+                              'Player Pool (${playerEntries.length} Lots)',
+                              style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.bold),
+                            ),
                             const Spacer(),
-                            TextButton.icon(
+                            ElevatedButton.icon(
                               onPressed: _addPlayerField,
-                              icon: const Icon(Icons.person_add, size: 14, color: Color(0xFF34D399)),
-                              label: const Text('+ Add Player', style: TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                              icon: const Icon(Icons.add, size: 12),
+                              label: const Text('+ Player', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF009270),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                             ),
                           ],
                         ),
@@ -381,94 +430,95 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                         Expanded(
                           child: ListView.separated(
                             itemCount: playerEntries.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 8),
-                            itemBuilder: (context, i) {
-                              final p = playerEntries[i];
+                            separatorBuilder: (_, __) => const SizedBox(height: 6),
+                            itemBuilder: (ctx, idx) {
+                              final p = playerEntries[idx];
                               final nameCtrl = p['nameController'] as TextEditingController;
                               final priceCtrl = p['priceController'] as TextEditingController;
-                              final role = p['role'] as PlayerRole;
 
                               return Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF0F172A),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: Colors.white12),
                                 ),
                                 child: Row(
                                   children: [
                                     CircleAvatar(
-                                      backgroundColor: const Color(0xFF34D399).withValues(alpha: 0.2),
-                                      radius: 12,
-                                      child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 9, fontWeight: FontWeight.bold)),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    // Player Name
-                                    Expanded(
-                                      flex: 3,
-                                      child: TextField(
-                                        controller: nameCtrl,
-                                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                                        decoration: InputDecoration(
-                                          labelText: 'Player Name',
-                                          labelStyle: const TextStyle(color: Colors.white54, fontSize: 10),
-                                          isDense: true,
-                                          filled: true,
-                                          fillColor: const Color(0xFF1E293B),
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                        ),
-                                      ),
+                                      radius: 11,
+                                      backgroundColor: Colors.amber.withValues(alpha: 0.2),
+                                      child: Text('${idx + 1}', style: const TextStyle(color: Colors.amber, fontSize: 9.5, fontWeight: FontWeight.bold)),
                                     ),
                                     const SizedBox(width: 6),
-                                    // Role Dropdown
+                                    // Player Name
                                     Expanded(
-                                      flex: 2,
-                                      child: DropdownButtonFormField<PlayerRole>(
-                                        value: role,
-                                        dropdownColor: const Color(0xFF1E293B),
-                                        isDense: true,
-                                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                                      flex: 5,
+                                      child: TextField(
+                                        controller: nameCtrl,
+                                        style: const TextStyle(color: Colors.white, fontSize: 11.5),
                                         decoration: InputDecoration(
-                                          labelText: 'Role',
-                                          labelStyle: const TextStyle(color: Colors.white54, fontSize: 10),
+                                          hintText: 'Player Name *',
+                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 10.5),
                                           isDense: true,
                                           filled: true,
                                           fillColor: const Color(0xFF1E293B),
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                                         ),
-                                        items: const [
-                                          DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
-                                          DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
-                                          DropdownMenuItem(value: PlayerRole.allRounder, child: Text('All-Round')),
-                                          DropdownMenuItem(value: PlayerRole.wicketKeeper, child: Text('Keeper')),
-                                        ],
-                                        onChanged: (val) {
-                                          if (val != null) setState(() => p['role'] = val);
-                                        },
                                       ),
                                     ),
                                     const SizedBox(width: 6),
                                     // Base Price
                                     Expanded(
-                                      flex: 2,
+                                      flex: 4,
                                       child: TextField(
                                         controller: priceCtrl,
                                         keyboardType: TextInputType.number,
-                                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                                        style: const TextStyle(color: Colors.amberAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
                                         decoration: InputDecoration(
-                                          labelText: 'Base (₹)',
-                                          labelStyle: const TextStyle(color: Colors.white54, fontSize: 10),
+                                          prefixText: '₹',
+                                          prefixStyle: const TextStyle(color: Colors.amberAccent, fontSize: 10),
+                                          hintText: '500',
+                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 10.5),
                                           isDense: true,
                                           filled: true,
                                           fillColor: const Color(0xFF1E293B),
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(width: 6),
+                                    // Role Dropdown
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(6)),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<PlayerRole>(
+                                          value: p['role'] as PlayerRole,
+                                          dropdownColor: const Color(0xFF1E293B),
+                                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                                          items: const [
+                                            DropdownMenuItem(value: PlayerRole.batsman, child: Text('Bat')),
+                                            DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowl')),
+                                            DropdownMenuItem(value: PlayerRole.allRounder, child: Text('All')),
+                                            DropdownMenuItem(value: PlayerRole.wicketKeeper, child: Text('WK')),
+                                          ],
+                                          onChanged: (val) {
+                                            if (val != null) {
+                                              setState(() => p['role'] = val);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
                                     IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.white38, size: 16),
-                                      tooltip: 'Remove',
-                                      onPressed: () => _removePlayerField(i),
+                                      icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 16),
+                                      onPressed: () => _removePlayerField(idx),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
                                     ),
                                   ],
                                 ),
@@ -481,94 +531,27 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-              // Bottom Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              // Bottom Actions (Responsive Wrap)
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
                   ),
-                  const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      if (titleController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter an auction title.')),
-                        );
-                        return;
-                      }
-
-                      final purse = int.tryParse(purseController.text.trim()) ?? 10000000;
-                      final minBid = int.tryParse(minBidController.text.trim()) ?? 50000;
-
-                      // Extract entered team names
-                      final enteredTeamNames = teamNameControllers
-                          .map((c) => c.text.trim())
-                          .where((name) => name.isNotEmpty)
-                          .toList();
-
-                      if (enteredTeamNames.length < 2) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter at least 2 team names.')),
-                        );
-                        return;
-                      }
-
-                      // Extract entered player entries
-                      final enteredPlayers = <Map<String, dynamic>>[];
-                      for (final p in playerEntries) {
-                        final name = (p['nameController'] as TextEditingController).text.trim();
-                        final price = int.tryParse((p['priceController'] as TextEditingController).text.trim()) ?? 300000;
-                        if (name.isNotEmpty) {
-                          enteredPlayers.add({
-                            'name': name,
-                            'role': p['role'] as PlayerRole,
-                            'price': price,
-                          });
-                        }
-                      }
-
-                      // Create Tournament first
-                      final createdTourn = widget.db.createTournament(
-                        name: titleController.text.trim(),
-                        shortName: titleController.text.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(3).join().toUpperCase(),
-                        location: 'Home Stadium',
-                        overs: 20,
-                        roomId: 'TOURN-${DateTime.now().millisecondsSinceEpoch % 10000}',
-                        passcode: '1234',
-                        createAuction: false, // We will create the custom auction directly
-                      );
-
-                      // Create isolated Auction with host's exact entered teams & players
-                      final createdAuc = widget.db.createAuction(
-                        tournamentId: createdTourn.id,
-                        title: '${titleController.text.trim()} Player Auction',
-                        adminPasscode: adminPassController.text.trim(),
-                        maxPursePerTeam: purse,
-                        minBidIncrement: minBid,
-                        requiredTeamsCount: enteredTeamNames.length,
-                        customTeamNames: enteredTeamNames,
-                        customPlayers: enteredPlayers,
-                      );
-
-                      Navigator.pop(context, createdAuc);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: const Color(0xFF059669),
-                          content: Text('Auction "${createdAuc.title}" created with ${enteredTeamNames.length} Teams and ${enteredPlayers.length} Players!'),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.rocket_launch, size: 16),
-                    label: const Text('Create & Launch Auction', style: TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: _validateAndCreateAuction,
+                    icon: const Icon(Icons.rocket_launch, size: 15),
+                    label: const Text('Create & Launch Auction', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
@@ -577,6 +560,118 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPurseField() {
+    return TextField(
+      controller: purseController,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+      decoration: InputDecoration(
+        labelText: 'Purse Budget (₹)',
+        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+        hintText: '50000',
+        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+        filled: true,
+        fillColor: const Color(0xFF0F172A),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Widget _buildMinBidField() {
+    return TextField(
+      controller: minBidController,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+      decoration: InputDecoration(
+        labelText: 'Min Bid (₹)',
+        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+        hintText: '500',
+        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+        filled: true,
+        fillColor: const Color(0xFF0F172A),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  void _validateAndCreateAuction() {
+    if (titleController.text.trim().isEmpty) {
+      _tabController.animateTo(0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(backgroundColor: Colors.redAccent, content: Text('Please enter an Auction Title.')),
+      );
+      return;
+    }
+
+    final purse = int.tryParse(purseController.text.trim()) ?? 50000;
+    final minBid = int.tryParse(minBidController.text.trim()) ?? 500;
+    final adminPass = adminPassController.text.trim().isNotEmpty ? adminPassController.text.trim() : 'admin123';
+
+    // Extract entered team names
+    final enteredTeamNames = teamNameControllers
+        .map((c) => c.text.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    if (enteredTeamNames.length < 2) {
+      _tabController.animateTo(1);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(backgroundColor: Colors.redAccent, content: Text('Please enter at least 2 team names in Tab 2.')),
+      );
+      return;
+    }
+
+    // Extract entered player entries
+    final enteredPlayers = <Map<String, dynamic>>[];
+    for (final p in playerEntries) {
+      final name = (p['nameController'] as TextEditingController).text.trim();
+      final price = int.tryParse((p['priceController'] as TextEditingController).text.trim()) ?? 500;
+      if (name.isNotEmpty) {
+        enteredPlayers.add({
+          'name': name,
+          'role': p['role'] as PlayerRole,
+          'price': price,
+        });
+      }
+    }
+
+    // Create Tournament first
+    final title = titleController.text.trim();
+    final shortCode = title.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(3).join().toUpperCase();
+    final createdTourn = widget.db.createTournament(
+      name: title,
+      shortName: shortCode.isNotEmpty ? shortCode : 'AUC',
+      location: 'Home Stadium',
+      overs: 20,
+      roomId: 'TOURN-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      passcode: '1234',
+      createAuction: false,
+    );
+
+    // Create isolated Auction with host's exact entered teams & players
+    final createdAuc = widget.db.createAuction(
+      tournamentId: createdTourn.id,
+      title: '$title Player Auction',
+      adminPasscode: adminPass,
+      maxPursePerTeam: purse,
+      minBidIncrement: minBid,
+      requiredTeamsCount: enteredTeamNames.length,
+      customTeamNames: enteredTeamNames,
+      customPlayers: enteredPlayers,
+    );
+
+    Navigator.pop(context, createdAuc);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF009270),
+        content: Text('Auction "${createdAuc.title}" created with ${enteredTeamNames.length} Teams!'),
       ),
     );
   }

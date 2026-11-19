@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/role_switcher_chip.dart';
+import '../../widgets/app_animations.dart';
 import 'create_auction_dialog.dart';
 import 'add_player_dialog.dart';
 import 'auction_projector_screen.dart';
@@ -295,27 +296,46 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isLive ? const Color(0xFF064E3B) : Colors.white10,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.circle, size: 8, color: isLive ? const Color(0xFF34D399) : Colors.white54),
-                              const SizedBox(width: 5),
-                              Text(
-                                isLive ? (ready ? 'LIVE BIDDING' : 'WAITING ROOM (8 TEAMS)') : 'PREVIEW',
-                                style: TextStyle(
-                                  color: isLive ? const Color(0xFF34D399) : Colors.white70,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                        if (isLive && ready)
+                          const PulsingLiveBadge(label: 'LIVE BIDDING', color: Color(0xFF34D399))
+                        else if (isLive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF064E3B),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.access_time, size: 9, color: Color(0xFF34D399)),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'WAITING ROOM (${auc.requiredTeamsCount} TEAMS)',
+                                  style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'PREVIEW',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
                         Text(
                           '${auc.joinedTeamIds.length}/${auc.requiredTeamsCount} Teams Ready',
                           style: TextStyle(
@@ -1003,13 +1023,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.timer,
-                                size: 16,
-                                color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
-                                    ? Colors.redAccent
-                                    : const Color(0xFF34D399),
-                              ),
+                              if (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
+                                const PulsingLiveDot(color: Colors.redAccent, size: 8)
+                              else
+                                const Icon(
+                                  Icons.timer,
+                                  size: 16,
+                                  color: Color(0xFF34D399),
+                                ),
                               const SizedBox(width: 8),
                               Text(
                                 '00:${auction.biddingSecondsRemaining.toString().padLeft(2, '0')}',

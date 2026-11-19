@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../widgets/app_animations.dart';
 import '../scorer/full_scorecard_dialog.dart';
 
 class MatchDetailScreen extends StatefulWidget {
@@ -50,7 +51,16 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
       appBar: AppBar(
         backgroundColor: const Color(0xFF009270),
         elevation: 0,
-        title: Text(match.stage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: Text(match.stage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
+            if (match.status == MatchStatus.live) ...[
+              const SizedBox(width: 8),
+              const PulsingLiveDot(color: Colors.redAccent, size: 7.5),
+            ],
+          ],
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -79,26 +89,33 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(teamA.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                    if (inn1 != null)
-                      Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 18))
-                    else
-                      const Text('Yet to bat', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(teamA.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                      if (inn1 != null)
+                        Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 16))
+                      else
+                        const Text('Yet to bat', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
                 ),
-                const Text('VS', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.w900, fontSize: 16)),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(teamB.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                    if (inn2 != null)
-                      Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 18))
-                    else
-                      const Text('Yet to bat', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  ],
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('VS', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.w900, fontSize: 15)),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(teamB.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                      if (inn2 != null)
+                        Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 16))
+                      else
+                        const Text('Yet to bat', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
                 ),
               ],
             ),

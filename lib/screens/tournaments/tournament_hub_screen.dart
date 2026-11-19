@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/role_switcher_chip.dart';
+import '../../widgets/app_animations.dart';
 import '../scorer/scorer_screen.dart';
 import '../scorer/fill_team_squad_dialog.dart';
 import '../matches/match_detail_screen.dart';
@@ -607,40 +608,33 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isLive
-                        ? const Color(0xFFDC2626).withValues(alpha: 0.2)
-                        : isCompleted
-                            ? Colors.white10
-                            : const Color(0xFF0284C7).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isLive
-                          ? const Color(0xFFEF4444)
-                          : isCompleted
-                              ? Colors.white30
-                              : const Color(0xFF38BDF8),
+                if (isLive)
+                  const PulsingLiveBadge(label: 'LIVE SCORING', color: Color(0xFFEF4444))
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isCompleted
+                          ? Colors.white10
+                          : const Color(0xFF0284C7).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isCompleted
+                            ? Colors.white30
+                            : const Color(0xFF38BDF8),
+                      ),
+                    ),
+                    child: Text(
+                      isCompleted ? 'RESULT' : 'UPCOMING',
+                      style: TextStyle(
+                        color: isCompleted
+                            ? Colors.white70
+                            : const Color(0xFF38BDF8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    isLive
-                        ? '● LIVE SCORING'
-                        : isCompleted
-                            ? 'RESULT'
-                            : 'UPCOMING',
-                    style: TextStyle(
-                      color: isLive
-                          ? const Color(0xFFEF4444)
-                          : isCompleted
-                              ? Colors.white70
-                              : const Color(0xFF38BDF8),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 10),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/role_switcher_chip.dart';
+import '../../widgets/app_animations.dart';
 import 'match_detail_screen.dart';
 import '../scorer/scorer_screen.dart';
 
@@ -108,17 +109,20 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(m.stage, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: isLive ? Colors.red : (isCompleted ? const Color(0xFF059669) : Colors.white12),
-                                borderRadius: BorderRadius.circular(6),
+                            if (isLive)
+                              const PulsingLiveBadge(label: 'LIVE', color: Colors.redAccent)
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isCompleted ? const Color(0xFF059669) : Colors.white12,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  m.status.name.toUpperCase(),
+                                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                                ),
                               ),
-                              child: Text(
-                                m.status.name.toUpperCase(),
-                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 12),
