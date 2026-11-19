@@ -5,7 +5,19 @@ import 'cricket_rules_engine.dart';
 
 class MockDatabase extends ChangeNotifier {
   late List<Tournament> tournaments;
-  Tournament get tournament => tournaments.first;
+  static final Tournament _emptyTournament = Tournament(
+    id: 'empty_tourn',
+    name: 'No Tournament Created',
+    shortName: 'NONE',
+    location: 'Cricket Ground',
+    startDate: '2026-01-01',
+    endDate: '2026-01-01',
+    overs: 20,
+    totalTeams: 0,
+    status: 'draft',
+    bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
+  );
+  Tournament get tournament => tournaments.isNotEmpty ? tournaments.first : _emptyTournament;
 
   late List<Team> teams;
   late List<Player> players;
@@ -17,9 +29,55 @@ class MockDatabase extends ChangeNotifier {
   late List<TournamentStanding> tournamentStandings;
 
   late List<Auction> auctions;
-  Auction get auction => auctions.first;
+  static final Auction _emptyAuction = Auction(
+    id: 'empty_auc',
+    tournamentId: 'empty_tourn',
+    title: 'No Active Auction',
+    status: AuctionStatus.draft,
+    totalLots: 0,
+    completedLots: 0,
+    adminPasscode: 'admin123',
+    minBidIncrement: 25000,
+    maxPursePerTeam: 10000000,
+    requiredTeamsCount: 8,
+  );
+  Auction get auction => auctions.isNotEmpty ? auctions.first : _emptyAuction;
   late List<AuctionLot> auctionLots;
   late List<AuctionBid> auctionBids;
+
+  static final Team emptyTeam = Team(
+    id: 'empty_team',
+    tournamentId: '',
+    name: 'Team',
+    shortName: 'TM',
+    primaryColor: const Color(0xFF009270),
+    logoUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=128',
+    uniqueTeamCode: 'TEAM-00',
+    passcode: '0000',
+    purseRemaining: 0,
+    maxPurse: 0,
+    squadCount: 0,
+    minSquadRequirement: 11,
+    maxSquadLimit: 15,
+  );
+
+  static final MatchModel emptyMatch = MatchModel(
+    id: 'empty_match',
+    tournamentId: '',
+    teamAId: '',
+    teamBId: '',
+    stage: 'Fixture',
+    venue: 'Ground',
+    dateTime: DateTime(2026, 1, 1),
+    overs: 20,
+    status: MatchStatus.scheduled,
+  );
+
+  Team? getTeam(String? id) => teams.where((t) => t.id == id).firstOrNull;
+  Player? getPlayer(String? id) => players.where((p) => p.id == id).firstOrNull;
+  MatchModel? getMatch(String? id) => matches.where((m) => m.id == id).firstOrNull;
+  Tournament? getTournament(String? id) => tournaments.where((t) => t.id == id).firstOrNull;
+  AuctionLot? getLot(String? id) => auctionLots.where((l) => l.id == id).firstOrNull;
 
   late List<ScoringRoom> scoringRooms;
   late List<AuctionRoom> auctionRooms;
@@ -32,6 +90,43 @@ class MockDatabase extends ChangeNotifier {
   bool isAuctionAdmin = false;
   String? currentAuctionRoomId;
   String? authenticatedTeamId;
+  bool isDemoDataLoaded = false;
+
+  /// Clears all demo tournaments, demo auctions, and fake matches so user has a 100% clean slate!
+  void clearAllDemoData() {
+    tournaments = [];
+    teams = [];
+    players = [];
+    matches = [];
+    inningsList = [];
+    deliveries = [];
+    battingScorecards = [];
+    bowlingScorecards = [];
+    tournamentStandings = [];
+    auctions = [];
+    auctionLots = [];
+    auctionBids = [];
+    scoringRooms = [];
+    auctionRooms = [];
+    createdTournamentIds.clear();
+    authenticatedTournamentIds.clear();
+    createdAuctionIds.clear();
+    authenticatedAuctionAdminIds.clear();
+    authenticatedScoringMatchIds.clear();
+    isDemoDataLoaded = false;
+    isAuctionUnlocked = false;
+    isAuctionAdmin = false;
+    currentAuctionRoomId = null;
+    authenticatedTeamId = null;
+    notifyListeners();
+  }
+
+  /// Reloads sample demo tournament (BPL 2026) for testing and inspection
+  void reloadDemoData() {
+    _initializeSeedData();
+    isDemoDataLoaded = true;
+    notifyListeners();
+  }
 
   // Role-Based Access Control State
   AppUserRole currentRole = AppUserRole.superAdmin;
@@ -98,8 +193,13 @@ class MockDatabase extends ChangeNotifier {
   Team? get currentAuthenticatedTeam =>
       authenticatedTeamId != null ? teams.where((t) => t.id == authenticatedTeamId).firstOrNull : null;
 
-  MockDatabase() {
-    _initializeSeedData();
+  MockDatabase({bool loadDemoSeed = false}) {
+    if (loadDemoSeed) {
+      _initializeSeedData();
+      isDemoDataLoaded = true;
+    } else {
+      clearAllDemoData();
+    }
   }
 
   void _initializeSeedData() {
@@ -2430,7 +2530,7 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Host creates a new tournament and provisions Room ID, Passcode, 8 Teams, and Auction
+  /// Host creates a new tournament with custom entered teams, player details & mobile numbers (or skipped for later)
   Tournament createTournament({
     required String name,
     required String shortName,
@@ -2438,10 +2538,18 @@ class MockDatabase extends ChangeNotifier {
     required int overs,
     required String roomId,
     required String passcode,
-    bool createAuction = true,
+    int? totalTeams,
+    bool createAuction = false,
+    List<Map<String, dynamic>>? customTeamsWithPlayers,
   }) {
-    final cleanId = 'tourn_${shortName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${DateTime.now().year}';
+    final cleanId = 'tourn_${shortName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${DateTime.now().millisecondsSinceEpoch}';
     final cleanRoomId = roomId.trim().toUpperCase();
+
+    final actualTeamCount = (customTeamsWithPlayers != null && customTeamsWithPlayers.isNotEmpty)
+        ? customTeamsWithPlayers.length
+        : (totalTeams != null && totalTeams > 0
+            ? totalTeams
+            : (createAuction ? 8 : 2));
 
     final newTourn = Tournament(
       id: cleanId,
@@ -2451,7 +2559,7 @@ class MockDatabase extends ChangeNotifier {
       startDate: '2026-11-15',
       endDate: '2026-12-15',
       overs: overs,
-      totalTeams: 8,
+      totalTeams: actualTeamCount,
       status: 'active',
       bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1200',
       roomId: cleanRoomId,
@@ -2464,12 +2572,10 @@ class MockDatabase extends ChangeNotifier {
     createdTournamentIds.add(cleanId);
     authenticatedTournamentIds.add(cleanId);
 
-    // Create 8 franchise teams for this tournament
-    final prefixes = ['Titans', 'Warriors', 'Riders', 'Superstars', 'Panthers', 'Falcons', 'Gladiators', 'Strikers'];
-    final colors = [
-      const Color(0xFF059669),
-      const Color(0xFF7C3AED),
+    final defaultColors = [
+      const Color(0xFF009270),
       const Color(0xFF0284C7),
+      const Color(0xFF7C3AED),
       const Color(0xFFD97706),
       const Color(0xFFE11D48),
       const Color(0xFF2563EB),
@@ -2477,110 +2583,142 @@ class MockDatabase extends ChangeNotifier {
       const Color(0xFF0D9488),
     ];
 
-    final newTeams = List.generate(8, (i) {
-      final tShort = '${shortName.toUpperCase().replaceAll(' ', '')}${i + 1}';
-      return Team(
-        id: 'team_${cleanId}_$i',
+    final List<Team> createdTeams = [];
+
+    if (customTeamsWithPlayers != null && customTeamsWithPlayers.isNotEmpty) {
+      // User entered custom team details
+      for (int i = 0; i < customTeamsWithPlayers.length; i++) {
+        final tData = customTeamsWithPlayers[i];
+        final tName = (tData['name'] as String?)?.trim() ?? '${shortName.toUpperCase()} Team ${i + 1}';
+        final tShort = (tData['shortName'] as String?)?.trim().toUpperCase() ?? 'T${i + 1}';
+        final tColor = (tData['color'] as Color?) ?? defaultColors[i % defaultColors.length];
+        final pList = (tData['players'] as List<dynamic>?) ?? [];
+
+        final teamId = 'team_${cleanId}_$i';
+        final newTeam = Team(
+          id: teamId,
+          tournamentId: cleanId,
+          name: tName,
+          shortName: tShort,
+          uniqueTeamCode: 'TEAM-$tShort-0${i + 1}',
+          passcode: '1234',
+          primaryColor: tColor,
+          logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+          purseRemaining: 10000000,
+          maxPurse: 10000000,
+          squadCount: pList.length,
+          minSquadRequirement: 11,
+          maxSquadLimit: 18,
+        );
+        createdTeams.add(newTeam);
+        teams.add(newTeam);
+
+        // Add entered players with mobile numbers if not skipped
+        for (int pIdx = 0; pIdx < pList.length; pIdx++) {
+          final pMap = pList[pIdx] as Map<String, dynamic>;
+          final pName = (pMap['name'] as String?)?.trim() ?? 'Player ${pIdx + 1}';
+          final pMobile = (pMap['mobile'] as String?)?.trim() ?? '';
+          final pRoleStr = (pMap['role'] as String?)?.trim().toLowerCase() ?? 'batter';
+
+          PlayerRole pRole = PlayerRole.batsman;
+          if (pRoleStr.contains('bowl')) {
+            pRole = PlayerRole.bowler;
+          } else if (pRoleStr.contains('all')) {
+            pRole = PlayerRole.allRounder;
+          } else if (pRoleStr.contains('keep') || pRoleStr.contains('wicket')) {
+            pRole = PlayerRole.wicketKeeper;
+          }
+
+          final newPlayer = Player(
+            id: 'pl_${teamId}_$pIdx',
+            fullName: pName,
+            displayName: pName.split(' ').first,
+            mobileNumber: pMobile,
+            role: pRole,
+            battingStyle: 'Right Hand Bat',
+            bowlingStyle: 'Right Arm Medium',
+            basePrice: 500,
+            photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+            teamId: teamId,
+          );
+          players.add(newPlayer);
+        }
+      }
+    } else {
+      // User skipped players: provision clean teams with 0 players
+      final cleanShort = shortName.toUpperCase().replaceAll(' ', '');
+      for (int i = 0; i < actualTeamCount; i++) {
+        final tShort = '$cleanShort${i + 1}';
+        final newTeam = Team(
+          id: 'team_${cleanId}_$i',
+          tournamentId: cleanId,
+          name: '${shortName.toUpperCase()} Team ${i + 1}',
+          shortName: tShort,
+          uniqueTeamCode: 'TEAM-$cleanShort-0${i + 1}',
+          passcode: '1234',
+          primaryColor: defaultColors[i % defaultColors.length],
+          logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+          purseRemaining: 10000000,
+          maxPurse: 10000000,
+          squadCount: 0,
+          minSquadRequirement: 15,
+          maxSquadLimit: 18,
+        );
+        createdTeams.add(newTeam);
+        teams.add(newTeam);
+      }
+    }
+
+    // Create inaugural match between Team 1 and Team 2
+    if (createdTeams.length >= 2) {
+      final newMatchId = 'match_${cleanId}_1';
+      final inauguralMatch = MatchModel(
+        id: newMatchId,
         tournamentId: cleanId,
-        name: '${shortName.toUpperCase()} ${prefixes[i]}',
-        shortName: tShort,
-        uniqueTeamCode: 'TEAM-$tShort-0${i + 1}',
-        passcode: '1234',
-        primaryColor: colors[i],
-        logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
-        purseRemaining: 10000000,
-        maxPurse: 10000000,
-        squadCount: 0,
-        minSquadRequirement: 15,
-        maxSquadLimit: 18,
+        stage: '$shortName League Match 1',
+        teamAId: createdTeams[0].id,
+        teamBId: createdTeams[1].id,
+        venue: location,
+        dateTime: DateTime.now().add(const Duration(hours: 1)),
+        overs: overs,
+        status: MatchStatus.scheduled,
       );
-    });
-    teams.addAll(newTeams);
+      matches.insert(0, inauguralMatch);
 
-    // Create inaugural match for this tournament
-    final newMatchId = 'match_${cleanId}_1';
-    final inauguralMatch = MatchModel(
-      id: newMatchId,
-      tournamentId: cleanId,
-      stage: '$shortName League Match 1',
-      teamAId: newTeams[0].id,
-      teamBId: newTeams[1].id,
-      venue: location,
-      dateTime: DateTime.now().add(const Duration(hours: 1)),
-      overs: overs,
-      status: MatchStatus.scheduled,
-    );
-    matches.insert(0, inauguralMatch);
+      // Auto-authorize creator for scoring
+      authenticatedScoringMatchIds.add(newMatchId);
+      scoringRooms.add(
+        ScoringRoom(
+          id: 'ROOM-$cleanRoomId-01',
+          matchId: newMatchId,
+          passcode: passcode.trim(),
+          createdBy: 'You (Creator)',
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
 
-    // Auto-authorize creator for scoring
-    authenticatedScoringMatchIds.add(newMatchId);
-    scoringRooms.add(
-      ScoringRoom(
-        id: 'ROOM-$cleanRoomId-01',
-        matchId: newMatchId,
-        passcode: passcode.trim(),
-        createdBy: 'You (Creator)',
-        createdAt: DateTime.now(),
-      ),
-    );
-
-    // Auto create linked Auction
+    // Auto create linked Auction if requested
     if (createAuction) {
       final newAuctionId = 'auc_$cleanId';
       final newAuc = Auction(
         id: newAuctionId,
         tournamentId: cleanId,
-        title: '$name Franchise Mega Auction',
+        title: '$name Player Auction',
         status: AuctionStatus.live,
-        totalLots: 10,
+        totalLots: 0,
         completedLots: 0,
         adminPasscode: passcode.trim(),
         minBidIncrement: 25000,
         maxPursePerTeam: 10000000,
-        requiredTeamsCount: 8,
-        joinedTeamIds: {}, // Waiting for 8 teams to enter!
+        requiredTeamsCount: actualTeamCount,
+        joinedTeamIds: {},
       );
       auctions.insert(0, newAuc);
       createdAuctionIds.add(newAuctionId);
       authenticatedAuctionAdminIds.add(newAuctionId);
       isAuctionAdmin = true;
       isAuctionUnlocked = true;
-
-      // Auto add 10 fresh unassigned draft players to this auction
-      final draftNames = [
-        'Aakash Sharma', 'Vikram Patel', 'Rohit Verma', 'Deepak Yadav',
-        'Sunil Kumar', 'Manish Pandey', 'Amit Singh', 'Pankaj Mishra',
-        'Ravi Teja', 'Suresh Raina'
-      ];
-      final sampleLots = List.generate(10, (i) {
-        final pId = 'pl_${cleanId}_$i';
-        final freshPlayer = Player(
-          id: pId,
-          fullName: '${shortName.toUpperCase()} ${draftNames[i % draftNames.length]}',
-          displayName: draftNames[i % draftNames.length],
-          role: i < 3 ? PlayerRole.batsman : (i < 6 ? PlayerRole.bowler : PlayerRole.allRounder),
-          battingStyle: 'Right Hand Bat',
-          bowlingStyle: 'Right Arm Medium',
-          basePrice: 500000 + (i * 100000),
-          photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
-          teamId: null, // Completely unassigned!
-        );
-        players.add(freshPlayer);
-
-        return AuctionLot(
-          id: 'lot_${newAuctionId}_${i + 1}',
-          auctionId: newAuctionId,
-          lotNumber: i + 1,
-          playerId: pId,
-          category: i < 3 ? 'marquee' : (i < 6 ? 'batsman' : 'bowler'),
-          basePrice: freshPlayer.basePrice,
-          status: i == 0 ? LotStatus.bidding : LotStatus.pending,
-          currentBid: i == 0 ? freshPlayer.basePrice : null,
-        );
-      });
-      auctionLots.addAll(sampleLots);
-      newAuc.currentLotId = sampleLots.first.id;
-      newAuc.currentBid = sampleLots.first.basePrice;
 
       // Create Auction Room
       final auctionRoomCode = 'AUCTION-${shortName.toUpperCase().replaceAll(' ', '')}';
@@ -2599,6 +2737,72 @@ class MockDatabase extends ChangeNotifier {
 
     notifyListeners();
     return newTourn;
+  }
+
+  /// Checks whether both competing teams in a match have players filled with valid names and mobile numbers
+  bool areTeamsReadyForScoring(String teamAId, String teamBId) {
+    if (teamAId.isEmpty || teamBId.isEmpty) return false;
+    final playersA = players.where((p) => p.teamId == teamAId).toList();
+    final playersB = players.where((p) => p.teamId == teamBId).toList();
+
+    // Must have at least 2 players each to score a match
+    if (playersA.length < 2 || playersB.length < 2) return false;
+
+    // EVERY player in both teams must have a non-empty name and a non-empty mobile number
+    final hasIncompleteA = playersA.any((p) => p.fullName.trim().isEmpty || p.mobileNumber.trim().isEmpty);
+    final hasIncompleteB = playersB.any((p) => p.fullName.trim().isEmpty || p.mobileNumber.trim().isEmpty);
+
+    return !hasIncompleteA && !hasIncompleteB;
+  }
+
+  /// Returns players for a specific team
+  List<Player> getTeamPlayers(String teamId) {
+    return players.where((p) => p.teamId == teamId).toList();
+  }
+
+  /// Saves or updates all players for a team with mobile numbers
+  void saveTeamSquadWithMobileNumbers({
+    required String teamId,
+    required List<Map<String, String>> playerEntries,
+  }) {
+    players.removeWhere((p) => p.teamId == teamId);
+    final team = getTeam(teamId);
+
+    for (int i = 0; i < playerEntries.length; i++) {
+      final entry = playerEntries[i];
+      final name = entry['name']?.trim() ?? 'Player ${i + 1}';
+      final mobile = entry['mobile']?.trim() ?? '';
+      final roleStr = entry['role']?.trim().toLowerCase() ?? 'batter';
+
+      PlayerRole role = PlayerRole.batsman;
+      if (roleStr.contains('bowl')) {
+        role = PlayerRole.bowler;
+      } else if (roleStr.contains('all')) {
+        role = PlayerRole.allRounder;
+      } else if (roleStr.contains('keep') || roleStr.contains('wicket')) {
+        role = PlayerRole.wicketKeeper;
+      }
+
+      final newP = Player(
+        id: 'pl_${teamId}_${DateTime.now().millisecondsSinceEpoch}_$i',
+        fullName: name,
+        displayName: name.split(' ').first,
+        mobileNumber: mobile,
+        role: role,
+        battingStyle: 'Right Hand Bat',
+        bowlingStyle: 'Right Arm Medium',
+        basePrice: 500,
+        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+        teamId: teamId,
+      );
+      players.add(newP);
+    }
+
+    if (team != null) {
+      team.squadCount = playerEntries.length;
+    }
+
+    notifyListeners();
   }
 
   /// Host creates a standalone player auction (supports custom entered team names & custom entered players)
@@ -3045,5 +3249,487 @@ class MockDatabase extends ChangeNotifier {
     currentAuctionRoomId = cleanRoomId;
     notifyListeners();
     return newRoom;
+  }
+
+  // ==========================================
+  // TOURNAMENT LEADERBOARDS & STATS ENGINE
+  // ==========================================
+
+  List<TournamentLeaderboardBatter> getTournamentTopBatters(String tournamentId, {int limit = 10}) {
+    final tournMatchIds = matches.where((m) => m.tournamentId == tournamentId).map((m) => m.id).toSet();
+    final cards = battingScorecards.where((b) => tournMatchIds.contains(b.matchId)).toList();
+
+    if (cards.isEmpty) return [];
+
+    final Map<String, List<BattingScorecard>> byPlayer = {};
+    for (final c in cards) {
+      byPlayer.putIfAbsent(c.playerId, () => []).add(c);
+    }
+
+    final List<TournamentLeaderboardBatter> result = [];
+
+    for (final entry in byPlayer.entries) {
+      final pId = entry.key;
+      final pCards = entry.value;
+
+      final p = players.where((pl) => pl.id == pId).firstOrNull;
+      final t = p != null ? teams.where((tm) => tm.id == p.teamId).firstOrNull : null;
+
+      final totalRuns = pCards.fold<int>(0, (sum, c) => sum + c.runs);
+      final totalBalls = pCards.fold<int>(0, (sum, c) => sum + c.balls);
+      final totalFours = pCards.fold<int>(0, (sum, c) => sum + c.fours);
+      final totalSixes = pCards.fold<int>(0, (sum, c) => sum + c.sixes);
+      final inningsCount = pCards.length;
+      final outsCount = pCards.where((c) => c.isOut).length;
+
+      int highScore = 0;
+      int fifties = 0;
+      int hundreds = 0;
+      for (final c in pCards) {
+        if (c.runs > highScore) highScore = c.runs;
+        if (c.runs >= 100) {
+          hundreds++;
+        } else if (c.runs >= 50) {
+          fifties++;
+        }
+      }
+
+      final strikeRate = totalBalls > 0 ? (totalRuns / totalBalls * 100.0) : 0.0;
+      final average = outsCount > 0 ? (totalRuns / outsCount) : totalRuns.toDouble();
+
+      result.add(
+        TournamentLeaderboardBatter(
+          playerId: pId,
+          playerName: p?.fullName ?? pCards.first.playerName,
+          teamName: t?.name ?? 'Franchise',
+          teamShortName: t?.shortName ?? 'TM',
+          teamColor: t?.primaryColor ?? const Color(0xFF009270),
+          photoUrl: p?.photoUrl ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+          matches: tournMatchIds.length,
+          innings: inningsCount,
+          runs: totalRuns,
+          balls: totalBalls,
+          fours: totalFours,
+          sixes: totalSixes,
+          strikeRate: double.parse(strikeRate.toStringAsFixed(1)),
+          average: double.parse(average.toStringAsFixed(1)),
+          highScore: highScore,
+          fifties: fifties,
+          hundreds: hundreds,
+        ),
+      );
+    }
+
+    result.sort((a, b) {
+      final cmp = b.runs.compareTo(a.runs);
+      if (cmp != 0) return cmp;
+      return b.strikeRate.compareTo(a.strikeRate);
+    });
+
+    return result.take(limit).toList();
+  }
+
+  List<TournamentLeaderboardBowler> getTournamentTopBowlers(String tournamentId, {int limit = 10}) {
+    final tournMatchIds = matches.where((m) => m.tournamentId == tournamentId).map((m) => m.id).toSet();
+    final cards = bowlingScorecards.where((b) => tournMatchIds.contains(b.matchId)).toList();
+
+    if (cards.isEmpty) return [];
+
+    final Map<String, List<BowlingScorecard>> byPlayer = {};
+    for (final c in cards) {
+      byPlayer.putIfAbsent(c.playerId, () => []).add(c);
+    }
+
+    final List<TournamentLeaderboardBowler> result = [];
+
+    for (final entry in byPlayer.entries) {
+      final pId = entry.key;
+      final pCards = entry.value;
+
+      final p = players.where((pl) => pl.id == pId).firstOrNull;
+      final t = p != null ? teams.where((tm) => tm.id == p.teamId).firstOrNull : null;
+
+      final totalWickets = pCards.fold<int>(0, (sum, c) => sum + c.wickets);
+      final totalRunsConceded = pCards.fold<int>(0, (sum, c) => sum + c.runsConceded);
+      final totalLegalBalls = pCards.fold<int>(0, (sum, c) => sum + c.legalBalls);
+      final totalMaidens = pCards.fold<int>(0, (sum, c) => sum + c.maidens);
+
+      final oversStr = '${totalLegalBalls ~/ 6}.${totalLegalBalls % 6}';
+      final totalOversDecimal = totalLegalBalls / 6.0;
+      final economy = totalOversDecimal > 0 ? (totalRunsConceded / totalOversDecimal) : 0.0;
+      final average = totalWickets > 0 ? (totalRunsConceded / totalWickets) : totalRunsConceded.toDouble();
+
+      String bestBowling = '0/0';
+      int maxW = -1;
+      int minR = 999;
+      for (final c in pCards) {
+        if (c.wickets > maxW || (c.wickets == maxW && c.runsConceded < minR)) {
+          maxW = c.wickets;
+          minR = c.runsConceded;
+          bestBowling = '$maxW/$minR';
+        }
+      }
+
+      result.add(
+        TournamentLeaderboardBowler(
+          playerId: pId,
+          playerName: p?.fullName ?? pCards.first.playerName,
+          teamName: t?.name ?? 'Franchise',
+          teamShortName: t?.shortName ?? 'TM',
+          teamColor: t?.primaryColor ?? const Color(0xFF009270),
+          photoUrl: p?.photoUrl ?? 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256',
+          matches: tournMatchIds.length,
+          oversStr: oversStr,
+          legalBalls: totalLegalBalls,
+          maidens: totalMaidens,
+          runsConceded: totalRunsConceded,
+          wickets: totalWickets,
+          economy: double.parse(economy.toStringAsFixed(2)),
+          average: double.parse(average.toStringAsFixed(1)),
+          bestBowling: bestBowling,
+        ),
+      );
+    }
+
+    result.sort((a, b) {
+      final cmp = b.wickets.compareTo(a.wickets);
+      if (cmp != 0) return cmp;
+      return a.economy.compareTo(b.economy);
+    });
+
+    return result.take(limit).toList();
+  }
+
+  List<TournamentLeaderboardFielder> getTournamentTopFielders(String tournamentId, {int limit = 10}) {
+    final tournMatchIds = matches.where((m) => m.tournamentId == tournamentId).map((m) => m.id).toSet();
+    final tournDeliveries = deliveries.where((d) => tournMatchIds.contains(d.matchId)).toList();
+    final tournCards = battingScorecards.where((b) => tournMatchIds.contains(b.matchId)).toList();
+
+    final Map<String, int> catchesMap = {};
+    final Map<String, int> stumpingsMap = {};
+    final Map<String, int> runOutsMap = {};
+
+    // 1. Check deliveries for recorded dismissals
+    for (final d in tournDeliveries) {
+      if (d.isWicket && d.fielderId != null && d.fielderId!.isNotEmpty) {
+        final fid = d.fielderId!;
+        if (d.dismissalType == DismissalType.caught) {
+          catchesMap[fid] = (catchesMap[fid] ?? 0) + 1;
+        } else if (d.dismissalType == DismissalType.stumped) {
+          stumpingsMap[fid] = (stumpingsMap[fid] ?? 0) + 1;
+        } else if (d.dismissalType == DismissalType.runOut) {
+          runOutsMap[fid] = (runOutsMap[fid] ?? 0) + 1;
+        }
+      }
+    }
+
+    // 2. Also check batting scorecards for dismissalText (e.g. "c Wriddhiman Saha b Akash Deep")
+    for (final b in tournCards) {
+      final text = b.dismissalText.trim();
+      if (text.startsWith('c ') && text.contains(' b ')) {
+        final fielderName = text.substring(2, text.indexOf(' b ')).trim();
+        final matchedP = players.where((p) => p.fullName.toLowerCase().contains(fielderName.toLowerCase())).firstOrNull;
+        if (matchedP != null) {
+          catchesMap[matchedP.id] = (catchesMap[matchedP.id] ?? 0) + 1;
+        }
+      } else if (text.startsWith('st ')) {
+        final keeperName = text.substring(3).trim();
+        final matchedP = players.where((p) => p.fullName.toLowerCase().contains(keeperName.toLowerCase())).firstOrNull;
+        if (matchedP != null) {
+          stumpingsMap[matchedP.id] = (stumpingsMap[matchedP.id] ?? 0) + 1;
+        }
+      }
+    }
+
+    // 3. Baseline for demo tournament if no catches were registered yet
+    if (catchesMap.isEmpty && tournamentId == 'tourn_bpl_2026') {
+      catchesMap['pl_3'] = 3; // Wriddhiman Saha
+      stumpingsMap['pl_3'] = 1;
+      catchesMap['pl_2'] = 2; // Manoj Tiwary
+      catchesMap['pl_5'] = 1; // Suman Biswas
+    }
+
+    final allFielderIds = {...catchesMap.keys, ...stumpingsMap.keys, ...runOutsMap.keys};
+    final List<TournamentLeaderboardFielder> result = [];
+
+    for (final fId in allFielderIds) {
+      final p = players.where((pl) => pl.id == fId).firstOrNull;
+      final t = p != null ? teams.where((tm) => tm.id == p.teamId).firstOrNull : null;
+      final c = catchesMap[fId] ?? 0;
+      final s = stumpingsMap[fId] ?? 0;
+      final r = runOutsMap[fId] ?? 0;
+      final total = c + s + r;
+
+      if (total > 0) {
+        result.add(
+          TournamentLeaderboardFielder(
+            playerId: fId,
+            playerName: p?.fullName ?? 'Fielder',
+            teamName: t?.name ?? 'Franchise',
+            teamShortName: t?.shortName ?? 'TM',
+            photoUrl: p?.photoUrl ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+            matches: tournMatchIds.length,
+            catches: c,
+            stumpings: s,
+            runOuts: r,
+            totalDismissals: total,
+          ),
+        );
+      }
+    }
+
+    result.sort((a, b) => b.totalDismissals.compareTo(a.totalDismissals));
+    return result.take(limit).toList();
+  }
+
+  List<TournamentBoundaryLeader> getTournamentBoundaryLeaders(String tournamentId, {int limit = 10}) {
+    final tournMatchIds = matches.where((m) => m.tournamentId == tournamentId).map((m) => m.id).toSet();
+    final cards = battingScorecards.where((b) => tournMatchIds.contains(b.matchId)).toList();
+
+    final Map<String, List<BattingScorecard>> byPlayer = {};
+    for (final c in cards) {
+      byPlayer.putIfAbsent(c.playerId, () => []).add(c);
+    }
+
+    final List<TournamentBoundaryLeader> result = [];
+
+    for (final entry in byPlayer.entries) {
+      final pId = entry.key;
+      final pCards = entry.value;
+
+      final p = players.where((pl) => pl.id == pId).firstOrNull;
+      final t = p != null ? teams.where((tm) => tm.id == p.teamId).firstOrNull : null;
+
+      final totalFours = pCards.fold<int>(0, (sum, c) => sum + c.fours);
+      final totalSixes = pCards.fold<int>(0, (sum, c) => sum + c.sixes);
+      final totalBoundaries = totalFours + totalSixes;
+      final boundaryRuns = (totalFours * 4) + (totalSixes * 6);
+
+      if (totalBoundaries > 0) {
+        result.add(
+          TournamentBoundaryLeader(
+            playerId: pId,
+            playerName: p?.fullName ?? pCards.first.playerName,
+            teamName: t?.name ?? 'Franchise',
+            teamShortName: t?.shortName ?? 'TM',
+            photoUrl: p?.photoUrl ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+            fours: totalFours,
+            sixes: totalSixes,
+            totalBoundaries: totalBoundaries,
+            boundaryRuns: boundaryRuns,
+          ),
+        );
+      }
+    }
+
+    result.sort((a, b) {
+      final cmp = b.totalBoundaries.compareTo(a.totalBoundaries);
+      if (cmp != 0) return cmp;
+      return b.sixes.compareTo(a.sixes);
+    });
+
+    return result.take(limit).toList();
+  }
+
+  List<TournamentMVP> getTournamentMVPList(String tournamentId, {int limit = 10}) {
+    final batters = getTournamentTopBatters(tournamentId, limit: 50);
+    final bowlers = getTournamentTopBowlers(tournamentId, limit: 50);
+    final fielders = getTournamentTopFielders(tournamentId, limit: 50);
+
+    final Map<String, double> pointsMap = {};
+    final Map<String, int> runsMap = {};
+    final Map<String, int> wicketsMap = {};
+    final Map<String, int> catchesMap = {};
+
+    for (final b in batters) {
+      runsMap[b.playerId] = b.runs;
+      pointsMap[b.playerId] = (pointsMap[b.playerId] ?? 0) + b.runs.toDouble() + (b.sixes * 2.0);
+    }
+    for (final bw in bowlers) {
+      wicketsMap[bw.playerId] = bw.wickets;
+      pointsMap[bw.playerId] = (pointsMap[bw.playerId] ?? 0) + (bw.wickets * 20.0) + (bw.maidens * 10.0);
+    }
+    for (final f in fielders) {
+      catchesMap[f.playerId] = f.catches;
+      pointsMap[f.playerId] = (pointsMap[f.playerId] ?? 0) + (f.totalDismissals * 10.0);
+    }
+
+    final List<TournamentMVP> result = [];
+
+    for (final pId in pointsMap.keys) {
+      final p = players.where((pl) => pl.id == pId).firstOrNull;
+      final t = p != null ? teams.where((tm) => tm.id == p.teamId).firstOrNull : null;
+
+      final pts = pointsMap[pId] ?? 0.0;
+      final r = runsMap[pId] ?? 0;
+      final w = wicketsMap[pId] ?? 0;
+      final c = catchesMap[pId] ?? 0;
+
+      result.add(
+        TournamentMVP(
+          playerId: pId,
+          playerName: p?.fullName ?? 'Player',
+          teamName: t?.name ?? 'Franchise',
+          teamShortName: t?.shortName ?? 'TM',
+          roleString: p?.role.name.toUpperCase() ?? 'ALL-ROUNDER',
+          photoUrl: p?.photoUrl ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+          points: double.parse(pts.toStringAsFixed(1)),
+          runs: r,
+          wickets: w,
+          catches: c,
+        ),
+      );
+    }
+
+    result.sort((a, b) => b.points.compareTo(a.points));
+    return result.take(limit).toList();
+  }
+
+  List<TournamentStanding> getTournamentStandings(String tournamentId) {
+    if (tournamentStandings.isNotEmpty && (tournamentId == 'tourn_bpl_2026' || tournamentId.isEmpty)) {
+      final list = List<TournamentStanding>.from(tournamentStandings);
+      list.sort((a, b) {
+        final cmp = b.points.compareTo(a.points);
+        if (cmp != 0) return cmp;
+        return b.netRunRate.compareTo(a.netRunRate);
+      });
+      return list;
+    }
+
+    final tournTeams = teams.where((t) => t.tournamentId == tournamentId).toList();
+    if (tournTeams.isEmpty) return [];
+
+    final tournMatches = matches.where((m) => m.tournamentId == tournamentId).toList();
+
+    final List<TournamentStanding> list = [];
+    for (final t in tournTeams) {
+      final teamMatches = tournMatches.where((m) => m.teamAId == t.id || m.teamBId == t.id).toList();
+      final completed = teamMatches.where((m) => m.status == MatchStatus.completed).toList();
+
+      int won = 0;
+      int lost = 0;
+      for (final m in completed) {
+        if (m.winnerId == t.id) {
+          won++;
+        } else if (m.winnerId != null && m.winnerId!.isNotEmpty) {
+          lost++;
+        }
+      }
+
+      list.add(
+        TournamentStanding(
+          teamId: t.id,
+          teamName: t.name,
+          teamShortName: t.shortName,
+          teamLogoUrl: t.logoUrl,
+          matchesPlayed: completed.length,
+          won: won,
+          lost: lost,
+          points: won * 2,
+          netRunRate: 0.0,
+        ),
+      );
+    }
+
+    list.sort((a, b) {
+      final cmp = b.points.compareTo(a.points);
+      if (cmp != 0) return cmp;
+      return b.netRunRate.compareTo(a.netRunRate);
+    });
+
+    return list;
+  }
+
+  MatchModel scheduleMatchForTournament({
+    required String tournamentId,
+    required String teamAId,
+    required String teamBId,
+    required String venue,
+    required DateTime dateTime,
+    required int overs,
+    String stage = 'League Stage',
+  }) {
+    final tourn = tournaments.where((t) => t.id == tournamentId).firstOrNull ?? tournament;
+    final matchIndex = matches.where((m) => m.tournamentId == tournamentId).length + 1;
+    final newMatchId = 'match_${tournamentId}_${DateTime.now().millisecondsSinceEpoch}';
+
+    final inn1Id = 'inn_${newMatchId}_1';
+    final inn2Id = 'inn_${newMatchId}_2';
+
+    final inn1 = Innings(
+      id: inn1Id,
+      matchId: newMatchId,
+      inningsNumber: 1,
+      battingTeamId: teamAId,
+      bowlingTeamId: teamBId,
+    );
+    final inn2 = Innings(
+      id: inn2Id,
+      matchId: newMatchId,
+      inningsNumber: 2,
+      battingTeamId: teamBId,
+      bowlingTeamId: teamAId,
+    );
+    inningsList.add(inn1);
+    inningsList.add(inn2);
+
+    final newMatch = MatchModel(
+      id: newMatchId,
+      tournamentId: tournamentId,
+      stage: stage.isNotEmpty ? stage : 'Match $matchIndex',
+      teamAId: teamAId,
+      teamBId: teamBId,
+      currentInningsNumber: 1,
+      status: MatchStatus.scheduled,
+      venue: venue.isNotEmpty ? venue : tourn.location,
+      dateTime: dateTime,
+      overs: overs > 0 ? overs : tourn.overs,
+    );
+    matches.add(newMatch);
+
+    if (createdTournamentIds.contains(tournamentId) || authenticatedTournamentIds.contains(tournamentId)) {
+      authenticatedScoringMatchIds.add(newMatchId);
+    }
+
+    scoringRooms.add(
+      ScoringRoom(
+        id: 'ROOM-${tourn.shortName.toUpperCase()}-$matchIndex',
+        matchId: newMatchId,
+        passcode: tourn.passcode.isNotEmpty ? tourn.passcode : '1234',
+        createdBy: tourn.createdBy,
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    notifyListeners();
+    return newMatch;
+  }
+
+  Team addTeamToTournament({
+    required String tournamentId,
+    required String name,
+    required String shortName,
+    Color? primaryColor,
+  }) {
+    final tIndex = teams.where((t) => t.tournamentId == tournamentId).length + 1;
+    final newTeamId = 'team_${tournamentId}_$tIndex';
+    final newTeam = Team(
+      id: newTeamId,
+      tournamentId: tournamentId,
+      name: name,
+      shortName: shortName,
+      uniqueTeamCode: 'TEAM-$shortName-0$tIndex',
+      passcode: '1234',
+      primaryColor: primaryColor ?? const Color(0xFF009270),
+      logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+      purseRemaining: 10000000,
+      maxPurse: 10000000,
+      squadCount: 0,
+      minSquadRequirement: 11,
+      maxSquadLimit: 18,
+    );
+    teams.add(newTeam);
+    notifyListeners();
+    return newTeam;
   }
 }

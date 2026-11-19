@@ -34,7 +34,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    selectedAuctionId = widget.initialAuctionId ?? 'auc_bpl_2026';
+    selectedAuctionId = widget.initialAuctionId;
     _wheelController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -100,12 +100,68 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
 
+    if (db.auctions.isEmpty) {
+      return _buildEmptyAuctionDirectory(context, db);
+    }
+
     if (selectedAuctionId == null) {
       return _buildAuctionDirectory(context, db);
     }
 
-    final auction = db.auctions.where((a) => a.id == selectedAuctionId).firstOrNull ?? db.auctions.first;
+    final auction = db.auctions.where((a) => a.id == selectedAuctionId).firstOrNull;
+    if (auction == null) {
+      return _buildAuctionDirectory(context, db);
+    }
+
     return _buildAuctionArena(context, db, auction);
+  }
+
+  Widget _buildEmptyAuctionDirectory(BuildContext context, MockDatabase db) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF111827),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF009270),
+        title: const Text('Franchise Auctions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        actions: const [RoleSwitcherChip(compact: true), SizedBox(width: 8)],
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.gavel_outlined, size: 54, color: Colors.amberAccent),
+              const SizedBox(height: 16),
+              const Text('No Player Auctions Created', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text(
+                'Host a live player auction with franchise budgets, player wheel spin, and owner bidding.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final created = await showDialog<Auction>(
+                    context: context,
+                    builder: (ctx) => CreateAuctionDialog(db: db),
+                  );
+                  if (created != null) {
+                    setState(() {
+                      selectedAuctionId = created.id;
+                      selectedTeamIdForSquadView = null;
+                    });
+                  }
+                },
+                icon: const Icon(Icons.add, size: 16, color: Colors.black),
+                label: const Text('Host New Auction', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.amberAccent),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // =========================================================================
@@ -113,28 +169,34 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   // =========================================================================
   Widget _buildAuctionDirectory(BuildContext context, MockDatabase db) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020617),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.gavel, size: 16, color: Colors.black),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(6)),
+              child: const Icon(Icons.gavel, size: 14, color: Colors.black),
             ),
-            const SizedBox(width: 10),
-            const Text(
-              'FRANCHISE AUCTION DIRECTORY',
-              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+            const SizedBox(width: 8),
+            const Flexible(
+              child: Text(
+                'Auctions',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         actions: [
           const RoleSwitcherChip(compact: true),
-          const SizedBox(width: 8),
-          TextButton.icon(
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: 'Host New Auction',
+            icon: const Icon(Icons.add_circle, color: Colors.amber, size: 22),
             onPressed: () async {
               final created = await showDialog<Auction>(
                 context: context,
@@ -147,9 +209,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 });
               }
             },
-            icon: const Icon(Icons.add_circle, color: Colors.amber, size: 16),
-            label: const Text('Host Auction', style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold)),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: ListView(
@@ -271,13 +332,20 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     Text('${tourn.name} • ${tourn.location}', style: const TextStyle(color: Colors.white60, fontSize: 11)),
                     const SizedBox(height: 12),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _buildStatChip(Icons.monetization_on, 'Purse: ${currencyFormat.format(auc.maxPursePerTeam)}'),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              _buildStatChip(Icons.monetization_on, 'Purse: ${currencyFormat.format(auc.maxPursePerTeam)}'),
+                              _buildStatChip(Icons.gavel, 'Min: ${currencyFormat.format(auc.minBidIncrement)}'),
+                              _buildStatChip(Icons.groups, '${auc.requiredTeamsCount} Teams'),
+                            ],
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        _buildStatChip(Icons.gavel, 'Min: ${currencyFormat.format(auc.minBidIncrement)}'),
-                        const SizedBox(width: 8),
-                        _buildStatChip(Icons.groups, '8 Franchises'),
-                        const Spacer(),
                         const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
                       ],
                     ),
@@ -293,13 +361,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
   Widget _buildStatChip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
       decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(6)),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 11, color: Colors.amber),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -335,9 +404,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     final unsoldLotsCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.unsold).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020617),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -360,14 +429,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white54,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  isUnlocked
-                      ? (isAdmin ? 'Host Auctioneer (Full Control)' : 'Owner: ${myTeam?.name ?? "Team Owner"}')
-                      : 'Spectator Mode (Broadcast Watch)',
-                  style: TextStyle(
-                    color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white70,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    isUnlocked
+                        ? (isAdmin ? 'Host Auctioneer' : (myTeam?.shortName ?? 'Owner'))
+                        : 'Spectator Mode',
+                    style: TextStyle(
+                      color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white70,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -376,7 +448,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         ),
         actions: [
           IconButton(
-            tooltip: 'Ceremony Projector / Big Screen Mode',
+            tooltip: 'TV Mode',
             icon: const Icon(Icons.tv, color: Colors.amber, size: 20),
             onPressed: () {
               Navigator.push(
@@ -388,54 +460,86 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             },
           ),
           const RoleSwitcherChip(compact: true),
-          const SizedBox(width: 4),
-          if (isAdmin) ...[
-            TextButton.icon(
-              onPressed: () => _showHostPlayerPoolManagerDialog(context, db, auction),
-              icon: const Icon(Icons.manage_accounts, color: Colors.amber, size: 16),
-              label: Text(
-                'Spin Pool ($eligibleSpinCount/$totalPendingCount)',
-                style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
-            IconButton(
-              tooltip: 'Add Player to Auction',
-              icon: const Icon(Icons.person_add, color: Color(0xFF34D399), size: 20),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
-                );
+          if (isAdmin)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+              tooltip: 'Host Controls',
+              color: const Color(0xFF1E293B),
+              onSelected: (val) {
+                if (val == 'pool') {
+                  _showHostPlayerPoolManagerDialog(context, db, auction);
+                } else if (val == 'player') {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
+                  );
+                } else if (val == 'approvals') {
+                  _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams);
+                } else if (val == 'team') {
+                  _showAddTeamDialog(context, db, auction);
+                }
               },
+              itemBuilder: (ctx) => [
+                PopupMenuItem(
+                  value: 'pool',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.manage_accounts, color: Colors.amber, size: 16),
+                      const SizedBox(width: 8),
+                      Text('Spin Pool ($eligibleSpinCount/$totalPendingCount)', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'player',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_add, color: Color(0xFF34D399), size: 16),
+                      SizedBox(width: 8),
+                      Text('Add Player to Auction', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'approvals',
+                  child: Row(
+                    children: [
+                      Icon(Icons.badge, color: Color(0xFF38BDF8), size: 16),
+                      SizedBox(width: 8),
+                      Text('Franchise PINs & Access', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'team',
+                  child: Row(
+                    children: [
+                      Icon(Icons.group_add, color: Colors.amber, size: 16),
+                      SizedBox(width: 8),
+                      Text('Add Franchise Team', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              tooltip: 'Franchise Approvals & PINs',
-              icon: const Icon(Icons.badge, color: Color(0xFF38BDF8), size: 20),
-              onPressed: () => _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams),
-            ),
-            IconButton(
-              tooltip: 'Add Team to Auction',
-              icon: const Icon(Icons.group_add, color: Colors.amber, size: 20),
-              onPressed: () => _showAddTeamDialog(context, db, auction),
-            ),
-          ],
           if (!isUnlocked)
             TextButton.icon(
               onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
-              icon: const Icon(Icons.vpn_key, size: 14, color: Colors.amber),
-              label: const Text('Enter Room', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.vpn_key, size: 13, color: Colors.amber),
+              label: const Text('Enter', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
             )
           else
-            TextButton.icon(
+            IconButton(
+              tooltip: 'Exit to Spectator',
+              icon: const Icon(Icons.logout, size: 18, color: Colors.redAccent),
               onPressed: () {
                 db.exitAuctionRoom();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Returned to Spectator Broadcast.')),
                 );
               },
-              icon: const Icon(Icons.lock, size: 14, color: Colors.redAccent),
-              label: const Text('Exit', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SingleChildScrollView(

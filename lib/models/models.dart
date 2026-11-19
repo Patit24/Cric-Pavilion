@@ -33,6 +33,23 @@ enum AppUserRole {
     }
   }
 
+  String get shortDisplayName {
+    switch (this) {
+      case AppUserRole.superAdmin:
+        return 'Admin';
+      case AppUserRole.tournamentAdmin:
+        return 'T. Admin';
+      case AppUserRole.auctionAdmin:
+        return 'Host';
+      case AppUserRole.teamOwner:
+        return 'Owner';
+      case AppUserRole.scorer:
+        return 'Scorer';
+      case AppUserRole.viewer:
+        return 'Viewer';
+    }
+  }
+
   String get badgeLabel {
     switch (this) {
       case AppUserRole.superAdmin:
@@ -188,6 +205,7 @@ class Player {
   final String id;
   final String fullName;
   final String displayName;
+  final String mobileNumber;
   final PlayerRole role;
   final String battingStyle;
   final String bowlingStyle;
@@ -202,11 +220,12 @@ class Player {
     required this.id,
     required this.fullName,
     required this.displayName,
+    this.mobileNumber = '',
     required this.role,
-    required this.battingStyle,
-    required this.bowlingStyle,
-    required this.basePrice,
-    required this.photoUrl,
+    this.battingStyle = 'Right Hand Bat',
+    this.bowlingStyle = 'Right Arm Medium',
+    this.basePrice = 500,
+    this.photoUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
     this.teamId,
     this.runs = 0,
     this.wickets = 0,
@@ -598,4 +617,157 @@ class AuditLog {
     required this.performedBy,
   });
 }
+
+class TournamentLeaderboardBatter {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamShortName;
+  final Color teamColor;
+  final String photoUrl;
+  final int matches;
+  final int innings;
+  final int runs;
+  final int balls;
+  final int fours;
+  final int sixes;
+  final double strikeRate;
+  final double average;
+  final int highScore;
+  final int fifties;
+  final int hundreds;
+
+  TournamentLeaderboardBatter({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamShortName,
+    required this.teamColor,
+    required this.photoUrl,
+    required this.matches,
+    required this.innings,
+    required this.runs,
+    required this.balls,
+    required this.fours,
+    required this.sixes,
+    required this.strikeRate,
+    required this.average,
+    required this.highScore,
+    required this.fifties,
+    required this.hundreds,
+  });
+}
+
+class TournamentLeaderboardBowler {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamShortName;
+  final Color teamColor;
+  final String photoUrl;
+  final int matches;
+  final String oversStr;
+  final int legalBalls;
+  final int maidens;
+  final int runsConceded;
+  final int wickets;
+  final double economy;
+  final double average;
+  final String bestBowling;
+
+  TournamentLeaderboardBowler({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamShortName,
+    required this.teamColor,
+    required this.photoUrl,
+    required this.matches,
+    required this.oversStr,
+    required this.legalBalls,
+    required this.maidens,
+    required this.runsConceded,
+    required this.wickets,
+    required this.economy,
+    required this.average,
+    required this.bestBowling,
+  });
+}
+
+class TournamentLeaderboardFielder {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamShortName;
+  final String photoUrl;
+  final int matches;
+  final int catches;
+  final int stumpings;
+  final int runOuts;
+  final int totalDismissals;
+
+  TournamentLeaderboardFielder({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamShortName,
+    required this.photoUrl,
+    required this.matches,
+    required this.catches,
+    required this.stumpings,
+    required this.runOuts,
+    required this.totalDismissals,
+  });
+}
+
+class TournamentBoundaryLeader {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamShortName;
+  final String photoUrl;
+  final int fours;
+  final int sixes;
+  final int totalBoundaries;
+  final int boundaryRuns;
+
+  TournamentBoundaryLeader({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamShortName,
+    required this.photoUrl,
+    required this.fours,
+    required this.sixes,
+    required this.totalBoundaries,
+    required this.boundaryRuns,
+  });
+}
+
+class TournamentMVP {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamShortName;
+  final String roleString;
+  final String photoUrl;
+  final double points;
+  final int runs;
+  final int wickets;
+  final int catches;
+
+  TournamentMVP({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamShortName,
+    required this.roleString,
+    required this.photoUrl,
+    required this.points,
+    required this.runs,
+    required this.wickets,
+    required this.catches,
+  });
+}
+
 

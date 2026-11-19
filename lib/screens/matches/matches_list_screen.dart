@@ -28,14 +28,14 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
-        title: const Text('Matches & Scorecards', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('Matches', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
         actions: const [
           RoleSwitcherChip(compact: true),
-          SizedBox(width: 12),
+          SizedBox(width: 8),
         ],
       ),
       body: Column(
@@ -75,8 +75,8 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
               separatorBuilder: (ctx, i) => const SizedBox(height: 12),
               itemBuilder: (ctx, i) {
                 final m = filteredMatches[i];
-                final teamA = db.teams.firstWhere((t) => t.id == m.teamAId);
-                final teamB = db.teams.firstWhere((t) => t.id == m.teamBId);
+                final teamA = db.getTeam(m.teamAId) ?? MockDatabase.emptyTeam;
+                final teamB = db.getTeam(m.teamBId) ?? MockDatabase.emptyTeam;
                 final inn1 = db.inningsList.where((inn) => inn.matchId == m.id && inn.inningsNumber == 1).firstOrNull;
                 final inn2 = db.inningsList.where((inn) => inn.matchId == m.id && inn.inningsNumber == 2).firstOrNull;
 
@@ -182,7 +182,7 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                 child: const Text('🪙 Conduct Toss & Score', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
                               )
                             else if (isCompleted)
-                              Text('${db.teams.firstWhere((t) => t.id == m.winnerId).name} won by ${m.winMargin}', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 11))
+                              Text('${db.getTeam(m.winnerId)?.name ?? "Team"} won by ${m.winMargin ?? "runs"}', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 11))
                             else
                               const Text('Live Match Centre →', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
                           ],

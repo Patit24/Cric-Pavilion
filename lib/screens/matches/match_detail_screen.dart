@@ -31,13 +31,12 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
-    final match = db.matches.firstWhere(
-      (m) => m.id == widget.matchId,
-      orElse: () => db.matches.first,
-    );
+    final match = db.matches.where((m) => m.id == widget.matchId).firstOrNull ??
+        db.matches.firstOrNull ??
+        MockDatabase.emptyMatch;
 
-    final teamA = db.teams.firstWhere((t) => t.id == match.teamAId);
-    final teamB = db.teams.firstWhere((t) => t.id == match.teamBId);
+    final teamA = db.getTeam(match.teamAId) ?? MockDatabase.emptyTeam;
+    final teamB = db.getTeam(match.teamBId) ?? MockDatabase.emptyTeam;
 
     final matchInnings = db.inningsList.where((i) => i.matchId == match.id).toList();
     final inn1 = matchInnings.where((i) => i.inningsNumber == 1).firstOrNull;
@@ -47,16 +46,16 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
     final deliveries = db.deliveries.where((d) => d.matchId == match.id && !d.isUndone).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
         title: Text(match.stage, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF34D399),
-          labelColor: const Color(0xFF34D399),
-          unselectedLabelColor: Colors.white54,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
           tabs: const [
             Tab(text: 'Live Score'),
             Tab(text: 'Scorecard'),

@@ -30,14 +30,18 @@ class RoleSwitcherChip extends StatelessWidget {
             Icon(role.icon, size: 14, color: role.color),
             const SizedBox(width: 6),
             Text(
-              role == AppUserRole.teamOwner && team != null
-                  ? '${role.displayName} (${team.shortName})'
-                  : role.displayName,
+              compact
+                  ? (role == AppUserRole.teamOwner && team != null
+                      ? team.shortName
+                      : role.shortDisplayName)
+                  : (role == AppUserRole.teamOwner && team != null
+                      ? '${role.displayName} (${team.shortName})'
+                      : role.displayName),
               style: TextStyle(
                 color: role.color,
-                fontSize: compact ? 11 : 12,
+                fontSize: compact ? 10.5 : 12,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 0.3,
+                letterSpacing: 0.2,
               ),
             ),
             const SizedBox(width: 4),

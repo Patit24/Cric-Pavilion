@@ -108,7 +108,7 @@ void main() {
 
   group('MockDatabase State Management Tests', () {
     test('recordDelivery updates score, overs, and rotates strike on odd runs', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final inn1 = db.inningsList.firstWhere((i) => i.id == 'inn_1');
       final initialRuns = inn1.totalRuns;
       final initialBalls = inn1.legalBalls;
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('Wicket dismisses batter and brings in next batter', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final inn1 = db.inningsList.firstWhere((i) => i.id == 'inn_1');
       final initialWickets = inn1.wickets;
 
@@ -146,7 +146,7 @@ void main() {
     });
 
     test('Auction bidding increments current bid and tracks highest bidder', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final initialBid = db.auction.currentBid ?? 450000;
 
       // In BPL auction, all 8 teams are checked in by default
@@ -162,7 +162,7 @@ void main() {
     });
 
     test('Host is NOT allowed to bid, and auction blocks bidding if 8 teams not entered', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       // PSL has only 4 teams checked in initially
       final psl = db.auctions.firstWhere((a) => a.id == 'auc_psl_2026');
@@ -209,7 +209,7 @@ void main() {
     });
 
     test('Create Tournament provisions 8 franchise teams, room ID, and linked auction', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       final tourn = db.createTournament(
         name: 'Super Cup 2026',
@@ -239,7 +239,7 @@ void main() {
     });
 
     test('Selling auction lot deducts franchise purse and increments squad', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final buyerTeam = db.teams.firstWhere((t) => t.id == 'team_barasat');
       final initialPurse = buyerTeam.purseRemaining;
       final initialSquad = buyerTeam.squadCount;
@@ -252,7 +252,7 @@ void main() {
     });
 
     test('Room Access Control: Spectator mode is locked by default and requires Room ID & Passcode', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       // Default state: Spectator mode (Locked)
       expect(db.isScoringUnlockedForMatch('match_1'), isFalse);
@@ -316,7 +316,7 @@ void main() {
     });
 
     test('Host Manual Starting Price & Floor Gavel Warnings', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final auc = db.getAuction('auc_bpl_2026');
       db.checkInAllTeamsToAuction(auc.id);
 
@@ -358,7 +358,7 @@ void main() {
     });
 
     test('Host Spin Pool Management and Unsold Re-Auctioning', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final auc = db.getAuction('auc_bpl_2026');
 
       // Test deselect all and select all
@@ -387,7 +387,7 @@ void main() {
     });
 
     test('Fresh Auction Isolation & Custom Host Entries', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       // 1. Verify PSL has its OWN fresh teams and NO BPL acquired players
       final pslAuc = db.getAuction('auc_psl_2026');
@@ -469,7 +469,7 @@ void main() {
     });
 
     test('Role-Based Access Control and Permission Gating', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       // Default role is Super Admin
       expect(db.currentRole, AppUserRole.superAdmin);
@@ -513,7 +513,7 @@ void main() {
     });
 
     test('Strict Minimum Remaining Budget Protection Formula Enforced', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final auc = db.getAuction('auc_bpl_2026');
 
       // Setup a custom team with exactly ₹2,000 purse, minSquadRequirement: 5, current squad: 2
@@ -590,7 +590,7 @@ void main() {
     });
 
     test('Live Auction Countdown Timer Ticking, Reset and Gavel Warnings', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final auc = db.getAuction('auc_bpl_2026');
 
       auc.biddingSecondsRemaining = 15;
@@ -623,7 +623,7 @@ void main() {
     });
 
     test('Match Setup Playing XI & Lineup Submission', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
       final match = db.matches.first;
 
       final playingA = ['pl_1', 'pl_2', 'pl_3', 'pl_4', 'pl_5'];
@@ -663,7 +663,7 @@ void main() {
     });
 
     test('Tournament Creator has automatic scoring and auction rights; Viewers are locked until Room ID & Passcode is entered', () {
-      final db = MockDatabase();
+      final db = MockDatabase(loadDemoSeed: true);
 
       // 1. Initial State for pre-seeded tournaments:
       // Current user is a viewer who did not create BPL 2026.
@@ -710,6 +710,54 @@ void main() {
       );
       expect(hostUnlock, isTrue);
       expect(db.canManageAuctionFloor('auc_psl_2026'), isTrue);
+    });
+
+    test('Clean Slate Mode and Safe Fallbacks', () {
+      final db = MockDatabase(loadDemoSeed: true);
+      expect(db.isDemoDataLoaded, isTrue);
+      expect(db.tournaments.isNotEmpty, isTrue);
+
+      // Wipe all demo content
+      db.clearAllDemoData();
+      expect(db.isDemoDataLoaded, isFalse);
+      expect(db.tournaments.isEmpty, isTrue);
+      expect(db.matches.isEmpty, isTrue);
+      expect(db.teams.isEmpty, isTrue);
+      expect(db.auctions.isEmpty, isTrue);
+
+      // Safe accessors must NOT throw StateError or Bad state
+      expect(db.tournament.id, 'empty_tourn');
+      expect(db.auction.id, 'empty_auc');
+      expect(db.getMatch('non_existent'), isNull);
+      expect(db.getTeam('non_existent'), isNull);
+      expect(db.getPlayer('non_existent'), isNull);
+      expect(MockDatabase.emptyTeam.name, 'Team');
+      expect(MockDatabase.emptyMatch.stage, 'Fixture');
+
+      // User creates their own tournament on a clean slate
+      final created = db.createTournament(
+        name: 'My Custom Premier League',
+        shortName: 'MCPL',
+        location: 'Salt Lake Stadium',
+        overs: 20,
+        roomId: 'ROOM-MCPL-2026',
+        passcode: 'secret123',
+        createAuction: true,
+      );
+
+      expect(db.tournaments.length, 1);
+      expect(db.tournaments.first.id, created.id);
+      expect(db.createdTournamentIds.contains(created.id), isTrue);
+      expect(db.matches.length, 1);
+      expect(db.teams.length, 8);
+      expect(db.auctions.length, 1);
+      expect(db.canManageAuctionFloor(db.auctions.first.id), isTrue);
+
+      // Reload demo data restores seed content cleanly
+      db.reloadDemoData();
+      expect(db.isDemoDataLoaded, isTrue);
+      expect(db.tournaments.length, greaterThan(1));
+      expect(db.matches.length, greaterThan(1));
     });
   });
 }

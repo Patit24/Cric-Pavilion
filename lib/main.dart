@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'services/mock_database.dart';
 import 'screens/home_screen.dart';
 import 'screens/scorer/scorer_screen.dart';
 import 'screens/auction/auction_screen.dart';
 import 'screens/matches/matches_list_screen.dart';
-import 'screens/tournaments/tournament_standings_screen.dart';
+import 'screens/tournaments/tournament_hub_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization notice: $e');
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -30,14 +40,14 @@ class CricPavilionApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        scaffoldBackgroundColor: const Color(0xFF111827), // Cricbuzz clean dark slate
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF059669),
-          secondary: Color(0xFF34D399),
-          surface: Color(0xFF1E293B),
+          primary: Color(0xFF009270), // Cricbuzz Iconic Green
+          secondary: Color(0xFF10B981),
+          surface: Color(0xFF1F2937),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F172A),
+          backgroundColor: Color(0xFF009270), // Cricbuzz Green Header
           elevation: 0,
           foregroundColor: Colors.white,
         ),
@@ -68,7 +78,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       const ScorerScreen(),
       const AuctionScreen(),
       const MatchesListScreen(),
-      const TournamentStandingsScreen(),
+      const TournamentHubScreen(),
     ];
 
     return Scaffold(
@@ -105,7 +115,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           NavigationDestination(
             icon: Icon(Icons.emoji_events_outlined),
             selectedIcon: Icon(Icons.emoji_events, color: Colors.white),
-            label: 'Standings',
+            label: 'Tournament',
           ),
         ],
       ),

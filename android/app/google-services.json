@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "353831839667",
+    "project_id": "cricpavilion-750c5",
+    "storage_bucket": "cricpavilion-750c5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:353831839667:android:bdb4951c8ec064a32f0dc6",
+        "android_client_info": {
+          "package_name": "com.cricpavilion.app.cricket_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXI5Vr0XXRvJu3ayRRQx2mztzd2xAF4x4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

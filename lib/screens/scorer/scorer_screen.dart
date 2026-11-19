@@ -9,6 +9,9 @@ import 'over_complete_dialog.dart';
 import 'wicket_dialog.dart';
 import 'toss_wizard_sheet.dart';
 import 'full_scorecard_dialog.dart';
+import '../tournaments/create_tournament_dialog.dart';
+import '../tournaments/tournament_hub_screen.dart';
+import 'fill_team_squad_dialog.dart';
 
 class ScorerScreen extends StatefulWidget {
   final String? initialMatchId;
@@ -32,16 +35,62 @@ class _ScorerScreenState extends State<ScorerScreen> {
   @override
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
-    final match = db.matches.firstWhere(
-      (m) => m.id == selectedMatchId,
-      orElse: () => db.matches.first,
-    );
+
+    if (db.matches.isEmpty) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF111827),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF009270),
+          title: const Text('Live Scorer Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          actions: const [
+            RoleSwitcherChip(compact: true),
+            SizedBox(width: 8),
+          ],
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.sports_cricket, size: 54, color: Color(0xFF009270)),
+                const SizedBox(height: 16),
+                const Text('No Matches Scheduled', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text(
+                  'Create a tournament or tap "Load Sample" on the Home tab to start scoring live.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => CreateTournamentDialog(db: db),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('Create Tournament'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF009270),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final match = db.matches.where((m) => m.id == selectedMatchId).firstOrNull ?? db.matches.first;
 
     final isScorer = db.isScoringUnlockedForMatch(match.id);
     final currentRoom = db.getScoringRoomForMatch(match.id);
 
-    final teamA = db.teams.firstWhere((t) => t.id == match.teamAId);
-    final teamB = db.teams.firstWhere((t) => t.id == match.teamBId);
+    final teamA = db.getTeam(match.teamAId) ?? MockDatabase.emptyTeam;
+    final teamB = db.getTeam(match.teamBId) ?? MockDatabase.emptyTeam;
 
     final matchInnings = db.inningsList.where((i) => i.matchId == match.id).toList();
     final inn1 = matchInnings.where((i) => i.inningsNumber == 1).firstOrNull;
@@ -53,11 +102,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final isPreMatch = match.status == MatchStatus.scheduled || match.status == MatchStatus.toss || inn1 == null;
     final isMatchCompleted = match.status == MatchStatus.completed;
 
-    // Roster players
+    // Roster players safely
     final teamAPlayers = db.players.where((p) => p.teamId == teamA.id).toList();
     final teamBPlayers = db.players.where((p) => p.teamId == teamB.id).toList();
-    final safeTeamAPlayers = teamAPlayers.isNotEmpty ? teamAPlayers : db.players.sublist(0, 5);
-    final safeTeamBPlayers = teamBPlayers.isNotEmpty ? teamBPlayers : db.players.sublist(5, 10);
+    final safeTeamAPlayers = teamAPlayers.isNotEmpty ? teamAPlayers : db.players.take(5).toList();
+    final safeTeamBPlayers = teamBPlayers.isNotEmpty ? teamBPlayers : db.players.skip(5).take(5).toList();
 
     // Batting & Bowling Teams for active innings
     final battingTeamId = currentInnings?.battingTeamId ?? match.battingFirstId ?? teamA.id;
@@ -79,10 +128,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final bowlerCard = db.bowlingScorecards.where((b) => b.inningsId == currentInnings?.id && b.playerId == bowler?.id).firstOrNull ??
         BowlingScorecard(id: 'temp_bowl', inningsId: currentInnings?.id ?? '', matchId: match.id, playerId: bowler?.id ?? '', playerName: bowler?.fullName ?? '');
 
+    final bool areTeamsReady = db.areTeamsReadyForScoring(match.teamAId, match.teamBId);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +141,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
             DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: selectedMatchId,
-                dropdownColor: const Color(0xFF1E293B),
+                dropdownColor: const Color(0xFF1F2937),
                 icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                 items: db.matches.map((m) {
@@ -103,29 +154,35 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   if (val != null) {
                     setState(() {
                       selectedMatchId = val;
-                      final newMatch = db.matches.firstWhere((m) => m.id == val);
-                      selectedInningsNum = newMatch.currentInningsNumber;
+                      final newMatch = db.matches.where((m) => m.id == val).firstOrNull;
+                      if (newMatch != null) {
+                        selectedInningsNum = newMatch.currentInningsNumber;
+                      }
                     });
                   }
                 },
               ),
             ),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   isScorer ? Icons.check_circle : Icons.lock_outline,
                   size: 11,
-                  color: isScorer ? const Color(0xFF34D399) : Colors.amber,
+                  color: isScorer ? Colors.white : Colors.amberAccent,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  isScorer
-                      ? 'Scorer Room: ${currentRoom?.id ?? "ROOM-BPL-01"}'
-                      : 'Spectator Mode (Live Score Only)',
-                  style: TextStyle(
-                    color: isScorer ? const Color(0xFF34D399) : Colors.amber.shade300,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    isScorer
+                        ? 'Scorer: ${currentRoom?.id ?? "ROOM-01"}'
+                        : 'Spectator Mode',
+                    style: TextStyle(
+                      color: isScorer ? Colors.white : Colors.amberAccent,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -134,38 +191,59 @@ class _ScorerScreenState extends State<ScorerScreen> {
         ),
         actions: [
           const RoleSwitcherChip(compact: true),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
+          IconButton(
+            tooltip: 'Team Squads & Mobile Numbers',
+            icon: const Icon(Icons.people_alt, color: Colors.white, size: 18),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => FillTeamSquadDialog(
+                  match: match,
+                  db: db,
+                  onSquadsSaved: () => setState(() {}),
+                ),
+              );
+            },
+          ),
           if (!isScorer) ...[
             TextButton.icon(
               onPressed: () => _showEnterRoomDialog(context, db, match),
-              icon: const Icon(Icons.vpn_key, size: 14, color: Color(0xFF34D399)),
-              label: const Text('Enter Room', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
-            ),
-            IconButton(
-              tooltip: 'Create Scoring Room',
-              icon: const Icon(Icons.add_circle_outline, color: Colors.amber, size: 20),
-              onPressed: () => _showCreateRoomDialog(context, db, match),
+              icon: const Icon(Icons.vpn_key, size: 13, color: Colors.white),
+              label: const Text('Enter', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
           ] else ...[
-            TextButton.icon(
+            IconButton(
+              tooltip: 'Exit Scorer',
+              icon: const Icon(Icons.lock, size: 16, color: Colors.white),
               onPressed: () {
                 db.lockScoringRoom(match.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Locked scoring console. Returned to Spectator Mode.')),
                 );
               },
-              icon: const Icon(Icons.lock, size: 14, color: Colors.redAccent),
-              label: const Text('Exit Scorer', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
             IconButton(
               tooltip: 'Reset Match',
-              icon: const Icon(Icons.refresh, color: Colors.white70, size: 20),
+              icon: const Icon(Icons.refresh, color: Colors.white70, size: 18),
               onPressed: () => _confirmResetMatch(context, db, match),
             ),
           ],
           IconButton(
+            tooltip: 'Tournament Page & Leaderboards',
+            icon: const Icon(Icons.emoji_events, color: Colors.amberAccent, size: 20),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => TournamentHubScreen(initialTournamentId: match.tournamentId),
+                ),
+              );
+            },
+          ),
+          IconButton(
             tooltip: 'View Full Scorecard',
-            icon: const Icon(Icons.table_chart, color: Color(0xFF34D399), size: 20),
+            icon: const Icon(Icons.table_chart, color: Colors.white, size: 18),
             onPressed: () {
               showDialog(
                 context: context,
@@ -173,30 +251,272 @@ class _ScorerScreenState extends State<ScorerScreen> {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
-      body: isPreMatch
-          ? _buildPreMatchTossView(context, db, match, teamA, teamB, safeTeamAPlayers, safeTeamBPlayers, isScorer, currentRoom)
-          : isMatchCompleted
-              ? _buildCompletedMatchView(context, db, match, inn1, inn2, isScorer)
-              : _buildLiveScoringView(
-                  context,
-                  db,
-                  match,
-                  currentInnings!,
-                  inn1,
-                  inn2,
-                  striker,
-                  nonStriker,
-                  bowler,
-                  strikerCard,
-                  nonStrikerCard,
-                  bowlerCard,
-                  battingTeamPlayers,
-                  bowlingTeamPlayers,
-                  isScorer,
-                  currentRoom,
+      body: !areTeamsReady
+          ? _buildMissingSquadScreen(context, db, match, teamA, teamB)
+          : isPreMatch
+              ? _buildPreMatchTossView(context, db, match, teamA, teamB, safeTeamAPlayers, safeTeamBPlayers, isScorer, currentRoom)
+              : isMatchCompleted
+                  ? _buildCompletedMatchView(context, db, match, inn1, inn2, isScorer)
+                  : _buildLiveScoringView(
+                      context,
+                      db,
+                      match,
+                      currentInnings!,
+                      inn1,
+                      inn2,
+                      striker,
+                      nonStriker,
+                      bowler,
+                      strikerCard,
+                      nonStrikerCard,
+                      bowlerCard,
+                      battingTeamPlayers,
+                      bowlingTeamPlayers,
+                      isScorer,
+                      currentRoom,
+                    ),
+    );
+  }
+
+  // ==========================================
+  // REQUIRED SQUAD & MOBILE NUMBERS BARRIER
+  // ==========================================
+  Widget _buildMissingSquadScreen(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Team teamA,
+    Team teamB,
+  ) {
+    final playersA = db.getTeamPlayers(teamA.id);
+    final playersB = db.getTeamPlayers(teamB.id);
+    final playersAWithMobile = playersA.where((p) => p.mobileNumber.trim().isNotEmpty && p.fullName.trim().isNotEmpty).toList();
+    final playersBWithMobile = playersB.where((p) => p.mobileNumber.trim().isNotEmpty && p.fullName.trim().isNotEmpty).toList();
+
+    final isAReady = playersA.length >= 2 && playersAWithMobile.length == playersA.length;
+    final isBReady = playersB.length >= 2 && playersBWithMobile.length == playersB.length;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.6)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Top Alert Badge
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.phonelink_lock, size: 14, color: Colors.amber),
+                          SizedBox(width: 6),
+                          Text(
+                            'SQUAD REGISTRATION REQUIRED',
+                            style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Fill Players with Mobile Numbers to Start Scoring',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Tournament rules require both teams to enter all playing squad names along with their contact mobile numbers before ball-by-ball scoring can begin.',
+                  style: TextStyle(color: Colors.white70, fontSize: 11.5),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+
+                // Team A Status Card
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isAReady ? const Color(0xFF059669) : Colors.redAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 14, backgroundImage: NetworkImage(teamA.logoUrl)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(teamA.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${playersA.length} Players (${playersAWithMobile.length} with mobile)',
+                              style: TextStyle(color: isAReady ? const Color(0xFF34D399) : Colors.white54, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isAReady ? const Color(0xFF059669).withValues(alpha: 0.2) : Colors.redAccent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isAReady ? const Color(0xFF34D399) : Colors.redAccent),
+                        ),
+                        child: Text(
+                          isAReady ? '✓ Ready' : 'Incomplete',
+                          style: TextStyle(
+                            color: isAReady ? const Color(0xFF34D399) : Colors.redAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Team B Status Card
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isBReady ? const Color(0xFF059669) : Colors.redAccent.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 14, backgroundImage: NetworkImage(teamB.logoUrl)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(teamB.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${playersB.length} Players (${playersBWithMobile.length} with mobile)',
+                              style: TextStyle(color: isBReady ? const Color(0xFF34D399) : Colors.white54, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isBReady ? const Color(0xFF059669).withValues(alpha: 0.2) : Colors.redAccent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isBReady ? const Color(0xFF34D399) : Colors.redAccent),
+                        ),
+                        child: Text(
+                          isBReady ? '✓ Ready' : 'Incomplete',
+                          style: TextStyle(
+                            color: isBReady ? const Color(0xFF34D399) : Colors.redAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Primary Action Button: Fill Players Now
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => FillTeamSquadDialog(
+                        match: match,
+                        db: db,
+                        onSquadsSaved: () => setState(() {}),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.edit_note, size: 18),
+                  label: const Text('Fill Players & Mobile Numbers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF009270),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Quick Auto-Fill for Testing Convenience
+                OutlinedButton.icon(
+                  onPressed: () {
+                    final namesA = ['Rahul Das', 'Amit Sharma', 'Suman Biswas', 'Subham Dey', 'Debayan Paul'];
+                    final entriesA = namesA.asMap().entries.map((e) => {
+                      'name': '${teamA.shortName} ${e.value}',
+                      'mobile': '983011000${e.key}',
+                      'role': e.key < 3 ? 'batter' : 'bowler',
+                    }).toList();
+                    db.saveTeamSquadWithMobileNumbers(teamId: teamA.id, playerEntries: entriesA);
+
+                    final namesB = ['Vikram Sen', 'Rohan Mukherjee', 'Tanmoy Das', 'Arjun Ghosh', 'Manoj Tiwary'];
+                    final entriesB = namesB.asMap().entries.map((e) => {
+                      'name': '${teamB.shortName} ${e.value}',
+                      'mobile': '983021000${e.key}',
+                      'role': e.key < 3 ? 'batter' : 'bowler',
+                    }).toList();
+                    db.saveTeamSquadWithMobileNumbers(teamId: teamB.id, playerEntries: entriesB);
+
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Color(0xFF009270),
+                        content: Text('Realistic squads with mobile numbers auto-filled! Scoring unlocked.'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.flash_on, size: 14, color: Colors.amberAccent),
+                  label: const Text('⚡ Auto-Fill 5 Players Each (Quick Test)', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.amberAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -402,7 +722,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(db.teams.firstWhere((t) => t.id == inn1.battingTeamId).name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(db.getTeam(inn1.battingTeamId)?.name ?? "Team", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -415,7 +735,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(db.teams.firstWhere((t) => t.id == inn2.battingTeamId).name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(db.getTeam(inn2.battingTeamId)?.name ?? "Team", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),

@@ -23,24 +23,25 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
     final isUnlocked = db.authenticatedTournamentIds.contains(activeTourn.id);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF111827),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF009270),
         elevation: 0,
-        title: const Text('Tournaments & Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text('Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
         actions: [
           const RoleSwitcherChip(compact: true),
           const SizedBox(width: 4),
-          TextButton.icon(
+          IconButton(
+            tooltip: 'Create Tournament',
+            icon: const Icon(Icons.add_circle, color: Colors.white, size: 22),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (ctx) => CreateTournamentDialog(db: db),
               );
             },
-            icon: const Icon(Icons.add_circle, color: Color(0xFF34D399), size: 16),
-            label: const Text('Create Tournament', style: TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold)),
           ),
+          const SizedBox(width: 6),
         ],
       ),
       body: SingleChildScrollView(
