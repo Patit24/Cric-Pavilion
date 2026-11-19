@@ -1948,6 +1948,31 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setStriker(String inningsId, String strikerId) {
+    final inn = inningsList.firstWhere((i) => i.id == inningsId);
+    inn.currentStrikerId = strikerId;
+    notifyListeners();
+  }
+
+  void setNonStriker(String inningsId, String nonStrikerId) {
+    final inn = inningsList.firstWhere((i) => i.id == inningsId);
+    inn.currentNonStrikerId = nonStrikerId;
+    notifyListeners();
+  }
+
+  void setOpeningCrease({
+    required String inningsId,
+    required String strikerId,
+    required String nonStrikerId,
+    required String bowlerId,
+  }) {
+    final inn = inningsList.firstWhere((i) => i.id == inningsId);
+    inn.currentStrikerId = strikerId;
+    inn.currentNonStrikerId = nonStrikerId;
+    inn.currentBowlerId = bowlerId;
+    notifyListeners();
+  }
+
   void swapEnds(String inningsId) {
     final inn = inningsList.firstWhere((i) => i.id == inningsId);
     final temp = inn.currentStrikerId;
@@ -2661,7 +2686,7 @@ class MockDatabase extends ChangeNotifier {
           final newPlayer = Player(
             id: 'pl_${teamId}_$pIdx',
             fullName: pName,
-            displayName: pName.split(' ').first,
+            displayName: pName,
             mobileNumber: pMobile,
             role: pRole,
             battingStyle: 'Right Hand Bat',
@@ -2815,7 +2840,7 @@ class MockDatabase extends ChangeNotifier {
       final newP = Player(
         id: 'pl_${teamId}_${DateTime.now().millisecondsSinceEpoch}_$i',
         fullName: name,
-        displayName: name.split(' ').first,
+        displayName: name,
         mobileNumber: mobile,
         role: role,
         battingStyle: 'Right Hand Bat',
@@ -3964,7 +3989,7 @@ class MockDatabase extends ChangeNotifier {
     final newPlayer = Player(
       id: 'pl_${teamId}_${DateTime.now().millisecondsSinceEpoch}',
       fullName: cleanName,
-      displayName: cleanName.split(' ').first,
+      displayName: cleanName,
       mobileNumber: mobileNumber.trim(),
       role: role,
       battingStyle: 'Right Hand Bat',
@@ -3995,7 +4020,7 @@ class MockDatabase extends ChangeNotifier {
       players[idx] = Player(
         id: old.id,
         fullName: cleanName,
-        displayName: cleanName.split(' ').first,
+        displayName: cleanName,
         mobileNumber: mobileNumber.trim().isNotEmpty ? mobileNumber.trim() : old.mobileNumber,
         role: role ?? old.role,
         battingStyle: old.battingStyle,

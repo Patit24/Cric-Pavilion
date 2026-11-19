@@ -375,5 +375,94 @@ void main() {
       expect(lot?.basePrice, equals(100000));
       expect(lot?.status, isIn([LotStatus.pending, LotStatus.bidding]));
     });
+
+    test('Full player names are preserved without truncation in MockDatabase', () {
+      final db = MockDatabase();
+      db.saveTeamSquadWithMobileNumbers(
+        teamId: 'team_test_1',
+        playerEntries: [
+          {'name': 'T2 Rahul Das', 'mobile': '9830110001', 'role': 'batter'},
+          {'name': 'GS Suman Biswas', 'mobile': '9830110002', 'role': 'bowler'},
+        ],
+      );
+
+      final p1 = db.players.firstWhere((p) => p.mobileNumber == '9830110001');
+      final p2 = db.players.firstWhere((p) => p.mobileNumber == '9830110002');
+
+      // Verify full names are NOT truncated to "T2" and "GS"
+      expect(p1.fullName, equals('T2 Rahul Das'));
+      expect(p1.displayName, equals('T2 Rahul Das'));
+      expect(p2.fullName, equals('GS Suman Biswas'));
+      expect(p2.displayName, equals('GS Suman Biswas'));
+    });
+
+    test('Opening Crease selection sets striker, non-striker, bowler and allows pre-match updates', () {
+      final db = MockDatabase();
+      final tourn = db.createTournament(
+        name: 'Crease Test Cup',
+        shortName: 'CTC',
+        location: 'Eden Gardens',
+        overs: 20,
+        roomId: 'CTC-ROOM',
+        passcode: '1234',
+        totalTeams: 2,
+        customTeamsWithPlayers: [
+          {
+            'name': 'Kolkata Tigers',
+            'shortName': 'KT',
+            'color': const Color(0xFF009270),
+            'players': [
+              {'name': 'Rahul Das', 'mobile': '9830100001', 'role': 'batter'},
+              {'name': 'Amiya Sen', 'mobile': '9830100002', 'role': 'batter'},
+              {'name': 'Debayan Paul', 'mobile': '9830100003', 'role': 'allrounder'},
+            ],
+          },
+          {
+            'name': 'Howrah Hawks',
+            'shortName': 'HH',
+            'color': const Color(0xFF0284C7),
+            'players': [
+              {'name': 'Suman Biswas', 'mobile': '9830200001', 'role': 'bowler'},
+              {'name': 'Pankaj Roy', 'mobile': '9830200002', 'role': 'bowler'},
+            ],
+          },
+        ],
+      );
+
+      final match = db.matches.firstWhere((m) => m.tournamentId == tourn.id);
+      final teamAPlayers = db.getTeamPlayers(match.teamAId);
+      final teamBPlayers = db.getTeamPlayers(match.teamBId);
+
+      // 1. Start match with toss and chosen opening crease
+      db.startMatchWithToss(
+        matchId: match.id,
+        tossWonBy: match.teamAId,
+        tossDecision: 'bat',
+        strikerId: teamAPlayers[0].id, // Rahul Das
+        nonStrikerId: teamAPlayers[1].id, // Amiya Sen
+        bowlerId: teamBPlayers[0].id, // Suman Biswas
+      );
+
+      final inn = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 1);
+      expect(inn.currentStrikerId, equals(teamAPlayers[0].id));
+      expect(inn.currentNonStrikerId, equals(teamAPlayers[1].id));
+      expect(inn.currentBowlerId, equals(teamBPlayers[0].id));
+      expect(inn.legalBalls, equals(0));
+
+      // 2. Scorer changes striker before ball 0.1 is bowled
+      db.setStriker(inn.id, teamAPlayers[2].id); // Debayan Paul takes strike
+      expect(inn.currentStrikerId, equals(teamAPlayers[2].id));
+
+      // 3. Scorer adjusts entire crease lineup
+      db.setOpeningCrease(
+        inningsId: inn.id,
+        strikerId: teamAPlayers[1].id, // Amiya Sen
+        nonStrikerId: teamAPlayers[0].id, // Rahul Das
+        bowlerId: teamBPlayers[1].id, // Pankaj Roy
+      );
+      expect(inn.currentStrikerId, equals(teamAPlayers[1].id));
+      expect(inn.currentNonStrikerId, equals(teamAPlayers[0].id));
+      expect(inn.currentBowlerId, equals(teamBPlayers[1].id));
+    });
   });
 }

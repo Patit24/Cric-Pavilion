@@ -11,6 +11,9 @@ class CreaseHudWidget extends StatelessWidget {
   final BowlingScorecard bowlerCard;
   final VoidCallback? onSwapEnds;
   final VoidCallback? onChangeBowler;
+  final VoidCallback? onChangeStriker;
+  final VoidCallback? onChangeNonStriker;
+  final VoidCallback? onChangeOpeningCrease;
 
   const CreaseHudWidget({
     super.key,
@@ -23,7 +26,19 @@ class CreaseHudWidget extends StatelessWidget {
     required this.bowlerCard,
     this.onSwapEnds,
     this.onChangeBowler,
+    this.onChangeStriker,
+    this.onChangeNonStriker,
+    this.onChangeOpeningCrease,
   });
+
+  String _playerName(Player? p, String fallback) {
+    if (p == null) return fallback;
+    final fn = p.fullName.trim();
+    if (fn.isNotEmpty) return fn;
+    final dn = p.displayName.trim();
+    if (dn.isNotEmpty) return dn;
+    return fallback;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,29 +67,58 @@ class CreaseHudWidget extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  if (onSwapEnds != null)
-                    InkWell(
-                      onTap: onSwapEnds,
-                      borderRadius: BorderRadius.circular(6),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        child: Row(
-                          children: [
-                            Icon(Icons.swap_horiz, size: 13, color: Colors.amber),
-                            SizedBox(width: 4),
-                            Text(
-                              'Swap Ends',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onChangeOpeningCrease != null)
+                        InkWell(
+                          onTap: onChangeOpeningCrease,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF064E3B),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.5)),
                             ),
-                          ],
+                            child: const Row(
+                              children: [
+                                Icon(Icons.edit, size: 11, color: Color(0xFF34D399)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Change Openers',
+                                  style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      if (onSwapEnds != null)
+                        InkWell(
+                          onTap: onSwapEnds,
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.swap_horiz, size: 13, color: Colors.amber),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Swap Ends',
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -107,7 +151,7 @@ class CreaseHudWidget extends StatelessWidget {
                           const Text('★ ', style: TextStyle(color: Colors.amber, fontSize: 12)),
                           Expanded(
                             child: Text(
-                              striker?.displayName ?? 'Striker',
+                              _playerName(striker, 'Striker'),
                               style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -121,6 +165,21 @@ class CreaseHudWidget extends StatelessWidget {
                             ),
                             child: const Text('STRIKE', style: TextStyle(color: Colors.amber, fontSize: 8, fontWeight: FontWeight.w900)),
                           ),
+                          if (onChangeStriker != null && strikerCard.balls == 0) ...[
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: onChangeStriker,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.white12,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text('Change', style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -156,11 +215,26 @@ class CreaseHudWidget extends StatelessWidget {
                           const Text('• ', style: TextStyle(color: Colors.white30, fontSize: 12)),
                           Expanded(
                             child: Text(
-                              nonStriker?.displayName ?? 'Non-Striker',
+                              _playerName(nonStriker, 'Non-Striker'),
                               style: const TextStyle(color: Colors.white70, fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (onChangeNonStriker != null && nonStrikerCard.balls == 0) ...[
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: onChangeNonStriker,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.white12,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text('Change', style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -267,7 +341,7 @@ class CreaseHudWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            bowler!.displayName,
+                            _playerName(bowler, 'Bowler'),
                             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),

@@ -252,77 +252,410 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                 child: const Text('Next: Choose Opening Crease →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ] else ...[
-              // STEP 2: OPENING CREASE LINEUP
+              // STEP 2: OPENING CREASE LINEUP (STRIKER, NON-STRIKER & BOWLER)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFD1FAE5),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF059669)),
                 ),
-                child: Text(
-                  '🏏 ${battingTeam.name} are BATTING FIRST • ${bowlingTeam.name} are BOWLING FIRST',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF065F46), fontSize: 11, fontWeight: FontWeight.bold),
+                child: Row(
+                  children: [
+                    const Icon(Icons.sports_cricket, color: Color(0xFF065F46), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Batting First: ${battingTeam.name}',
+                            style: const TextStyle(color: Color(0xFF065F46), fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Bowling First: ${bowlingTeam.name}',
+                            style: const TextStyle(color: Color(0xFF047857), fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // STRIKER SELECTION CARD
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.amber.shade300, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Text('★', style: TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                        SizedBox(width: 6),
+                        Text(
+                          '1. Opening Striker (* Facing Ball 0.1)',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                        ),
+                        Spacer(),
+                        Text(
+                          'ON STRIKE',
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.amber),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'This batsman will face the very first ball of the match.',
+                      style: TextStyle(fontSize: 10.5, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: strikerId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                      ),
+                      items: battingPlayers.map((p) {
+                        final isSelected = p.id == strikerId;
+                        return DropdownMenuItem(
+                          value: p.id,
+                          child: Row(
+                            children: [
+                              Text(
+                                p.fullName.isNotEmpty ? p.fullName : p.displayName,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  p.battingStyle,
+                                  style: const TextStyle(fontSize: 9.5, color: Colors.black54),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => strikerId = val),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // NON-STRIKER SELECTION CARD
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Text('•', style: TextStyle(color: Color(0xFF059669), fontSize: 18, fontWeight: FontWeight.bold)),
+                        SizedBox(width: 6),
+                        Text(
+                          '2. Opening Non-Striker (Runner at Crease)',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                        ),
+                        Spacer(),
+                        Text(
+                          'BOWLER END',
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black45),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Partner batsman standing at the non-striker bowling end.',
+                      style: TextStyle(fontSize: 10.5, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: nonStrikerId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                      ),
+                      items: battingPlayers.map((p) {
+                        final isSelected = p.id == nonStrikerId;
+                        return DropdownMenuItem(
+                          value: p.id,
+                          child: Row(
+                            children: [
+                              Text(
+                                p.fullName.isNotEmpty ? p.fullName : p.displayName,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  p.battingStyle,
+                                  style: const TextStyle(fontSize: 9.5, color: Colors.black54),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => nonStrikerId = val),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // STRIKER VS NON-STRIKER DUPLICATE WARNING
+              if (strikerId != null && nonStrikerId != null && strikerId == nonStrikerId) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.shade300),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.error_outline, size: 16, color: Colors.red),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Striker and Non-Striker cannot be the same player. Please select two different opening batsmen.',
+                          style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // OPENING BOWLER SELECTION CARD
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.6)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.sports_baseball, color: Color(0xFF059669), size: 16),
+                        const SizedBox(width: 6),
+                        const Text(
+                          '3. Opening Bowler (Over 1)',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                        ),
+                        const Spacer(),
+                        Text(
+                          bowlingTeam.shortName,
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: bowlingTeam.primaryColor),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Will bowl the first over of the match for ${bowlingTeam.name}.',
+                      style: const TextStyle(fontSize: 10.5, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: bowlerId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                      ),
+                      items: bowlingPlayers.map((p) {
+                        final isSelected = p.id == bowlerId;
+                        return DropdownMenuItem(
+                          value: p.id,
+                          child: Row(
+                            children: [
+                              Text(
+                                p.fullName.isNotEmpty ? p.fullName : p.displayName,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  p.bowlingStyle,
+                                  style: const TextStyle(fontSize: 9.5, color: Colors.black54),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => bowlerId = val),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Opening Striker
-              const Text('Opening Striker (* facing ball 0.1):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: strikerId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: battingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
-                }).toList(),
-                onChanged: (val) => setState(() => strikerId = val),
-              ),
-              const SizedBox(height: 12),
+              // LIVE OPENING MATCHUP SUMMARY BANNER
+              Builder(builder: (ctx) {
+                final strikerP = battingPlayers.where((p) => p.id == strikerId).firstOrNull;
+                final nonStrikerP = battingPlayers.where((p) => p.id == nonStrikerId).firstOrNull;
+                final bowlerP = bowlingPlayers.where((p) => p.id == bowlerId).firstOrNull;
 
-              // Opening Non-Striker
-              const Text('Opening Non-Striker (other end):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: nonStrikerId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: battingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
-                }).toList(),
-                onChanged: (val) => setState(() => nonStrikerId = val),
-              ),
-              const SizedBox(height: 12),
-
-              // Opening Bowler
-              const Text('Opening Bowler (Over 1):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: bowlerId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: bowlingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.bowlingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
-                }).toList(),
-                onChanged: (val) => setState(() => bowlerId = val),
-              ),
-              const SizedBox(height: 24),
+                if (strikerP != null && bowlerP != null) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF032219),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF059669)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'OPENING CREASE LINEUP PREVIEW',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF34D399), fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text('★ ', style: TextStyle(color: Colors.amber, fontSize: 11)),
+                                      Expanded(
+                                        child: Text(
+                                          strikerP.fullName.isNotEmpty ? strikerP.fullName : strikerP.displayName,
+                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (nonStrikerP != null) ...[
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        const Text('• ', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                                        Expanded(
+                                          child: Text(
+                                            nonStrikerP.fullName.isNotEmpty ? nonStrikerP.fullName : nonStrikerP.displayName,
+                                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF064E3B),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text('vs', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      const Icon(Icons.sports_baseball, color: Color(0xFF34D399), size: 12),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          bowlerP.fullName.isNotEmpty ? bowlerP.fullName : bowlerP.displayName,
+                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${bowlingTeam.name} (Over 1)',
+                                    style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+              const SizedBox(height: 20),
 
               Row(
                 children: [
-                  TextButton(
+                  TextButton.icon(
                     onPressed: () => setState(() => currentStep = 1),
-                    child: const Text('← Back'),
+                    icon: const Icon(Icons.arrow_back, size: 14),
+                    label: const Text('Toss', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const Spacer(),
                   ElevatedButton(
@@ -340,10 +673,15 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF059669),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 2,
                     ),
-                    child: const Text('Start Live Scoring 0.1 →', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Confirm Lineup & Start Match (0.1) 🚀',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12.5),
+                    ),
                   ),
                 ],
               ),

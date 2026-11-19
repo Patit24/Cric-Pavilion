@@ -214,50 +214,98 @@ class _ScorerScreenState extends State<ScorerScreen> {
               );
             },
           ),
-          if (!isScorer) ...[
-            TextButton.icon(
-              onPressed: () => _showEnterRoomDialog(context, db, match),
-              icon: const Icon(Icons.vpn_key, size: 13, color: Colors.white),
-              label: const Text('Enter', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-            ),
-          ] else ...[
-            IconButton(
-              tooltip: 'Exit Scorer',
-              icon: const Icon(Icons.lock, size: 16, color: Colors.white),
-              onPressed: () {
-                db.lockScoringRoom(match.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Locked scoring console. Returned to Spectator Mode.')),
-                );
-              },
-            ),
-            IconButton(
-              tooltip: 'Reset Match',
-              icon: const Icon(Icons.refresh, color: Colors.white70, size: 18),
-              onPressed: () => _confirmResetMatch(context, db, match),
-            ),
-          ],
-          IconButton(
-            tooltip: 'Tournament Page & Leaderboards',
-            icon: const Icon(Icons.emoji_events, color: Colors.amberAccent, size: 20),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (ctx) => TournamentHubScreen(initialTournamentId: match.tournamentId),
+          // Overflow-proof Secondary Actions Popup Menu
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+            tooltip: 'Match Options',
+            color: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            onSelected: (value) {
+              switch (value) {
+                case 'scorecard':
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => FullScorecardDialog(match: match, db: db),
+                  );
+                  break;
+                case 'tournament':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => TournamentHubScreen(initialTournamentId: match.tournamentId),
+                    ),
+                  );
+                  break;
+                case 'enter_scorer':
+                  _showEnterRoomDialog(context, db, match);
+                  break;
+                case 'exit_scorer':
+                  db.lockScoringRoom(match.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Locked scoring console. Returned to Spectator Mode.')),
+                  );
+                  break;
+                case 'reset_match':
+                  _confirmResetMatch(context, db, match);
+                  break;
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'scorecard',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart, color: Colors.white70, size: 17),
+                    SizedBox(width: 10),
+                    Text('Full Scorecard', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  ],
                 ),
-              );
-            },
-          ),
-          IconButton(
-            tooltip: 'View Full Scorecard',
-            icon: const Icon(Icons.table_chart, color: Colors.white, size: 18),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => FullScorecardDialog(match: match, db: db),
-              );
-            },
+              ),
+              const PopupMenuItem(
+                value: 'tournament',
+                child: Row(
+                  children: [
+                    Icon(Icons.emoji_events, color: Colors.amberAccent, size: 17),
+                    SizedBox(width: 10),
+                    Text('Tournament Hub', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(height: 8),
+              if (!isScorer)
+                const PopupMenuItem(
+                  value: 'enter_scorer',
+                  child: Row(
+                    children: [
+                      Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 17),
+                      SizedBox(width: 10),
+                      Text('Enter Scorer Mode', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                )
+              else ...[
+                const PopupMenuItem(
+                  value: 'reset_match',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh, color: Colors.amberAccent, size: 17),
+                      SizedBox(width: 10),
+                      Text('Reset Match', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'exit_scorer',
+                  child: Row(
+                    children: [
+                      Icon(Icons.lock, color: Colors.redAccent, size: 17),
+                      SizedBox(width: 10),
+                      Text('Exit Scorer Mode', style: TextStyle(color: Colors.redAccent, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(width: 4),
         ],
@@ -964,6 +1012,35 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
                         }
                       : null,
+                  onChangeStriker: isScorer && currentInnings.legalBalls == 0
+                      ? () => _showBatterSelectDialog(
+                            context,
+                            db,
+                            currentInnings,
+                            battingTeamPlayers,
+                            isStriker: true,
+                            otherBatterId: currentInnings.currentNonStrikerId,
+                          )
+                      : null,
+                  onChangeNonStriker: isScorer && currentInnings.legalBalls == 0
+                      ? () => _showBatterSelectDialog(
+                            context,
+                            db,
+                            currentInnings,
+                            battingTeamPlayers,
+                            isStriker: false,
+                            otherBatterId: currentInnings.currentStrikerId,
+                          )
+                      : null,
+                  onChangeOpeningCrease: isScorer && currentInnings.legalBalls == 0
+                      ? () => _showOpeningCreaseDialog(
+                            context,
+                            db,
+                            currentInnings,
+                            battingTeamPlayers,
+                            bowlingTeamPlayers,
+                          )
+                      : null,
                 ),
               ],
             ),
@@ -1224,7 +1301,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
                 },
                 icon: const Icon(Icons.person, size: 14, color: Color(0xFF34D399)),
-                label: Text(bowler?.displayName ?? 'Pick Bowler', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                label: Text(
+                  _formatPlayerName(bowler, 'Pick Bowler'),
+                  style: const TextStyle(color: Color(0xFF34D399), fontSize: 11),
+                ),
               ),
             ],
           ),
@@ -1586,6 +1666,205 @@ class _ScorerScreenState extends State<ScorerScreen> {
   // ==========================================
   // HELPER DIALOGS
   // ==========================================
+
+  String _formatPlayerName(Player? p, String fallback) {
+    if (p == null) return fallback;
+    final fn = p.fullName.trim();
+    if (fn.isNotEmpty) return fn;
+    final dn = p.displayName.trim();
+    if (dn.isNotEmpty) return dn;
+    return fallback;
+  }
+
+  void _showBatterSelectDialog(
+    BuildContext context,
+    MockDatabase db,
+    Innings inn,
+    List<Player> batters, {
+    required bool isStriker,
+    String? otherBatterId,
+  }) {
+    final available = batters.where((p) => p.id != otherBatterId).toList();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                isStriker ? 'SELECT OPENING STRIKER (Facing 0.1)' : 'SELECT OPENING NON-STRIKER',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ...available.map((p) {
+                final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isStriker ? Colors.amber.withValues(alpha: 0.2) : const Color(0xFF009270).withValues(alpha: 0.2),
+                    child: Icon(isStriker ? Icons.sports_cricket : Icons.directions_run, color: isStriker ? Colors.amber : const Color(0xFF34D399), size: 18),
+                  ),
+                  title: Text(pName, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                  subtitle: Text(p.battingStyle, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    if (isStriker) {
+                      db.setStriker(inn.id, p.id);
+                    } else {
+                      db.setNonStriker(inn.id, p.id);
+                    }
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOpeningCreaseDialog(
+    BuildContext context,
+    MockDatabase db,
+    Innings inn,
+    List<Player> battingPlayers,
+    List<Player> bowlingPlayers,
+  ) {
+    String? curStrikerId = inn.currentStrikerId;
+    String? curNonStrikerId = inn.currentNonStrikerId;
+    String? curBowlerId = inn.currentBowlerId;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return StatefulBuilder(builder: (sheetCtx, setSheetState) {
+          final isSameBatter = curStrikerId != null && curNonStrikerId != null && curStrikerId == curNonStrikerId;
+          return Padding(
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'CHANGE OPENING CREASE LINEUP (0.0)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Striker
+                  const Text('Opening Striker (* facing ball 0.1):', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: curStrikerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: battingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setSheetState(() => curStrikerId = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Non-Striker
+                  const Text('Opening Non-Striker (runner):', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: curNonStrikerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: battingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setSheetState(() => curNonStrikerId = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  if (isSameBatter) ...[
+                    const Text('⚠️ Striker & Non-Striker must be different players.', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Bowler
+                  const Text('Opening Bowler (Over 1):', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: curBowlerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: bowlingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setSheetState(() => curBowlerId = val),
+                  ),
+                  const SizedBox(height: 18),
+
+                  ElevatedButton(
+                    onPressed: (!isSameBatter && curStrikerId != null && curNonStrikerId != null && curBowlerId != null)
+                        ? () {
+                            Navigator.pop(ctx);
+                            db.setOpeningCrease(
+                              inningsId: inn.id,
+                              strikerId: curStrikerId!,
+                              nonStrikerId: curNonStrikerId!,
+                              bowlerId: curBowlerId!,
+                            );
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF009270),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Save Crease Lineup', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
 
   void _showBowlerSelectDialog(BuildContext context, MockDatabase db, Innings inn, List<Player> bowlers, String? prevBowlerId) {
     showDialog(

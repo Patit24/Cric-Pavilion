@@ -69,8 +69,8 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
     });
   }
 
-  void _autoFillSampleSquad(List<Map<String, dynamic>> targetList, String teamPrefix, String baseMobilePrefix) {
-    final names = [
+  void _autoFillSampleSquad(List<Map<String, dynamic>> targetList, int teamIndex, String baseMobilePrefix) {
+    final namesA = [
       'Rahul Sharma',
       'Amit Verma',
       'Suman Das',
@@ -84,13 +84,29 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
       'Manoj Tiwary',
     ];
 
+    final namesB = [
+      'Sourav Mondal',
+      'Rohit Banerjee',
+      'Suraj Singh',
+      'Ankit Gupta',
+      'Pradeep Kumar',
+      'Kunal Ghosh',
+      'Sanjay Dutt',
+      'Rajesh Mondal',
+      'Subir Roy',
+      'Avik Mukherjee',
+      'Gopal Das',
+    ];
+
+    final names = teamIndex == 0 ? namesA : namesB;
+
     setState(() {
       targetList.clear();
       for (int i = 0; i < names.length; i++) {
         final role = i < 4 ? 'batter' : (i < 6 ? 'wicketkeeper' : (i < 8 ? 'allrounder' : 'bowler'));
         targetList.add({
-          'nameController': TextEditingController(text: '$teamPrefix ${names[i]}'),
-          'mobileController': TextEditingController(text: '$baseMobilePrefix${1000 + i}'),
+          'nameController': TextEditingController(text: names[i]),
+          'mobileController': TextEditingController(text: '${baseMobilePrefix}00${(i + 1).toString().padLeft(2, "0")}'),
           'role': role,
         });
       }
@@ -176,7 +192,13 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                         children: [
                           CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamA.logoUrl)),
                           const SizedBox(width: 6),
-                          Text(teamA.name, overflow: TextOverflow.ellipsis),
+                          Flexible(
+                            child: Text(
+                              teamA.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           Text('(${teamAPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
                         ],
@@ -188,7 +210,13 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                         children: [
                           CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamB.logoUrl)),
                           const SizedBox(width: 6),
-                          Text(teamB.name, overflow: TextOverflow.ellipsis),
+                          Flexible(
+                            child: Text(
+                              teamB.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           Text('(${teamBPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
                         ],
@@ -266,36 +294,66 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
   }
 
   Widget _buildTeamEditor(Team team, List<Map<String, dynamic>> playerList, String teamLetter, String mockPrefix) {
+    final teamIndex = teamLetter == 'A' ? 0 : 1;
     return Column(
       children: [
-        // Top Action Bar for this team
+        // Top Action Bar for this team (Responsive, Overflow-Proof)
         Row(
           children: [
-            Text(
-              '${team.name} Squad (${playerList.length} Players)',
-              style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                '${team.name} Squad (${playerList.length} Players)',
+                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: () => _autoFillSampleSquad(playerList, team.shortName, mockPrefix),
-              icon: const Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
-              label: const Text('Auto-Fill 11 Players', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () => _autoFillSampleSquad(playerList, teamIndex, mockPrefix),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
+                    SizedBox(width: 4),
+                    Text('Auto 11', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 4),
-            OutlinedButton.icon(
-              onPressed: () => _addEmptyRow(playerList),
-              icon: const Icon(Icons.add, size: 12, color: Color(0xFF34D399)),
-              label: const Text('+ Player', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF059669)),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            const SizedBox(width: 6),
+            InkWell(
+              onTap: () => _addEmptyRow(playerList),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF009270).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF059669)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.add, size: 12, color: Color(0xFF34D399)),
+                    SizedBox(width: 4),
+                    Text('+ Player', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
 
-        // Player rows list
+        // Player rows list (2-line responsive cards: never overflows)
         Expanded(
           child: ListView.separated(
             itemCount: playerList.length,
@@ -307,93 +365,99 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
               final role = row['role'] as String;
 
               return Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.white12),
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: const Color(0xFF1E293B),
-                      child: Text('${index + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(width: 8),
-                    // Player Name Field
-                    Expanded(
-                      flex: 4,
-                      child: TextField(
-                        controller: nameCtrl,
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                        decoration: InputDecoration(
-                          hintText: 'Player Name *',
-                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-                          isDense: true,
-                          filled: true,
-                          fillColor: const Color(0xFF1E293B),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    // Line 1: Index + Name + Role Dropdown + Delete
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 10,
+                          backgroundColor: const Color(0xFF1E293B),
+                          child: Text('${index + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Mobile Number Field
-                    Expanded(
-                      flex: 4,
-                      child: TextField(
-                        controller: mobileCtrl,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                        decoration: InputDecoration(
-                          hintText: 'Mobile Number *',
-                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-                          isDense: true,
-                          filled: true,
-                          fillColor: const Color(0xFF1E293B),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: nameCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            decoration: const InputDecoration(
+                              hintText: 'Player Name *',
+                              hintStyle: TextStyle(color: Colors.white38, fontSize: 11),
+                              isDense: true,
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(vertical: 4),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Role Dropdown
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: role,
-                          dropdownColor: const Color(0xFF1E293B),
-                          icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 16),
-                          style: const TextStyle(color: Colors.white, fontSize: 11),
-                          items: const [
-                            DropdownMenuItem(value: 'batter', child: Text('Bat')),
-                            DropdownMenuItem(value: 'bowler', child: Text('Bowl')),
-                            DropdownMenuItem(value: 'allrounder', child: Text('All-R')),
-                            DropdownMenuItem(value: 'wicketkeeper', child: Text('WK')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => row['role'] = val);
-                            }
-                          },
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: role,
+                              dropdownColor: const Color(0xFF1E293B),
+                              isDense: true,
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 16),
+                              style: const TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold),
+                              items: const [
+                                DropdownMenuItem(value: 'batter', child: Text('Bat')),
+                                DropdownMenuItem(value: 'bowler', child: Text('Bowl')),
+                                DropdownMenuItem(value: 'allrounder', child: Text('All-R')),
+                                DropdownMenuItem(value: 'wicketkeeper', child: Text('WK')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() => row['role'] = val);
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                      ),
+                        if (playerList.length > 2) ...[
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                            onPressed: () {
+                              setState(() => playerList.removeAt(index));
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ],
                     ),
-                    if (playerList.length > 2) ...[
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
-                        onPressed: () {
-                          setState(() => playerList.removeAt(index));
-                        },
-                      ),
-                    ],
+                    const Divider(color: Colors.white10, height: 8),
+                    // Line 2: Phone Icon + Mobile Input
+                    Row(
+                      children: [
+                        const Icon(Icons.phone, size: 12, color: Color(0xFF34D399)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: TextField(
+                            controller: mobileCtrl,
+                            keyboardType: TextInputType.phone,
+                            style: const TextStyle(color: Colors.white, fontSize: 11.5),
+                            decoration: const InputDecoration(
+                              hintText: '10-digit Mobile Number *',
+                              hintStyle: TextStyle(color: Colors.white38, fontSize: 10.5),
+                              isDense: true,
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(vertical: 2),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               );
