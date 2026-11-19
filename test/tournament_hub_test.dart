@@ -197,5 +197,93 @@ void main() {
       expect(updatedStriker.runs, greaterThanOrEqualTo(51));
       expect(updatedStriker.sixes, greaterThanOrEqualTo(2));
     });
+
+    test('Tournament format (overs, venue, name) and teams are fully editable', () {
+      final db = MockDatabase();
+
+      final createdTourn = db.createTournament(
+        name: 'Initial Cup',
+        shortName: 'IC',
+        location: 'Ground A',
+        overs: 20,
+        roomId: 'TOURN-IC',
+        totalTeams: 2,
+        passcode: '9999',
+        createAuction: false,
+        customTeamsWithPlayers: [
+          {'name': 'Team 1', 'shortName': 'T1', 'color': const Color(0xFF009270), 'players': <Map<String, String>>[]},
+          {'name': 'Team 2', 'shortName': 'T2', 'color': const Color(0xFF2563EB), 'players': <Map<String, String>>[]},
+        ],
+      );
+
+      // Verify initial setup
+      expect(createdTourn.overs, equals(20));
+      expect(createdTourn.name, equals('Initial Cup'));
+
+      // 1. Edit Tournament Format to 12 overs and new ground
+      db.updateTournament(
+        tournamentId: createdTourn.id,
+        name: 'Premier Box Cup 2026',
+        shortName: 'PBC',
+        location: 'Indoor Turf Arena',
+        overs: 12,
+        passcode: '1111',
+      );
+
+      final updatedTourn = db.tournaments.firstWhere((t) => t.id == createdTourn.id);
+      expect(updatedTourn.name, equals('Premier Box Cup 2026'));
+      expect(updatedTourn.shortName, equals('PBC'));
+      expect(updatedTourn.location, equals('Indoor Turf Arena'));
+      expect(updatedTourn.overs, equals(12));
+      expect(updatedTourn.passcode, equals('1111'));
+
+      // 2. Edit Team Details
+      final tournTeams = db.teams.where((t) => t.tournamentId == createdTourn.id).toList();
+      final teamToEdit = tournTeams.first;
+
+      db.updateTeam(
+        teamId: teamToEdit.id,
+        name: 'Super Kings XI',
+        shortName: 'SKXI',
+        primaryColor: const Color(0xFFD97706),
+      );
+
+      final editedTeam = db.getTeam(teamToEdit.id);
+      expect(editedTeam?.name, equals('Super Kings XI'));
+      expect(editedTeam?.shortName, equals('SKXI'));
+      expect(editedTeam?.primaryColor, equals(const Color(0xFFD97706)));
+
+      // 3. Add and manage squad players with mobile numbers
+      final p1 = db.addPlayerToTeam(
+        teamId: teamToEdit.id,
+        fullName: 'Rahul Sharma',
+        mobileNumber: '9876543210',
+        role: PlayerRole.batsman,
+      );
+
+      expect(p1.fullName, equals('Rahul Sharma'));
+      expect(p1.mobileNumber, equals('9876543210'));
+      expect(p1.teamId, equals(teamToEdit.id));
+
+      // Update player details
+      db.updatePlayer(
+        playerId: p1.id,
+        fullName: 'Rahul S. Sharma',
+        mobileNumber: '9876500000',
+        role: PlayerRole.allRounder,
+      );
+
+      final updatedPlayer = db.getPlayer(p1.id);
+      expect(updatedPlayer?.fullName, equals('Rahul S. Sharma'));
+      expect(updatedPlayer?.mobileNumber, equals('9876500000'));
+      expect(updatedPlayer?.role, equals(PlayerRole.allRounder));
+
+      // 4. Delete team
+      final teamCountBefore = db.teams.where((t) => t.tournamentId == createdTourn.id).length;
+      db.deleteTeam(teamToEdit.id);
+      final teamCountAfter = db.teams.where((t) => t.tournamentId == createdTourn.id).length;
+      expect(teamCountAfter, equals(teamCountBefore - 1));
+      expect(db.getTeam(teamToEdit.id), isNull);
+    });
   });
 }

@@ -138,29 +138,37 @@ class _ScorerScreenState extends State<ScorerScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selectedMatchId,
-                dropdownColor: const Color(0xFF1F2937),
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                items: db.matches.map((m) {
-                  return DropdownMenuItem<String>(
-                    value: m.id,
-                    child: Text('${m.stage} (${m.status.name.toUpperCase()})'),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      selectedMatchId = val;
-                      final newMatch = db.matches.where((m) => m.id == val).firstOrNull;
-                      if (newMatch != null) {
-                        selectedInningsNum = newMatch.currentInningsNumber;
-                      }
-                    });
-                  }
-                },
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 180),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedMatchId,
+                  isExpanded: true,
+                  isDense: true,
+                  dropdownColor: const Color(0xFF1F2937),
+                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  items: db.matches.map((m) {
+                    return DropdownMenuItem<String>(
+                      value: m.id,
+                      child: Text(
+                        '${m.stage} (${m.status.name.toUpperCase()})',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        selectedMatchId = val;
+                        final newMatch = db.matches.where((m) => m.id == val).firstOrNull;
+                        if (newMatch != null) {
+                          selectedInningsNum = newMatch.currentInningsNumber;
+                        }
+                      });
+                    }
+                  },
+                ),
               ),
             ),
             Row(

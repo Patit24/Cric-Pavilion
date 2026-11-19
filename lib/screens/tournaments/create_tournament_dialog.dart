@@ -21,7 +21,13 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   final locationController = TextEditingController();
   final roomController = TextEditingController();
   final passController = TextEditingController();
+
+  // FORMAT IS EDITABLE: Controller for custom overs + quick presets
+  final oversController = TextEditingController(text: '20');
   int selectedOvers = 20;
+
+  // TEAMS COUNT IS EDITABLE: Stepper / editable text + dynamic teams list
+  final teamsCountController = TextEditingController(text: '2');
   int selectedTeamCount = 2; // Default 2 teams
   bool autoCreateAuction = false;
 
@@ -57,6 +63,45 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     });
   }
 
+  void _addNewTeam() {
+    setState(() {
+      final i = customTeams.length;
+      customTeams.add({
+        'nameController': TextEditingController(),
+        'shortController': TextEditingController(),
+        'color': defaultColors[i % defaultColors.length],
+        'players': <Map<String, dynamic>>[],
+      });
+      selectedTeamCount = customTeams.length;
+      teamsCountController.text = '${customTeams.length}';
+      selectedTeamIndex = i;
+    });
+  }
+
+  void _removeTeam(int index) {
+    if (customTeams.length <= 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A tournament requires at least 2 teams.')),
+      );
+      return;
+    }
+    setState(() {
+      final removed = customTeams.removeAt(index);
+      (removed['nameController'] as TextEditingController).dispose();
+      (removed['shortController'] as TextEditingController).dispose();
+      final pList = removed['players'] as List<Map<String, dynamic>>;
+      for (final p in pList) {
+        (p['nameController'] as TextEditingController).dispose();
+        (p['mobileController'] as TextEditingController).dispose();
+      }
+      selectedTeamCount = customTeams.length;
+      teamsCountController.text = '${customTeams.length}';
+      if (selectedTeamIndex >= customTeams.length) {
+        selectedTeamIndex = customTeams.length - 1;
+      }
+    });
+  }
+
   @override
   void dispose() {
     nameController.dispose();
@@ -64,6 +109,8 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     locationController.dispose();
     roomController.dispose();
     passController.dispose();
+    oversController.dispose();
+    teamsCountController.dispose();
     for (final t in customTeams) {
       (t['nameController'] as TextEditingController).dispose();
       (t['shortController'] as TextEditingController).dispose();
@@ -182,8 +229,8 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                         const SizedBox(height: 2),
                         Text(
                           currentStep == 1
-                              ? 'Format, overs, venue & scorer PIN'
-                              : 'Teams & players with mobile numbers (Can skip)',
+                              ? 'Format & overs are editable • Configure venue & scorer PIN'
+                              : 'Teams & players are fully editable • Add/remove teams',
                           style: const TextStyle(color: Colors.white60, fontSize: 10.5),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -240,7 +287,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   }
 
   // =========================================================================
-  // STEP 1: TOURNAMENT DETAILS (RESPONSIVE & CLEAN MANUAL INPUT)
+  // STEP 1: TOURNAMENT DETAILS (FORMAT & TEAMS EDITABLE)
   // =========================================================================
   Widget _buildStep1TournamentDetails() {
     return SingleChildScrollView(
@@ -263,7 +310,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           ),
           const SizedBox(height: 10),
 
-          // Short Code & Format (Responsive)
+          // Short Code & Format (EDITABLE OVERS)
           LayoutBuilder(
             builder: (ctx, constraints) {
               if (constraints.maxWidth < 280) {
@@ -271,7 +318,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   children: [
                     _buildShortCodeField(),
                     const SizedBox(height: 8),
-                    _buildOversDropdown(),
+                    _buildEditableFormatField(),
                   ],
                 );
               }
@@ -279,14 +326,31 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 children: [
                   Expanded(child: _buildShortCodeField()),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildOversDropdown()),
+                  Expanded(child: _buildEditableFormatField()),
                 ],
               );
             },
           ),
+
+          // Quick Format Preset Chips
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const Text('Format Presets: ', style: TextStyle(color: Colors.white54, fontSize: 10)),
+                _buildFormatChip('T6', 6),
+                _buildFormatChip('T10', 10),
+                _buildFormatChip('15 Ov', 15),
+                _buildFormatChip('T20', 20),
+                _buildFormatChip('30 Ov', 30),
+                _buildFormatChip('ODI (50)', 50),
+              ],
+            ),
+          ),
           const SizedBox(height: 10),
 
-          // Location & Teams Count (Responsive)
+          // Location & Teams Count (EDITABLE TEAMS COUNT)
           LayoutBuilder(
             builder: (ctx, constraints) {
               if (constraints.maxWidth < 280) {
@@ -294,7 +358,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   children: [
                     _buildLocationField(),
                     const SizedBox(height: 8),
-                    _buildTeamsCountDropdown(),
+                    _buildEditableTeamsCountField(),
                   ],
                 );
               }
@@ -302,14 +366,14 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 children: [
                   Expanded(flex: 6, child: _buildLocationField()),
                   const SizedBox(width: 8),
-                  Expanded(flex: 4, child: _buildTeamsCountDropdown()),
+                  Expanded(flex: 4, child: _buildEditableTeamsCountField()),
                 ],
               );
             },
           ),
           const SizedBox(height: 12),
 
-          // Security Scorer Access Box (Header & Fields Fixed)
+          // Security Scorer Access Box
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -372,6 +436,34 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     );
   }
 
+  Widget _buildFormatChip(String label, int overs) {
+    final isSelected = selectedOvers == overs;
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            selectedOvers = overs;
+            oversController.text = '$overs';
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF009270) : const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white24),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildShortCodeField() {
     return TextField(
       controller: shortController,
@@ -399,27 +491,29 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     );
   }
 
-  Widget _buildOversDropdown() {
-    return DropdownButtonFormField<int>(
-      value: selectedOvers,
-      isExpanded: true,
-      dropdownColor: const Color(0xFF1E293B),
+  // 100% EDITABLE MATCH FORMAT (OVERS)
+  Widget _buildEditableFormatField() {
+    return TextField(
+      controller: oversController,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
       decoration: InputDecoration(
-        labelText: 'Format',
+        labelText: 'Match Overs (Format) *',
+        hintText: '20',
+        suffixText: 'Ov',
+        suffixStyle: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
         labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         filled: true,
         fillColor: const Color(0xFF0F172A),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      style: const TextStyle(color: Colors.white, fontSize: 12),
-      items: const [
-        DropdownMenuItem(value: 20, child: Text('T20 (20 Ov)', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 10, child: Text('T10 (10 Ov)', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 15, child: Text('15 Overs', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 50, child: Text('ODI (50 Ov)', overflow: TextOverflow.ellipsis)),
-      ],
-      onChanged: (val) => setState(() => selectedOvers = val ?? 20),
+      onChanged: (val) {
+        final parsed = int.tryParse(val.trim());
+        if (parsed != null && parsed > 0) {
+          setState(() => selectedOvers = parsed);
+        }
+      },
     );
   }
 
@@ -440,34 +534,68 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     );
   }
 
-  Widget _buildTeamsCountDropdown() {
-    return DropdownButtonFormField<int>(
-      value: selectedTeamCount,
-      isExpanded: true,
-      dropdownColor: const Color(0xFF1E293B),
-      decoration: InputDecoration(
-        labelText: 'Teams',
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  // 100% EDITABLE TEAMS COUNT
+  Widget _buildEditableTeamsCountField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white24),
       ),
-      style: const TextStyle(color: Colors.white, fontSize: 12),
-      items: const [
-        DropdownMenuItem(value: 2, child: Text('2 Teams', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 4, child: Text('4 Teams', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 6, child: Text('6 Teams', overflow: TextOverflow.ellipsis)),
-        DropdownMenuItem(value: 8, child: Text('8 Teams', overflow: TextOverflow.ellipsis)),
-      ],
-      onChanged: (val) {
-        if (val != null) {
-          setState(() {
-            selectedTeamCount = val;
-            _initCustomTeams(val);
-          });
-        }
-      },
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: Colors.white60, size: 18),
+            onPressed: () {
+              if (selectedTeamCount > 2) {
+                setState(() {
+                  selectedTeamCount--;
+                  teamsCountController.text = '$selectedTeamCount';
+                  _initCustomTeams(selectedTeamCount);
+                });
+              }
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
+          ),
+          Expanded(
+            child: TextField(
+              controller: teamsCountController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8),
+              ),
+              onChanged: (val) {
+                final parsed = int.tryParse(val.trim());
+                if (parsed != null && parsed >= 2 && parsed <= 24) {
+                  setState(() {
+                    selectedTeamCount = parsed;
+                    _initCustomTeams(parsed);
+                  });
+                }
+              },
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, color: Color(0xFF34D399), size: 18),
+            onPressed: () {
+              if (selectedTeamCount < 24) {
+                setState(() {
+                  selectedTeamCount++;
+                  teamsCountController.text = '$selectedTeamCount';
+                  _initCustomTeams(selectedTeamCount);
+                });
+              }
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
+          ),
+        ],
+      ),
     );
   }
 
@@ -506,11 +634,11 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   }
 
   // =========================================================================
-  // STEP 2: TEAM DETAILS & PLAYER DETAILS (WITH MOBILE NUMBERS)
+  // STEP 2: TEAM DETAILS & PLAYER DETAILS (FULLY EDITABLE TEAMS)
   // =========================================================================
   Widget _buildStep2TeamPlayerDetails() {
     if (selectedTeamIndex >= customTeams.length) {
-      selectedTeamIndex = 0;
+      selectedTeamIndex = customTeams.isNotEmpty ? customTeams.length - 1 : 0;
     }
     final activeTeamData = customTeams[selectedTeamIndex];
     final teamNameCtrl = activeTeamData['nameController'] as TextEditingController;
@@ -520,45 +648,55 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Teams Selector Chips
+        // Teams Selector Chips + ADD TEAM BUTTON
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: customTeams.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final t = entry.value;
-              final isSelected = selectedTeamIndex == idx;
-              final name = (t['nameController'] as TextEditingController).text.trim();
-              final label = name.isNotEmpty ? name : 'Team ${idx + 1}';
-              final pCount = (t['players'] as List).length;
+            children: [
+              ...customTeams.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final t = entry.value;
+                final isSelected = selectedTeamIndex == idx;
+                final name = (t['nameController'] as TextEditingController).text.trim();
+                final label = name.isNotEmpty ? name : 'Team ${idx + 1}';
+                final pCount = (t['players'] as List).length;
 
-              return Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: ChoiceChip(
-                  selected: isSelected,
-                  label: Text('$label ($pCount)'),
-                  selectedColor: const Color(0xFF009270),
-                  backgroundColor: const Color(0xFF0F172A),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    selected: isSelected,
+                    label: Text('$label ($pCount)'),
+                    selectedColor: const Color(0xFF009270),
+                    backgroundColor: const Color(0xFF0F172A),
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : Colors.white70,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    onSelected: (val) {
+                      if (val) setState(() => selectedTeamIndex = idx);
+                    },
                   ),
-                  onSelected: (val) {
-                    if (val) setState(() => selectedTeamIndex = idx);
-                  },
-                ),
-              );
-            }).toList(),
+                );
+              }),
+              // EDITABLE TEAMS: DYNAMIC + ADD TEAM BUTTON
+              ActionChip(
+                onPressed: _addNewTeam,
+                avatar: const Icon(Icons.add, size: 14, color: Color(0xFF34D399)),
+                label: const Text('+ Add Team', style: TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                backgroundColor: const Color(0xFF0F172A),
+                side: const BorderSide(color: Color(0xFF059669)),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 10),
 
-        // Team Name & Short Code Inputs (Responsive)
+        // Team Name & Short Code Inputs + DELETE TEAM BUTTON
         Row(
           children: [
             Expanded(
-              flex: 7,
+              flex: 6,
               child: TextField(
                 controller: teamNameCtrl,
                 style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -576,7 +714,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 onChanged: (_) => setState(() {}),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Expanded(
               flex: 3,
               child: TextField(
@@ -595,6 +733,14 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 ),
               ),
             ),
+            if (customTeams.length > 2) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                tooltip: 'Delete this team',
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                onPressed: () => _removeTeam(selectedTeamIndex),
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 10),
@@ -880,6 +1026,8 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
       return;
     }
 
+    final effectiveOvers = int.tryParse(oversController.text.trim()) ?? selectedOvers;
+
     List<Map<String, dynamic>>? formattedTeams;
 
     if (!skipPlayers) {
@@ -938,10 +1086,10 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
       name: nameController.text.trim(),
       shortName: shortController.text.trim(),
       location: effectiveLocation,
-      overs: selectedOvers,
+      overs: effectiveOvers,
       roomId: effectiveRoomId,
       passcode: effectivePasscode,
-      totalTeams: selectedTeamCount,
+      totalTeams: customTeams.length,
       createAuction: autoCreateAuction,
       customTeamsWithPlayers: formattedTeams,
     );
@@ -950,7 +1098,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: const Color(0xFF009270),
-        content: Text('Tournament "${created.name}" created! (PIN: ${created.passcode})'),
+        content: Text('Tournament "${created.name}" created (${created.overs} Ov)! (PIN: ${created.passcode})'),
       ),
     );
 

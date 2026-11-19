@@ -272,12 +272,13 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: strikerId,
+                isExpanded: true,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items: battingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12)));
+                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
                 }).toList(),
                 onChanged: (val) => setState(() => strikerId = val),
               ),
@@ -288,12 +289,13 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: nonStrikerId,
+                isExpanded: true,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items: battingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12)));
+                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.battingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
                 }).toList(),
                 onChanged: (val) => setState(() => nonStrikerId = val),
               ),
@@ -304,12 +306,13 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 value: bowlerId,
+                isExpanded: true,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items: bowlingPlayers.map((p) {
-                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.bowlingStyle})', style: const TextStyle(fontSize: 12)));
+                  return DropdownMenuItem(value: p.id, child: Text('${p.fullName} (${p.bowlingStyle})', style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
                 }).toList(),
                 onChanged: (val) => setState(() => bowlerId = val),
               ),

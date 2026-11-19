@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -135,6 +136,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         actions: [
           const RoleSwitcherChip(compact: true),
           const SizedBox(width: 4),
+          if (canScore)
+            IconButton(
+              tooltip: 'Edit Format & Tournament',
+              icon: const Icon(Icons.tune, color: Colors.amberAccent, size: 20),
+              onPressed: () => _showEditTournamentDialog(context, db, activeTourn),
+            ),
           IconButton(
             tooltip: 'Organize New Tournament',
             icon: const Icon(Icons.add_circle, color: Colors.white, size: 22),
@@ -446,7 +453,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     else
                       Wrap(
                         spacing: 6,
+                        runSpacing: 4,
                         children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _showEditTournamentDialog(context, db, activeTourn),
+                            icon: const Icon(Icons.tune, size: 11, color: Colors.amberAccent),
+                            label: const Text('Edit Format', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.amberAccent),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            ),
+                          ),
                           OutlinedButton.icon(
                             onPressed: () => _showScheduleMatchDialog(context, db, activeTourn),
                             icon: const Icon(Icons.calendar_today, size: 11, color: Colors.white),
@@ -1426,6 +1443,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
   // =========================================================================
   Widget _buildTeamsTab(BuildContext context, MockDatabase db, Tournament tourn) {
     final tournTeams = db.teams.where((t) => t.tournamentId == tourn.id).toList();
+    final canScore = db.hasTournamentScorerAccess(tourn.id);
 
     if (tournTeams.isEmpty) {
       return Center(
@@ -1438,82 +1456,187 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               const SizedBox(height: 12),
               const Text('No teams added to this tournament yet.', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () => _showAddTeamDialog(context, db, tourn),
-                icon: const Icon(Icons.add, size: 14),
-                label: const Text('Add Team', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009270), foregroundColor: Colors.white),
-              ),
+              if (canScore)
+                ElevatedButton.icon(
+                  onPressed: () => _showAddTeamDialog(context, db, tourn),
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('Add First Team', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009270), foregroundColor: Colors.white),
+                ),
             ],
           ),
         ),
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.95,
-      ),
-      itemCount: tournTeams.length,
-      itemBuilder: (ctx, index) {
-        final t = tournTeams[index];
-        final squad = db.players.where((p) => p.teamId == t.id).toList();
-
-        return Card(
+    return Column(
+      children: [
+        // Teams Header Strip with Add Team Action
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           color: const Color(0xFF1E293B),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: t.primaryColor.withValues(alpha: 0.5)),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => _showTeamSquadSheet(context, db, t, squad),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(radius: 24, backgroundImage: NetworkImage(t.logoUrl)),
-                  const SizedBox(height: 8),
-                  Text(
-                    t.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    t.uniqueTeamCode.isNotEmpty ? t.uniqueTeamCode : t.shortName,
-                    style: const TextStyle(color: Colors.white54, fontSize: 10),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF009270).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Squad: ${squad.length} Players',
-                      style: const TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Purse: ${currencyFormat.format(t.purseRemaining)}',
-                    style: const TextStyle(color: Colors.amberAccent, fontSize: 9, fontWeight: FontWeight.bold),
-                  ),
-                ],
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Tournament Teams (${tournTeams.length})',
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
+              if (canScore)
+                ElevatedButton.icon(
+                  onPressed: () => _showAddTeamDialog(context, db, tourn),
+                  icon: const Icon(Icons.add, size: 13),
+                  label: const Text('+ Add Team', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF009270),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  ),
+                ),
+            ],
           ),
-        );
-      },
+        ),
+
+        // Teams Grid with Edit/Delete & Squad Management
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.88,
+            ),
+            itemCount: tournTeams.length,
+            itemBuilder: (ctx, index) {
+              final t = tournTeams[index];
+              final squad = db.players.where((p) => p.teamId == t.id).toList();
+              final isReady = squad.length >= 2 && !squad.any((p) => p.fullName.trim().isEmpty || p.mobileNumber.trim().isEmpty);
+
+              return Card(
+                color: const Color(0xFF1E293B),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: t.primaryColor.withValues(alpha: 0.6), width: 1.5),
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => _showTeamSquadSheet(context, db, t, squad),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Card Top Row: Avatar & Edit/Delete Actions
+                        Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: t.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  t.shortName.isNotEmpty ? t.shortName.substring(0, min(2, t.shortName.length)) : 'T',
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            if (canScore) ...[
+                              InkWell(
+                                onTap: () => _showEditTeamDialog(context, db, t),
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amberAccent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(Icons.edit, size: 13, color: Colors.amberAccent),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              InkWell(
+                                onTap: () => _confirmDeleteTeam(context, db, t),
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(Icons.delete_outline, size: 13, color: Colors.redAccent),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        // Center: Team Name & Short Name
+                        Column(
+                          children: [
+                            Text(
+                              t.name,
+                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              t.shortName,
+                              style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            ),
+                          ],
+                        ),
+
+                        // Bottom: Squad Status Badge & Action Prompt
+                        Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isReady
+                                    ? const Color(0xFF009270).withValues(alpha: 0.2)
+                                    : Colors.amber.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isReady ? const Color(0xFF34D399) : Colors.amber,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                isReady ? 'Squad: ${squad.length} Players' : '⚠️ ${squad.length} Players (Need Phone)',
+                                style: TextStyle(
+                                  color: isReady ? const Color(0xFF34D399) : Colors.amberAccent,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Tap to View / Edit Squad',
+                              style: TextStyle(color: Colors.white38, fontSize: 9),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -1522,60 +1645,782 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
   // =========================================================================
 
   void _showTeamSquadSheet(BuildContext context, MockDatabase db, Team team, List<Player> squad) {
+    final canScore = db.hasTournamentScorerAccess(team.tournamentId);
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF1E293B),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final currentSquad = db.players.where((p) => p.teamId == team.id).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  CircleAvatar(radius: 16, backgroundImage: NetworkImage(team.logoUrl)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(team.name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-                        Text('Squad Roster (${squad.length} Players)', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                      ],
-                    ),
+                  // Team Header
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(color: team.primaryColor, shape: BoxShape.circle),
+                        child: Center(
+                          child: Text(
+                            team.shortName.isNotEmpty ? team.shortName.substring(0, min(2, team.shortName.length)) : 'T',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(team.name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                            Text('Squad Roster (${currentSquad.length} Players)', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      if (canScore)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showAddPlayerDialog(context, db, team);
+                          },
+                          icon: const Icon(Icons.person_add, size: 12),
+                          label: const Text('+ Player', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF009270),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          ),
+                        ),
+                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: Colors.white70)),
+                    ],
                   ),
-                  IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: Colors.white70)),
+                  const Divider(color: Colors.white12),
+
+                  // Player List
+                  Expanded(
+                    child: currentSquad.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.person_off, size: 40, color: Colors.white38),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'No players added to this squad yet.',
+                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'Each team needs at least 2 players with full name & mobile number before scoring.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                                ),
+                                if (canScore) ...[
+                                  const SizedBox(height: 12),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      _showAddPlayerDialog(context, db, team);
+                                    },
+                                    icon: const Icon(Icons.add, size: 14),
+                                    label: const Text('Add First Player', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009270), foregroundColor: Colors.white),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: currentSquad.length,
+                            separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                            itemBuilder: (c, idx) {
+                              final p = currentSquad[idx];
+                              final hasPhone = p.mobileNumber.trim().isNotEmpty;
+
+                              return ListTile(
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                leading: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: const Color(0xFF0F172A),
+                                  child: Icon(
+                                    p.role == PlayerRole.bowler
+                                        ? Icons.sports_baseball
+                                        : (p.role == PlayerRole.wicketKeeper ? Icons.sports_handball : Icons.sports_cricket),
+                                    size: 14,
+                                    color: const Color(0xFF34D399),
+                                  ),
+                                ),
+                                title: Text(
+                                  p.fullName,
+                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    Text(
+                                      '${p.roleString} • ',
+                                      style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                    ),
+                                    Icon(
+                                      Icons.phone,
+                                      size: 10,
+                                      color: hasPhone ? const Color(0xFF34D399) : Colors.amberAccent,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      hasPhone ? p.mobileNumber : 'Missing Phone *',
+                                      style: TextStyle(
+                                        color: hasPhone ? const Color(0xFF34D399) : Colors.amberAccent,
+                                        fontSize: 10,
+                                        fontWeight: hasPhone ? FontWeight.normal : FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: canScore
+                                    ? Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, size: 15, color: Colors.amberAccent),
+                                            onPressed: () {
+                                              Navigator.pop(ctx);
+                                              _showEditPlayerDialog(context, db, p);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete_outline, size: 15, color: Colors.redAccent),
+                                            onPressed: () {
+                                              db.deletePlayer(p.id);
+                                              setSheetState(() {});
+                                            },
+                                          ),
+                                        ],
+                                      )
+                                    : null,
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
-              const Divider(color: Colors.white12),
-              Expanded(
-                child: squad.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No players bought or drafted for this team yet.',
-                          style: TextStyle(color: Colors.white54, fontSize: 12),
-                        ),
-                      )
-                    : ListView.separated(
-                        itemCount: squad.length,
-                        separatorBuilder: (_, __) => const Divider(color: Colors.white10),
-                        itemBuilder: (c, idx) {
-                          final p = squad[idx];
-                          return ListTile(
-                            dense: true,
-                            leading: CircleAvatar(radius: 14, backgroundImage: NetworkImage(p.photoUrl)),
-                            title: Text(p.fullName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                            subtitle: Text('${p.roleString} • ${p.battingStyle}', style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                            trailing: Text(currencyFormat.format(p.basePrice), style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  void _showEditTournamentDialog(BuildContext context, MockDatabase db, Tournament tourn) {
+    final nameCtrl = TextEditingController(text: tourn.name);
+    final shortCtrl = TextEditingController(text: tourn.shortName);
+    final locCtrl = TextEditingController(text: tourn.location);
+    final oversCtrl = TextEditingController(text: '${tourn.overs}');
+    final roomCtrl = TextEditingController(text: tourn.roomId);
+    final pinCtrl = TextEditingController(text: tourn.passcode);
+    int selectedOvers = tourn.overs;
+    final presetOvers = [6, 10, 15, 20, 30, 50];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlg) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: const [
+                Icon(Icons.tune, color: Colors.amberAccent, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Edit Tournament Format',
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Tournament Full Name',
+                      labelStyle: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: shortCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: const InputDecoration(
+                            labelText: 'Short Code (e.g. BPL)',
+                            labelStyle: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: locCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: const InputDecoration(
+                            labelText: 'Ground / City',
+                            labelStyle: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('MATCH FORMAT (OVERS)', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: presetOvers.map((ov) {
+                      final isSel = selectedOvers == ov;
+                      return ChoiceChip(
+                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        selected: isSel,
+                        selectedColor: Colors.amberAccent,
+                        backgroundColor: const Color(0xFF0F172A),
+                        onSelected: (_) {
+                          setDlg(() {
+                            selectedOvers = ov;
+                            oversCtrl.text = '$ov';
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: oversCtrl,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Custom Match Overs (type any number)',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      prefixIcon: Icon(Icons.timer, size: 16, color: Colors.amberAccent),
+                    ),
+                    onChanged: (val) {
+                      final parsed = int.tryParse(val.trim());
+                      if (parsed != null && parsed > 0) {
+                        setDlg(() => selectedOvers = parsed);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('SCORER ACCESS CREDENTIALS', style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: roomCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: const InputDecoration(
+                            labelText: 'Room ID',
+                            labelStyle: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: pinCtrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: const InputDecoration(
+                            labelText: 'Host PIN',
+                            labelStyle: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                onPressed: () {
+                  final finalOvers = int.tryParse(oversCtrl.text.trim()) ?? selectedOvers;
+                  if (finalOvers <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(backgroundColor: Colors.redAccent, content: Text('Please enter valid match overs (min 1)')),
+                    );
+                    return;
+                  }
+
+                  db.updateTournament(
+                    tournamentId: tourn.id,
+                    name: nameCtrl.text.trim(),
+                    shortName: shortCtrl.text.trim(),
+                    location: locCtrl.text.trim(),
+                    overs: finalOvers,
+                    roomId: roomCtrl.text.trim(),
+                    passcode: pinCtrl.text.trim(),
+                  );
+
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF009270),
+                      content: Text('Tournament format updated to $finalOvers Overs!'),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.amberAccent, foregroundColor: Colors.black),
+                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditTeamDialog(BuildContext context, MockDatabase db, Team team) {
+    final nameCtrl = TextEditingController(text: team.name);
+    final shortCtrl = TextEditingController(text: team.shortName);
+    Color selectedColor = team.primaryColor;
+
+    final palette = [
+      const Color(0xFF009270),
+      const Color(0xFF059669),
+      const Color(0xFF2563EB),
+      const Color(0xFF7C3AED),
+      const Color(0xFFD97706),
+      const Color(0xFFDC2626),
+      const Color(0xFF0D9488),
+      const Color(0xFF9333EA),
+      const Color(0xFFEA580C),
+      const Color(0xFF10B981),
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlg) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: selectedColor,
+                  child: Text(
+                    shortCtrl.text.isNotEmpty ? shortCtrl.text.substring(0, 1) : 'T',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('Edit Team Details', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Team Name', labelStyle: TextStyle(color: Colors.white70)),
+                    onChanged: (val) {
+                      if (val.trim().isNotEmpty && shortCtrl.text.isEmpty) {
+                        final parts = val.trim().split(' ');
+                        final autoShort = parts.length > 1
+                            ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
+                            : (val.length >= 3 ? val.substring(0, 3).toUpperCase() : val.toUpperCase());
+                        setDlg(() => shortCtrl.text = autoShort);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: shortCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Short Code (e.g. KKR)', labelStyle: TextStyle(color: Colors.white70)),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('TEAM PRIMARY COLOR', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: palette.map((c) {
+                      final isSelected = selectedColor.toARGB32() == c.toARGB32();
+                      return GestureDetector(
+                        onTap: () => setDlg(() => selectedColor = c),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: c,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? Colors.white : Colors.transparent,
+                              width: 2.5,
+                            ),
+                            boxShadow: isSelected
+                                ? [BoxShadow(color: c.withValues(alpha: 0.6), blurRadius: 8, spreadRadius: 1)]
+                                : null,
+                          ),
+                          child: isSelected ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _confirmDeleteTeam(context, db, team);
+                },
+                child: const Text('Delete Team', style: TextStyle(color: Colors.redAccent)),
+              ),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameCtrl.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(backgroundColor: Colors.redAccent, content: Text('Team name cannot be empty!')),
+                    );
+                    return;
+                  }
+
+                  db.updateTeam(
+                    teamId: team.id,
+                    name: nameCtrl.text.trim(),
+                    shortName: shortCtrl.text.trim().isNotEmpty ? shortCtrl.text.trim() : 'TEAM',
+                    primaryColor: selectedColor,
+                  );
+
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF009270),
+                      content: Text('Team "${nameCtrl.text.trim()}" updated successfully!'),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399), foregroundColor: Colors.black),
+                child: const Text('Save Team', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmDeleteTeam(BuildContext context, MockDatabase db, Team team) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 22),
+            SizedBox(width: 8),
+            Text('Delete Team?', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${team.name}"? All associated squad players will also be removed.',
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            onPressed: () {
+              db.deleteTeam(team.id);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text('Team "${team.name}" deleted.'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddPlayerDialog(BuildContext context, MockDatabase db, Team team) {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    PlayerRole selectedRole = PlayerRole.batsman;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlg) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                const Icon(Icons.person_add, color: Color(0xFF34D399), size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Add Player to ${team.shortName}',
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Player Full Name *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. Sourav Roy',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile Number * (Mandatory for Scoring)',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      hintText: 'e.g. 9876543210',
+                      prefixIcon: Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('PLAYER ROLE', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      PlayerRole.batsman,
+                      PlayerRole.bowler,
+                      PlayerRole.allRounder,
+                      PlayerRole.wicketKeeper,
+                    ].map((r) {
+                      final isSel = selectedRole == r;
+                      String label = 'Batter';
+                      if (r == PlayerRole.bowler) label = 'Bowler';
+                      if (r == PlayerRole.allRounder) label = 'All-Rounder';
+                      if (r == PlayerRole.wicketKeeper) label = 'Wicketkeeper';
+
+                      return ChoiceChip(
+                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        selected: isSel,
+                        selectedColor: const Color(0xFF34D399),
+                        backgroundColor: const Color(0xFF0F172A),
+                        onSelected: (_) => setDlg(() => selectedRole = r),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                onPressed: () {
+                  final name = nameCtrl.text.trim();
+                  final mobile = phoneCtrl.text.trim();
+                  if (name.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(backgroundColor: Colors.redAccent, content: Text('Player name cannot be empty!')),
+                    );
+                    return;
+                  }
+                  if (mobile.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(backgroundColor: Colors.redAccent, content: Text('Mobile number is required for all squad players!')),
+                    );
+                    return;
+                  }
+
+                  db.addPlayerToTeam(
+                    teamId: team.id,
+                    fullName: name,
+                    mobileNumber: mobile,
+                    role: selectedRole,
+                  );
+
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF009270),
+                      content: Text('Player "$name" added to ${team.name}!'),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399), foregroundColor: Colors.black),
+                child: const Text('Add Player', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditPlayerDialog(BuildContext context, MockDatabase db, Player player) {
+    final nameCtrl = TextEditingController(text: player.fullName);
+    final phoneCtrl = TextEditingController(text: player.mobileNumber);
+    PlayerRole selectedRole = player.role;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlg) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: const [
+                Icon(Icons.edit, color: Colors.amberAccent, size: 20),
+                SizedBox(width: 8),
+                Text('Edit Player Details', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Player Full Name *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile Number *',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      prefixIcon: Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('PLAYER ROLE', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      PlayerRole.batsman,
+                      PlayerRole.bowler,
+                      PlayerRole.allRounder,
+                      PlayerRole.wicketKeeper,
+                    ].map((r) {
+                      final isSel = selectedRole == r;
+                      String label = 'Batter';
+                      if (r == PlayerRole.bowler) label = 'Bowler';
+                      if (r == PlayerRole.allRounder) label = 'All-Rounder';
+                      if (r == PlayerRole.wicketKeeper) label = 'Wicketkeeper';
+
+                      return ChoiceChip(
+                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        selected: isSel,
+                        selectedColor: Colors.amberAccent,
+                        backgroundColor: const Color(0xFF0F172A),
+                        onSelected: (_) => setDlg(() => selectedRole = r),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  db.deletePlayer(player.id);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.redAccent,
+                      content: Text('Player "${player.fullName}" removed.'),
+                    ),
+                  );
+                },
+                child: const Text('Remove Player', style: TextStyle(color: Colors.redAccent)),
+              ),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                onPressed: () {
+                  final name = nameCtrl.text.trim();
+                  final mobile = phoneCtrl.text.trim();
+                  if (name.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(backgroundColor: Colors.redAccent, content: Text('Player name cannot be empty!')),
+                    );
+                    return;
+                  }
+
+                  db.updatePlayer(
+                    playerId: player.id,
+                    fullName: name,
+                    mobileNumber: mobile,
+                    role: selectedRole,
+                  );
+
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF009270),
+                      content: Text('Player "$name" updated successfully!'),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399), foregroundColor: Colors.black),
+                child: const Text('Save Player', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -1595,7 +2440,9 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     String teamBId = tournTeams[1].id;
     final stageController = TextEditingController(text: '${tourn.shortName} League Match');
     final venueController = TextEditingController(text: tourn.location);
+    final oversController = TextEditingController(text: '${tourn.overs}');
     int matchOvers = tourn.overs;
+    final presetOvers = [6, 10, 15, 20, 30, 50];
 
     showDialog(
       context: context,
@@ -1608,7 +2455,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               children: const [
                 Icon(Icons.calendar_month, color: Color(0xFF34D399), size: 20),
                 SizedBox(width: 8),
-                Text('Schedule Tournament Match', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(
+                    'Schedule Tournament Match',
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             content: SingleChildScrollView(
@@ -1618,19 +2471,23 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 children: [
                   DropdownButtonFormField<String>(
                     value: teamAId,
+                    isExpanded: true,
+                    isDense: true,
                     dropdownColor: const Color(0xFF0F172A),
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: const InputDecoration(labelText: 'Team A', labelStyle: TextStyle(color: Colors.white70)),
-                    items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                    items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name, overflow: TextOverflow.ellipsis))).toList(),
                     onChanged: (val) => setDlg(() => teamAId = val!),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     value: teamBId,
+                    isExpanded: true,
+                    isDense: true,
                     dropdownColor: const Color(0xFF0F172A),
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: const InputDecoration(labelText: 'Team B', labelStyle: TextStyle(color: Colors.white70)),
-                    items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                    items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name, overflow: TextOverflow.ellipsis))).toList(),
                     onChanged: (val) => setDlg(() => teamBId = val!),
                   ),
                   const SizedBox(height: 10),
@@ -1644,6 +2501,45 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     controller: venueController,
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: const InputDecoration(labelText: 'Ground / Venue', labelStyle: TextStyle(color: Colors.white70)),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('MATCH OVERS', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: presetOvers.map((ov) {
+                      final isSel = matchOvers == ov;
+                      return ChoiceChip(
+                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                        selected: isSel,
+                        selectedColor: Colors.amberAccent,
+                        backgroundColor: const Color(0xFF0F172A),
+                        onSelected: (_) {
+                          setDlg(() {
+                            matchOvers = ov;
+                            oversController.text = '$ov';
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: oversController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      labelText: 'Custom Overs',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      prefixIcon: Icon(Icons.timer, size: 16, color: Colors.amberAccent),
+                    ),
+                    onChanged: (val) {
+                      final parsed = int.tryParse(val.trim());
+                      if (parsed != null && parsed > 0) {
+                        setDlg(() => matchOvers = parsed);
+                      }
+                    },
                   ),
                 ],
               ),
@@ -1659,13 +2555,15 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     return;
                   }
 
+                  final finalOvers = int.tryParse(oversController.text.trim()) ?? matchOvers;
+
                   db.scheduleMatchForTournament(
                     tournamentId: tourn.id,
                     teamAId: teamAId,
                     teamBId: teamBId,
                     venue: venueController.text,
                     dateTime: DateTime.now().add(const Duration(hours: 2)),
-                    overs: matchOvers,
+                    overs: finalOvers,
                     stage: stageController.text,
                   );
 
@@ -1673,7 +2571,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: const Color(0xFF009270),
-                      content: Text('Match scheduled! Scorer Room PIN: ${tourn.passcode}'),
+                      content: Text('Match scheduled ($finalOvers Ov)! Scorer Room PIN: ${tourn.passcode}'),
                     ),
                   );
                 },

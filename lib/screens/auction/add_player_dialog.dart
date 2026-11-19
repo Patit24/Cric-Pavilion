@@ -75,6 +75,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 Expanded(
                   child: DropdownButtonFormField<PlayerRole>(
                     value: selectedRole,
+                    isExpanded: true,
                     dropdownColor: const Color(0xFF1E293B),
                     decoration: InputDecoration(
                       labelText: 'Role / Position',
@@ -126,6 +127,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: selectedBatting,
+                    isExpanded: true,
                     dropdownColor: const Color(0xFF1E293B),
                     decoration: InputDecoration(
                       labelText: 'Batting Style',
@@ -146,6 +148,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: selectedBowling,
+                    isExpanded: true,
                     dropdownColor: const Color(0xFF1E293B),
                     decoration: InputDecoration(
                       labelText: 'Bowling Style',

@@ -3732,4 +3732,171 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
     return newTeam;
   }
+
+  bool hasTournamentScorerAccess(String tournamentId) {
+    if (canManageTournaments || canScoreMatches) return true;
+    if (createdTournamentIds.contains(tournamentId) || authenticatedTournamentIds.contains(tournamentId)) {
+      return true;
+    }
+    return false;
+  }
+
+  void updateTournament({
+    required String tournamentId,
+    String? name,
+    String? shortName,
+    String? location,
+    int? overs,
+    String? roomId,
+    String? passcode,
+  }) {
+    final idx = tournaments.indexWhere((t) => t.id == tournamentId);
+    if (idx != -1) {
+      final old = tournaments[idx];
+      final newOvers = (overs != null && overs > 0) ? overs : old.overs;
+      tournaments[idx] = Tournament(
+        id: old.id,
+        name: (name != null && name.trim().isNotEmpty) ? name.trim() : old.name,
+        shortName: (shortName != null && shortName.trim().isNotEmpty) ? shortName.trim() : old.shortName,
+        location: (location != null && location.trim().isNotEmpty) ? location.trim() : old.location,
+        startDate: old.startDate,
+        endDate: old.endDate,
+        overs: newOvers,
+        totalTeams: old.totalTeams,
+        status: old.status,
+        bannerUrl: old.bannerUrl,
+        roomId: (roomId != null && roomId.trim().isNotEmpty) ? roomId.trim().toUpperCase() : old.roomId,
+        passcode: (passcode != null && passcode.trim().isNotEmpty) ? passcode.trim() : old.passcode,
+        createdBy: old.createdBy,
+      );
+
+      // If overs updated, update any scheduled matches for this tournament
+      if (overs != null && overs > 0) {
+        for (int i = 0; i < matches.length; i++) {
+          final m = matches[i];
+          if (m.tournamentId == tournamentId && m.status == MatchStatus.scheduled) {
+            matches[i] = MatchModel(
+              id: m.id,
+              tournamentId: m.tournamentId,
+              stage: m.stage,
+              teamAId: m.teamAId,
+              teamBId: m.teamBId,
+              venue: m.venue,
+              dateTime: m.dateTime,
+              overs: newOvers,
+              status: m.status,
+            );
+          }
+        }
+      }
+
+      notifyListeners();
+    }
+  }
+
+  void updateTeam({
+    required String teamId,
+    required String name,
+    required String shortName,
+    Color? primaryColor,
+  }) {
+    final idx = teams.indexWhere((t) => t.id == teamId);
+    if (idx != -1) {
+      final old = teams[idx];
+      teams[idx] = Team(
+        id: old.id,
+        tournamentId: old.tournamentId,
+        name: name.trim().isNotEmpty ? name.trim() : old.name,
+        shortName: shortName.trim().isNotEmpty ? shortName.trim() : old.shortName,
+        uniqueTeamCode: old.uniqueTeamCode,
+        passcode: old.passcode,
+        primaryColor: primaryColor ?? old.primaryColor,
+        logoUrl: old.logoUrl,
+        purseRemaining: old.purseRemaining,
+        maxPurse: old.maxPurse,
+        squadCount: old.squadCount,
+        minSquadRequirement: old.minSquadRequirement,
+        maxSquadLimit: old.maxSquadLimit,
+      );
+      notifyListeners();
+    }
+  }
+
+  void deleteTeam(String teamId) {
+    teams.removeWhere((t) => t.id == teamId);
+    players.removeWhere((p) => p.teamId == teamId);
+    notifyListeners();
+  }
+
+  Player addPlayerToTeam({
+    required String teamId,
+    required String fullName,
+    required String mobileNumber,
+    PlayerRole role = PlayerRole.batsman,
+  }) {
+    final cleanName = fullName.trim().isNotEmpty ? fullName.trim() : 'Player';
+    final newPlayer = Player(
+      id: 'pl_${teamId}_${DateTime.now().millisecondsSinceEpoch}',
+      fullName: cleanName,
+      displayName: cleanName.split(' ').first,
+      mobileNumber: mobileNumber.trim(),
+      role: role,
+      battingStyle: 'Right Hand Bat',
+      bowlingStyle: 'Right Arm Medium',
+      basePrice: 500,
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+      teamId: teamId,
+    );
+    players.add(newPlayer);
+    final team = getTeam(teamId);
+    if (team != null) {
+      team.squadCount = players.where((p) => p.teamId == teamId).length;
+    }
+    notifyListeners();
+    return newPlayer;
+  }
+
+  void updatePlayer({
+    required String playerId,
+    required String fullName,
+    required String mobileNumber,
+    PlayerRole? role,
+  }) {
+    final idx = players.indexWhere((p) => p.id == playerId);
+    if (idx != -1) {
+      final old = players[idx];
+      final cleanName = fullName.trim().isNotEmpty ? fullName.trim() : old.fullName;
+      players[idx] = Player(
+        id: old.id,
+        fullName: cleanName,
+        displayName: cleanName.split(' ').first,
+        mobileNumber: mobileNumber.trim().isNotEmpty ? mobileNumber.trim() : old.mobileNumber,
+        role: role ?? old.role,
+        battingStyle: old.battingStyle,
+        bowlingStyle: old.bowlingStyle,
+        basePrice: old.basePrice,
+        photoUrl: old.photoUrl,
+        teamId: old.teamId,
+        runs: old.runs,
+        wickets: old.wickets,
+        matches: old.matches,
+      );
+      notifyListeners();
+    }
+  }
+
+  void deletePlayer(String playerId) {
+    final p = players.where((x) => x.id == playerId).firstOrNull;
+    if (p != null) {
+      final teamId = p.teamId;
+      players.removeWhere((x) => x.id == playerId);
+      if (teamId != null) {
+        final team = getTeam(teamId);
+        if (team != null) {
+          team.squadCount = players.where((x) => x.teamId == teamId).length;
+        }
+      }
+      notifyListeners();
+    }
+  }
 }

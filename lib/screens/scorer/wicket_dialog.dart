@@ -149,12 +149,13 @@ class _WicketDialogState extends State<WicketDialog> {
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   value: selectedFielderId,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   items: widget.bowlingTeamPlayers.map((p) {
-                    return DropdownMenuItem(value: p.id, child: Text(p.fullName, style: const TextStyle(fontSize: 12)));
+                    return DropdownMenuItem(value: p.id, child: Text(p.fullName, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
                   }).toList(),
                   onChanged: (val) => setState(() => selectedFielderId = val),
                 ),
