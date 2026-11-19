@@ -13,13 +13,23 @@ class AddPlayerDialog extends StatefulWidget {
 }
 
 class _AddPlayerDialogState extends State<AddPlayerDialog> {
-  final nameController = TextEditingController(text: 'Rinku Singh');
-  final photoController = TextEditingController(text: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256');
-  final basePriceController = TextEditingController(text: '500000');
+  final nameController = TextEditingController();
+  final mobileController = TextEditingController();
+  final photoController = TextEditingController();
+  final basePriceController = TextEditingController();
   PlayerRole selectedRole = PlayerRole.batsman;
-  String selectedBatting = 'Left Hand Bat';
-  String selectedBowling = 'Right Arm Off Break';
+  String selectedBatting = 'Right Hand Bat';
+  String selectedBowling = 'Right Arm Medium';
   String selectedCategory = 'batsman';
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    mobileController.dispose();
+    photoController.dispose();
+    basePriceController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +60,24 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               controller: nameController,
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
-                labelText: 'Player Full Name',
+                labelText: 'Player Full Name *',
                 labelStyle: const TextStyle(color: Colors.white70),
+                hintText: 'e.g. Rohit Sharma',
+                filled: true,
+                fillColor: const Color(0xFF0F172A),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: mobileController,
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                labelText: 'Mobile Number *',
+                labelStyle: const TextStyle(color: Colors.white70),
+                hintText: 'e.g. 9876543210',
+                prefixIcon: const Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
                 filled: true,
                 fillColor: const Color(0xFF0F172A),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -62,8 +88,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               controller: photoController,
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
-                labelText: 'Player Photo URL',
+                labelText: 'Player Photo URL (Optional)',
                 labelStyle: const TextStyle(color: Colors.white70),
+                hintText: 'https://...',
                 filled: true,
                 fillColor: const Color(0xFF0F172A),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -182,11 +209,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
         ElevatedButton(
           onPressed: () {
             if (nameController.text.trim().isEmpty) return;
-            final basePrice = int.tryParse(basePriceController.text.trim()) ?? 500000;
+            final basePrice = int.tryParse(basePriceController.text.trim()) ?? 25000;
 
             widget.db.addPlayerToAuction(
               auctionId: widget.auctionId,
               fullName: nameController.text.trim(),
+              mobileNumber: mobileController.text.trim(),
               photoUrl: photoController.text.trim(),
               role: selectedRole,
               battingStyle: selectedBatting,

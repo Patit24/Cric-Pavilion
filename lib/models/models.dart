@@ -158,6 +158,8 @@ class Team {
   final String shortName;
   final String uniqueTeamCode; // e.g. "TEAM-BBL-01"
   final String passcode; // e.g. "1234"
+  final String ownerMobileNumber; // e.g. "9876543210"
+  final String ownerName;
   final Color primaryColor;
   final String logoUrl;
   int purseRemaining;
@@ -173,6 +175,8 @@ class Team {
     required this.shortName,
     this.uniqueTeamCode = '',
     this.passcode = '1234',
+    this.ownerMobileNumber = '',
+    this.ownerName = '',
     required this.primaryColor,
     required this.logoUrl,
     required this.purseRemaining,

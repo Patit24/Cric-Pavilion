@@ -2095,21 +2095,47 @@ class MockDatabase extends ChangeNotifier {
 
   bool enterAuctionAsTeamOwner({
     required String auctionId,
-    required String teamCode,
-    required String passcode,
+    String? mobileNumber,
+    String? teamCode,
+    String? passcode,
   }) {
-    final cleanCode = teamCode.trim().toUpperCase();
-    final cleanPass = passcode.trim();
+    final auc = getAuction(auctionId);
+    final auctionTeams = teams.where((t) => t.tournamentId == auc.tournamentId).toList();
 
-    final team = teams.where((t) => t.uniqueTeamCode.toUpperCase() == cleanCode && t.passcode == cleanPass).firstOrNull;
+    Team? team;
+
+    // 1. Primary path: Match by Owner Mobile Number
+    if (mobileNumber != null && mobileNumber.trim().isNotEmpty) {
+      final cleanMobile = mobileNumber.trim();
+      team = auctionTeams.where((t) => t.ownerMobileNumber.trim() == cleanMobile).firstOrNull;
+      team ??= teams.where((t) => t.ownerMobileNumber.trim() == cleanMobile).firstOrNull;
+    }
+
+    // 2. Secondary path: Match by teamCode + passcode
+    if (team == null && teamCode != null && teamCode.trim().isNotEmpty) {
+      final cleanCode = teamCode.trim().toUpperCase();
+      final cleanPass = passcode?.trim() ?? '';
+      team = auctionTeams.where((t) =>
+        t.uniqueTeamCode.toUpperCase() == cleanCode && (cleanPass.isEmpty || t.passcode == cleanPass)
+      ).firstOrNull;
+      team ??= teams.where((t) =>
+        t.uniqueTeamCode.toUpperCase() == cleanCode && (cleanPass.isEmpty || t.passcode == cleanPass)
+      ).firstOrNull;
+    }
+
     if (team != null) {
       authenticatedTeamId = team.id;
       isAuctionUnlocked = true;
       isAuctionAdmin = false;
       currentAuctionRoomId = auctionId;
-
-      final auc = getAuction(auctionId);
       auc.joinedTeamIds.add(team.id);
+
+      logAudit(
+        category: 'auction',
+        action: 'TEAM_OWNER_LOGIN',
+        details: 'Owner of ${team.name} (${team.ownerMobileNumber}) joined auction table for ${auc.title}',
+        performedBy: team.name,
+      );
 
       notifyListeners();
       return true;
@@ -2481,15 +2507,16 @@ class MockDatabase extends ChangeNotifier {
   }
 
   /// Host adds a new player directly into the auction pool
-  void addPlayerToAuction({
+  Player addPlayerToAuction({
     required String auctionId,
     required String fullName,
-    required String photoUrl,
-    required PlayerRole role,
-    required String battingStyle,
-    required String bowlingStyle,
-    required int basePrice,
-    required String category,
+    String mobileNumber = '',
+    String photoUrl = '',
+    PlayerRole role = PlayerRole.batsman,
+    String battingStyle = 'Right Hand Bat',
+    String bowlingStyle = 'Right Arm Medium',
+    int basePrice = 25000,
+    String category = 'marquee',
   }) {
     final auc = getAuction(auctionId);
     final newPlayerId = 'pl_${DateTime.now().millisecondsSinceEpoch}';
@@ -2498,6 +2525,7 @@ class MockDatabase extends ChangeNotifier {
       id: newPlayerId,
       fullName: fullName,
       displayName: fullName,
+      mobileNumber: mobileNumber.trim(),
       role: role,
       battingStyle: battingStyle,
       bowlingStyle: bowlingStyle,
@@ -2528,6 +2556,7 @@ class MockDatabase extends ChangeNotifier {
     }
 
     notifyListeners();
+    return newPlayer;
   }
 
   /// Host creates a new tournament with custom entered teams, player details & mobile numbers (or skipped for later)
@@ -2805,34 +2834,90 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Host creates a standalone player auction (supports custom entered team names & custom entered players)
+  /// Host creates a standalone player auction (supports custom entered team names with owner mobile numbers & custom entered players)
   Auction createAuction({
-    required String tournamentId,
+    String tournamentId = '',
     required String title,
-    required String adminPasscode,
-    required int maxPursePerTeam,
-    required int minBidIncrement,
-    required int requiredTeamsCount,
+    String adminPasscode = '1234',
+    int maxPursePerTeam = 10000000,
+    int minBidIncrement = 25000,
+    int requiredTeamsCount = 8,
     List<String>? customTeamNames,
+    List<Map<String, String>>? customTeamsWithDetails,
     List<Map<String, dynamic>>? customPlayers,
   }) {
     final cleanId = 'auc_${DateTime.now().millisecondsSinceEpoch}';
     final targetTournamentId = tournamentId.isNotEmpty ? tournamentId : 'tourn_$cleanId';
 
-    // 1. If custom team names provided, create these exact teams fresh
-    if (customTeamNames != null && customTeamNames.isNotEmpty) {
-      final teamColors = [
-        const Color(0xFF059669),
-        const Color(0xFF7C3AED),
-        const Color(0xFF0284C7),
-        const Color(0xFFD97706),
-        const Color(0xFFE11D48),
-        const Color(0xFF2563EB),
-        const Color(0xFF9333EA),
-        const Color(0xFF0D9488),
-        const Color(0xFFF59E0B),
-        const Color(0xFF10B981),
-      ];
+    if (tournaments.where((t) => t.id == targetTournamentId).isEmpty) {
+      final now = DateTime.now();
+      tournaments.add(
+        Tournament(
+          id: targetTournamentId,
+          name: title,
+          shortName: title.length > 5 ? title.substring(0, 5).toUpperCase() : title.toUpperCase(),
+          location: 'Official Arena',
+          startDate: '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+          endDate: '${now.year + 1}-03-31',
+          overs: 20,
+          totalTeams: requiredTeamsCount,
+          status: 'UPCOMING',
+          bannerUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800',
+          roomId: 'TOURN-${cleanId.toUpperCase()}',
+          passcode: adminPasscode,
+        ),
+      );
+    }
+
+    final teamColors = [
+      const Color(0xFF059669),
+      const Color(0xFF7C3AED),
+      const Color(0xFF0284C7),
+      const Color(0xFFD97706),
+      const Color(0xFFE11D48),
+      const Color(0xFF2563EB),
+      const Color(0xFF9333EA),
+      const Color(0xFF0D9488),
+      const Color(0xFFF59E0B),
+      const Color(0xFF10B981),
+    ];
+
+    // 1. If detailed teams provided (with owner mobile numbers), create them
+    if (customTeamsWithDetails != null && customTeamsWithDetails.isNotEmpty) {
+      for (int i = 0; i < customTeamsWithDetails.length; i++) {
+        final t = customTeamsWithDetails[i];
+        final rawName = (t['name'] ?? '').trim();
+        if (rawName.isEmpty) continue;
+        final rawMobile = (t['mobile'] ?? '').trim();
+        final rawShort = (t['shortName'] ?? '').trim();
+        final parts = rawName.split(' ');
+        final tShort = rawShort.isNotEmpty
+            ? rawShort.toUpperCase()
+            : (parts.length > 1
+                ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
+                : (rawName.length >= 3 ? rawName.substring(0, 3).toUpperCase() : rawName.toUpperCase()));
+        final teamId = 'team_${cleanId}_$i';
+
+        teams.add(
+          Team(
+            id: teamId,
+            tournamentId: targetTournamentId,
+            name: rawName,
+            shortName: tShort,
+            uniqueTeamCode: 'TEAM-$tShort-0${i + 1}',
+            passcode: '1234',
+            ownerMobileNumber: rawMobile,
+            primaryColor: teamColors[i % teamColors.length],
+            logoUrl: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+            purseRemaining: maxPursePerTeam,
+            maxPurse: maxPursePerTeam,
+            squadCount: 0,
+            minSquadRequirement: (customPlayers != null && customPlayers.isNotEmpty && customPlayers.length < 15) ? 1 : 15,
+            maxSquadLimit: 18,
+          ),
+        );
+      }
+    } else if (customTeamNames != null && customTeamNames.isNotEmpty) {
       for (int i = 0; i < customTeamNames.length; i++) {
         final rawName = customTeamNames[i].trim();
         if (rawName.isEmpty) continue;
@@ -2900,8 +2985,10 @@ class MockDatabase extends ChangeNotifier {
         );
       }
       auctionLots.addAll(createdLots);
-    } else if (customTeamNames == null || customTeamNames.isEmpty) {
-      // Fallback only if no custom players and no custom teams specified (legacy mode)
+    } else if ((customTeamsWithDetails == null || customTeamsWithDetails.isEmpty) &&
+               (customTeamNames == null || customTeamNames.isEmpty) &&
+               players.isNotEmpty) {
+      // Fallback only if no custom players and no custom teams specified (legacy mode with existing players)
       final sampleLots = List.generate(8, (i) {
         final p = players[i % players.length];
         return AuctionLot(
@@ -3799,6 +3886,8 @@ class MockDatabase extends ChangeNotifier {
     required String name,
     required String shortName,
     Color? primaryColor,
+    String? ownerMobileNumber,
+    String? ownerName,
   }) {
     final idx = teams.indexWhere((t) => t.id == teamId);
     if (idx != -1) {
@@ -3810,6 +3899,8 @@ class MockDatabase extends ChangeNotifier {
         shortName: shortName.trim().isNotEmpty ? shortName.trim() : old.shortName,
         uniqueTeamCode: old.uniqueTeamCode,
         passcode: old.passcode,
+        ownerMobileNumber: ownerMobileNumber != null ? ownerMobileNumber.trim() : old.ownerMobileNumber,
+        ownerName: ownerName != null ? ownerName.trim() : old.ownerName,
         primaryColor: primaryColor ?? old.primaryColor,
         logoUrl: old.logoUrl,
         purseRemaining: old.purseRemaining,
@@ -3817,6 +3908,41 @@ class MockDatabase extends ChangeNotifier {
         squadCount: old.squadCount,
         minSquadRequirement: old.minSquadRequirement,
         maxSquadLimit: old.maxSquadLimit,
+      );
+      notifyListeners();
+    }
+  }
+
+  void updateAuction({
+    required String auctionId,
+    String? title,
+    int? maxPursePerTeam,
+    int? minBidIncrement,
+    int? requiredTeamsCount,
+    String? adminPasscode,
+  }) {
+    final idx = auctions.indexWhere((a) => a.id == auctionId);
+    if (idx != -1) {
+      final old = auctions[idx];
+      auctions[idx] = Auction(
+        id: old.id,
+        tournamentId: old.tournamentId,
+        title: (title != null && title.trim().isNotEmpty) ? title.trim() : old.title,
+        status: old.status,
+        floorStatus: old.floorStatus,
+        currentLotId: old.currentLotId,
+        currentBid: old.currentBid,
+        highBidderTeamId: old.highBidderTeamId,
+        totalLots: old.totalLots,
+        completedLots: old.completedLots,
+        adminPasscode: (adminPasscode != null && adminPasscode.trim().isNotEmpty) ? adminPasscode.trim() : old.adminPasscode,
+        minBidIncrement: (minBidIncrement != null && minBidIncrement > 0) ? minBidIncrement : old.minBidIncrement,
+        maxPursePerTeam: (maxPursePerTeam != null && maxPursePerTeam > 0) ? maxPursePerTeam : old.maxPursePerTeam,
+        requiredTeamsCount: (requiredTeamsCount != null && requiredTeamsCount > 0) ? requiredTeamsCount : old.requiredTeamsCount,
+        joinedTeamIds: old.joinedTeamIds,
+        biddingSecondsRemaining: old.biddingSecondsRemaining,
+        defaultTimerSeconds: old.defaultTimerSeconds,
+        isTimerRunning: old.isTimerRunning,
       );
       notifyListeners();
     }

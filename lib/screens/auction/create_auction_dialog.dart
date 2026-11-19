@@ -20,8 +20,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
   final purseController = TextEditingController(text: '50000');
   final minBidController = TextEditingController(text: '500');
 
-  // Teams entered by Host - starts with 4 clean empty slots
+  // Teams entered by Host - starts with 4 clean empty slots (Name + Owner Mobile)
   final List<TextEditingController> teamNameControllers = [
+    TextEditingController(),
+    TextEditingController(),
+    TextEditingController(),
+    TextEditingController(),
+  ];
+  final List<TextEditingController> teamMobileControllers = [
     TextEditingController(),
     TextEditingController(),
     TextEditingController(),
@@ -50,6 +56,9 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     for (final c in teamNameControllers) {
       c.dispose();
     }
+    for (final c in teamMobileControllers) {
+      c.dispose();
+    }
     for (final p in playerEntries) {
       (p['nameController'] as TextEditingController).dispose();
       (p['priceController'] as TextEditingController).dispose();
@@ -60,6 +69,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
   void _addTeamField() {
     setState(() {
       teamNameControllers.add(TextEditingController());
+      teamMobileControllers.add(TextEditingController());
     });
   }
 
@@ -71,8 +81,12 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
       return;
     }
     setState(() {
-      final removed = teamNameControllers.removeAt(index);
-      removed.dispose();
+      final removedName = teamNameControllers.removeAt(index);
+      removedName.dispose();
+      if (index < teamMobileControllers.length) {
+        final removedMob = teamMobileControllers.removeAt(index);
+        removedMob.dispose();
+      }
     });
   }
 
@@ -99,8 +113,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
       while (teamNameControllers.length > count) {
         teamNameControllers.removeLast().dispose();
       }
+      while (teamMobileControllers.length > count) {
+        teamMobileControllers.removeLast().dispose();
+      }
       while (teamNameControllers.length < count) {
         teamNameControllers.add(TextEditingController());
+      }
+      while (teamMobileControllers.length < count) {
+        teamMobileControllers.add(TextEditingController());
       }
     });
   }
@@ -112,12 +132,21 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
       purseController.text = '50000';
       minBidController.text = '500';
 
-      final sampleTeams = ['Barasat Blasters', 'Howrah Hurricanes', 'Kolkata Kings', 'Hooghly Heroes'];
+      final sampleTeams = [
+        {'name': 'Barasat Blasters', 'mobile': '9876543201'},
+        {'name': 'Howrah Hurricanes', 'mobile': '9876543202'},
+        {'name': 'Kolkata Kings', 'mobile': '9876543203'},
+        {'name': 'Hooghly Heroes', 'mobile': '9876543204'},
+      ];
       while (teamNameControllers.length < sampleTeams.length) {
         teamNameControllers.add(TextEditingController());
       }
+      while (teamMobileControllers.length < sampleTeams.length) {
+        teamMobileControllers.add(TextEditingController());
+      }
       for (int i = 0; i < sampleTeams.length; i++) {
-        teamNameControllers[i].text = sampleTeams[i];
+        teamNameControllers[i].text = sampleTeams[i]['name']!;
+        teamMobileControllers[i].text = sampleTeams[i]['mobile']!;
       }
 
       final samplePlayers = [
@@ -300,95 +329,122 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                     ),
 
                     // ==========================================
-                    // TAB 2: ENTER TEAMS
+                    // TAB 2: ENTER TEAMS (Name + Owner Mobile)
                     // ==========================================
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            const Text('Preset Count:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            Wrap(
-                              spacing: 6,
-                              children: [2, 4, 6, 8].map((n) {
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              const Text('Preset:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 6),
+                              ...[2, 4, 6, 8].map((n) {
                                 final isSelected = teamNameControllers.length == n;
-                                return InkWell(
-                                  onTap: () => _setTeamCountPreset(n),
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? Colors.amber : const Color(0xFF0F172A),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: isSelected ? Colors.amber : Colors.white24),
-                                    ),
-                                    child: Text(
-                                      '$n Teams',
-                                      style: TextStyle(
-                                        color: isSelected ? Colors.black : Colors.white70,
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.bold,
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: InkWell(
+                                    onTap: () => _setTeamCountPreset(n),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? Colors.amber : const Color(0xFF0F172A),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: isSelected ? Colors.amber : Colors.white24),
+                                      ),
+                                      child: Text(
+                                        '$n Teams',
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.black : Colors.white70,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 );
-                              }).toList(),
-                            ),
-                            const Spacer(),
-                            ElevatedButton.icon(
-                              onPressed: _addTeamField,
-                              icon: const Icon(Icons.add, size: 12),
-                              label: const Text('+ Team', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF009270),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              }),
+                              ElevatedButton.icon(
+                                onPressed: _addTeamField,
+                                icon: const Icon(Icons.add, size: 12),
+                                label: const Text('+ Team', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF009270),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Expanded(
                           child: ListView.separated(
                             itemCount: teamNameControllers.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 6),
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
                             itemBuilder: (ctx, idx) {
                               return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF0F172A),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
                                   border: Border.all(color: Colors.white12),
                                 ),
-                                child: Row(
+                                child: Column(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 11,
-                                      backgroundColor: const Color(0xFF1E293B),
-                                      child: Text('${idx + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: teamNameControllers[idx],
-                                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter Team ${idx + 1} Name *',
-                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-                                          isDense: true,
-                                          border: InputBorder.none,
-                                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 10,
+                                          backgroundColor: Colors.amberAccent.withValues(alpha: 0.2),
+                                          child: Text('${idx + 1}', style: const TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                                         ),
-                                      ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: TextField(
+                                            controller: teamNameControllers[idx],
+                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            decoration: InputDecoration(
+                                              hintText: 'Enter Team ${idx + 1} Name *',
+                                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                                              isDense: true,
+                                              border: InputBorder.none,
+                                              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                          onPressed: () => _removeTeamField(idx),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                      ],
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                                      onPressed: () => _removeTeamField(idx),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
+                                    const Divider(color: Colors.white10, height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.phone, size: 13, color: Color(0xFF34D399)),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: TextField(
+                                            controller: idx < teamMobileControllers.length ? teamMobileControllers[idx] : null,
+                                            keyboardType: TextInputType.phone,
+                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            decoration: const InputDecoration(
+                                              hintText: 'Owner Mobile * (for team owner login to bid)',
+                                              hintStyle: TextStyle(color: Colors.white38, fontSize: 10.5),
+                                              isDense: true,
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.symmetric(vertical: 4),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -613,13 +669,20 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     final minBid = int.tryParse(minBidController.text.trim()) ?? 500;
     final adminPass = adminPassController.text.trim().isNotEmpty ? adminPassController.text.trim() : 'admin123';
 
-    // Extract entered team names
-    final enteredTeamNames = teamNameControllers
-        .map((c) => c.text.trim())
-        .where((name) => name.isNotEmpty)
-        .toList();
+    // Extract entered team names and owner mobile numbers
+    final enteredTeams = <Map<String, String>>[];
+    for (int i = 0; i < teamNameControllers.length; i++) {
+      final name = teamNameControllers[i].text.trim();
+      final mob = (i < teamMobileControllers.length) ? teamMobileControllers[i].text.trim() : '';
+      if (name.isNotEmpty) {
+        enteredTeams.add({
+          'name': name,
+          'mobile': mob.isNotEmpty ? mob : '987654320${i + 1}',
+        });
+      }
+    }
 
-    if (enteredTeamNames.length < 2) {
+    if (enteredTeams.length < 2) {
       _tabController.animateTo(1);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(backgroundColor: Colors.redAccent, content: Text('Please enter at least 2 team names in Tab 2.')),
@@ -661,8 +724,8 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
       adminPasscode: adminPass,
       maxPursePerTeam: purse,
       minBidIncrement: minBid,
-      requiredTeamsCount: enteredTeamNames.length,
-      customTeamNames: enteredTeamNames,
+      requiredTeamsCount: enteredTeams.length,
+      customTeamsWithDetails: enteredTeams,
       customPlayers: enteredPlayers,
     );
 
@@ -671,7 +734,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: const Color(0xFF009270),
-        content: Text('Auction "${createdAuc.title}" created with ${enteredTeamNames.length} Teams!'),
+        content: Text('Auction "${createdAuc.title}" created with ${enteredTeams.length} Teams!'),
       ),
     );
   }

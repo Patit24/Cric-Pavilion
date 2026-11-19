@@ -217,7 +217,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Banner
+          // Banner with Owner Login & Host New Auction
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
@@ -227,42 +227,52 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('OFFICIAL CRICKET DRAFT ARENA', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                      const SizedBox(height: 6),
-                      const Text('Live Player Auctions & Franchise Purses', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Select an auction to view live player lots, 8-team waiting rooms, spinning wheel reveals, and team bidding.',
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                    ],
-                  ),
+                const Text('OFFICIAL CRICKET DRAFT ARENA', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                const SizedBox(height: 6),
+                const Text('Live Player Auctions & Franchise Purses', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                const Text(
+                  'Select an auction to view live player lots, franchise waiting rooms, spinning wheel reveals, and team bidding.',
+                  style: TextStyle(color: Colors.white60, fontSize: 11),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final created = await showDialog<Auction>(
-                      context: context,
-                      builder: (ctx) => CreateAuctionDialog(db: db),
-                    );
-                    if (created != null) {
-                      setState(() {
-                        selectedAuctionId = created.id;
-                        selectedTeamIdForSquadView = null;
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.add, size: 14),
-                  label: const Text('Host New', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
-                  ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _showTeamOwnerGlobalLoginDialog(context, db),
+                      icon: const Icon(Icons.vpn_key, size: 14, color: Colors.black),
+                      label: const Text('Enter as Team Owner', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final created = await showDialog<Auction>(
+                          context: context,
+                          builder: (ctx) => CreateAuctionDialog(db: db),
+                        );
+                        if (created != null) {
+                          setState(() {
+                            selectedAuctionId = created.id;
+                            selectedTeamIdForSquadView = null;
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.add_circle_outline, size: 14, color: Colors.white),
+                      label: const Text('Host New Auction', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white30),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -486,7 +496,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               tooltip: 'Host Controls',
               color: const Color(0xFF1E293B),
               onSelected: (val) {
-                if (val == 'pool') {
+                if (val == 'edit') {
+                  _showEditAuctionDialog(context, db, auction);
+                } else if (val == 'pool') {
                   _showHostPlayerPoolManagerDialog(context, db, auction);
                 } else if (val == 'player') {
                   showDialog(
@@ -500,6 +512,16 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 }
               },
               itemBuilder: (ctx) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_note, color: Colors.amber, size: 16),
+                      SizedBox(width: 8),
+                      Text('Edit Auction Rules', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'pool',
                   child: Row(
@@ -567,6 +589,246 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // =========================================================
+            // DEDICATED TEAM OWNER DESK BANNER (IF AUTHENTICATED)
+            // =========================================================
+            if (myTeam != null) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      myTeam.primaryColor.withValues(alpha: 0.35),
+                      const Color(0xFF0F172A),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: myTeam.primaryColor.withValues(alpha: 0.8), width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: myTeam.primaryColor,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            myTeam.shortName,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      myTeam.name,
+                                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF059669),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text(
+                                      'YOUR FRANCHISE TABLE',
+                                      style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Owner: ${myTeam.ownerName.isNotEmpty ? myTeam.ownerName : "Authorized Owner"} • Mobile: ${myTeam.ownerMobileNumber.isNotEmpty ? myTeam.ownerMobileNumber : myTeam.uniqueTeamCode}',
+                                style: const TextStyle(color: Colors.white70, fontSize: 10.5),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Exit Desk',
+                          icon: const Icon(Icons.logout, size: 18, color: Colors.white60),
+                          onPressed: () {
+                            db.exitAuctionRoom();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Returned to spectator mode.')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Remaining Purse: ₹${currencyFormat.format(myTeam.purseRemaining)}',
+                            style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Squad: ${myTeam.squadCount}/${myTeam.maxSquadLimit} players',
+                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF064E3B),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle, size: 11, color: Color(0xFF34D399)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Live Bidding Active',
+                                style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (isAdmin) ...[
+              // HOST / ORGANIZER COCKPIT BANNER
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.6)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.admin_panel_settings, color: Colors.amber, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'HOST / ORGANIZER COCKPIT',
+                            style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900),
+                          ),
+                          Text(
+                            'Manage auction rules, player lots, spin wheel, and floor hammer.',
+                            style: TextStyle(color: Colors.white60, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => _showEditAuctionDialog(context, db, auction),
+                          icon: const Icon(Icons.edit, size: 12, color: Colors.amber),
+                          label: const Text('Edit', style: TextStyle(color: Colors.amber, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.amber),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
+                            );
+                          },
+                          icon: const Icon(Icons.add, size: 12, color: Colors.black),
+                          label: const Text('Add Player', style: TextStyle(color: Colors.black, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF34D399),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (!isUnlocked) ...[
+              // SPECTATOR / VIEWING BROADCAST BANNER
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.visibility, color: Colors.white70, size: 20),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Spectator Mode (Viewing Live)',
+                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'You are viewing live bids, wheel reveals, and team squads.',
+                            style: TextStyle(color: Colors.white60, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
+                      icon: const Icon(Icons.vpn_key, size: 13, color: Colors.black),
+                      label: const Text('Owner Login', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             // =========================================================
             // REAL-TIME FLOOR STATUS ALERT BANNER (Going once / Twice / Paused)
             // =========================================================
@@ -2270,6 +2532,361 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   // =========================================================================
   // MODALS: ENTER AUCTION ROOM AS TEAM OWNER OR HOST
   // =========================================================================
+
+  void _showTeamOwnerGlobalLoginDialog(BuildContext context, MockDatabase db) {
+    String selectedAucId = selectedAuctionId ?? (db.auctions.isNotEmpty ? db.auctions.first.id : '');
+    final mobileController = TextEditingController();
+    final auctionIdController = TextEditingController(text: selectedAucId);
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final auction = db.auctions.where((a) => a.id == selectedAucId).firstOrNull;
+          final teamsInAuction = auction != null
+              ? db.teams.where((t) => t.tournamentId == auction.tournamentId).toList()
+              : <Team>[];
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: const [
+                Icon(Icons.vpn_key, color: Colors.amber, size: 22),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Franchise Owner Table Entry',
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Enter your Auction ID & Registered Mobile Number to authenticate your dedicated franchise table and place bids.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  const SizedBox(height: 14),
+
+                  if (db.auctions.isNotEmpty) ...[
+                    DropdownButtonFormField<String>(
+                      value: db.auctions.any((a) => a.id == selectedAucId) ? selectedAucId : db.auctions.first.id,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF1E293B),
+                      decoration: InputDecoration(
+                        labelText: 'Select Auction',
+                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                      items: db.auctions.map((a) {
+                        return DropdownMenuItem(
+                          value: a.id,
+                          child: Text(
+                            '${a.title} [${a.id}]',
+                            style: const TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() {
+                            selectedAucId = val;
+                            auctionIdController.text = val;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  TextField(
+                    controller: auctionIdController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Auction ID *',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: 'e.g. AUCTION-BPL',
+                      prefixIcon: const Icon(Icons.tag, color: Colors.amber, size: 18),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onChanged: (val) {
+                      setDialogState(() => selectedAucId = val.trim());
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
+                  TextField(
+                    controller: mobileController,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Registered Owner Mobile Number *',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: 'e.g. 9876543201',
+                      prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF34D399), size: 18),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+
+                  if (teamsInAuction.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text('Registered Teams in this Auction:', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: teamsInAuction.map((t) {
+                        return ActionChip(
+                          label: Text(
+                            '${t.name} ${t.ownerMobileNumber.isNotEmpty ? "(${t.ownerMobileNumber})" : ""}',
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                          backgroundColor: const Color(0xFF0F172A),
+                          side: BorderSide(color: t.primaryColor.withValues(alpha: 0.6)),
+                          onPressed: () {
+                            setDialogState(() {
+                              mobileController.text = t.ownerMobileNumber.isNotEmpty ? t.ownerMobileNumber : t.uniqueTeamCode;
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  final aucId = auctionIdController.text.trim();
+                  final mobile = mobileController.text.trim();
+                  if (aucId.isEmpty || mobile.isEmpty) {
+                    setDialogState(() => errorMessage = 'Please enter both Auction ID and registered Mobile Number.');
+                    return;
+                  }
+
+                  final ok = db.enterAuctionAsTeamOwner(
+                    auctionId: aucId,
+                    mobileNumber: mobile,
+                  );
+
+                  if (ok) {
+                    final team = db.currentAuthenticatedTeam;
+                    Navigator.pop(ctx);
+                    setState(() {
+                      selectedAuctionId = aucId;
+                      selectedTeamIdForSquadView = team?.id;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF009270),
+                        content: Text('🎉 Welcome, ${team?.name ?? "Team Owner"}! Seated at franchise bidding table.'),
+                      ),
+                    );
+                  } else {
+                    setDialogState(() => errorMessage = 'No team with mobile "$mobile" found in auction "$aucId". Please check credentials or contact host.');
+                  }
+                },
+                icon: const Icon(Icons.login, size: 16),
+                label: const Text('Enter Table & Bid', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditAuctionDialog(BuildContext context, MockDatabase db, Auction auction) {
+    final titleCtrl = TextEditingController(text: auction.title);
+    final purseCtrl = TextEditingController(text: '${auction.maxPursePerTeam}');
+    final minBidCtrl = TextEditingController(text: '${auction.minBidIncrement}');
+    final teamsCountCtrl = TextEditingController(text: '${auction.requiredTeamsCount}');
+    final pinCtrl = TextEditingController(text: auction.adminPasscode);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.edit_note, color: Colors.amber, size: 22),
+            SizedBox(width: 8),
+            Text('Edit Auction Setup', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Host can update auction title, purse limit, bid increments, and security PIN.',
+                style: TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: titleCtrl,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                decoration: InputDecoration(
+                  labelText: 'Auction Title *',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: purseCtrl,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                decoration: InputDecoration(
+                  labelText: 'Franchise Max Purse (₹) *',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixText: '₹ ',
+                  prefixStyle: const TextStyle(color: Colors.amber),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: minBidCtrl,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Min Bid Incr (₹) *',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixText: '₹ ',
+                        prefixStyle: const TextStyle(color: Colors.amber),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: teamsCountCtrl,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Teams Required *',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: pinCtrl,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                decoration: InputDecoration(
+                  labelText: 'Host Admin PIN *',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.security, size: 16, color: Color(0xFF34D399)),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (titleCtrl.text.trim().isEmpty) return;
+              final purse = int.tryParse(purseCtrl.text.trim()) ?? auction.maxPursePerTeam;
+              final minBid = int.tryParse(minBidCtrl.text.trim()) ?? auction.minBidIncrement;
+              final tCount = int.tryParse(teamsCountCtrl.text.trim()) ?? auction.requiredTeamsCount;
+              final pin = pinCtrl.text.trim().isNotEmpty ? pinCtrl.text.trim() : auction.adminPasscode;
+
+              db.updateAuction(
+                auctionId: auction.id,
+                title: titleCtrl.text.trim(),
+                maxPursePerTeam: purse,
+                minBidIncrement: minBid,
+                requiredTeamsCount: tCount,
+                adminPasscode: pin,
+              );
+
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Color(0xFF009270),
+                  content: Text('Auction setup updated successfully!'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF009270),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showEnterAuctionRoomDialog(
     BuildContext context,
     MockDatabase db,
@@ -2278,9 +2895,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     int initialTab = 0,
   }) {
     int activeTab = initialTab;
-    final teamCodeController = TextEditingController(text: safe8Teams.isNotEmpty ? safe8Teams.first.uniqueTeamCode : '');
-    final teamPassController = TextEditingController(text: '1234');
-    final hostPassController = TextEditingController(text: 'admin123');
+    final mobileController = TextEditingController();
+    final teamCodeController = TextEditingController();
+    final teamPassController = TextEditingController();
+    final hostPassController = TextEditingController();
     String? errorMessage;
 
     showDialog(
@@ -2289,6 +2907,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         builder: (context, setDialogState) {
           return AlertDialog(
             backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: const [
                 Icon(Icons.gavel, color: Colors.amber, size: 20),
@@ -2356,49 +2975,77 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                   if (activeTab == 0) ...[
                     // TEAM OWNER LOGIN
-                    const Text('Enter with your unique Team Code & Passcode to place live bids.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const Text('Enter your registered Mobile Number to unlock your franchise table:', style: TextStyle(color: Colors.white70, fontSize: 11)),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: teamCodeController,
+                      controller: mobileController,
+                      keyboardType: TextInputType.phone,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       decoration: InputDecoration(
-                        labelText: 'Unique Team ID',
+                        labelText: 'Owner Registered Mobile *',
                         labelStyle: const TextStyle(color: Colors.white70),
-                        hintText: 'e.g. TEAM-BBL-01',
-                        prefixIcon: const Icon(Icons.shield, color: Colors.amber, size: 18),
+                        hintText: 'e.g. 9876543201',
+                        prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF34D399), size: 18),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
-                      controller: teamPassController,
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        labelText: 'Team Passcode PIN',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        hintText: 'e.g. 1234',
-                        prefixIcon: const Icon(Icons.password, color: Colors.white54, size: 18),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: teamCodeController,
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            decoration: InputDecoration(
+                              labelText: 'Team ID (Optional)',
+                              labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                              hintText: 'e.g. TEAM-01',
+                              filled: true,
+                              fillColor: const Color(0xFF0F172A),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: teamPassController,
+                            obscureText: true,
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            decoration: InputDecoration(
+                              labelText: 'PIN (Optional)',
+                              labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                              hintText: '1234',
+                              filled: true,
+                              fillColor: const Color(0xFF0F172A),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     if (safe8Teams.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      // Quick select from teams
+                      const SizedBox(height: 12),
                       const Text('Or tap your franchise:', style: TextStyle(color: Colors.white38, fontSize: 10)),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 4,
+                        runSpacing: 4,
                         children: safe8Teams.map((t) {
                           return ActionChip(
-                            label: Text(t.shortName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            label: Text(
+                              '${t.name} ${t.ownerMobileNumber.isNotEmpty ? "(${t.ownerMobileNumber})" : ""}',
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
                             backgroundColor: const Color(0xFF0F172A),
+                            side: BorderSide(color: t.primaryColor.withValues(alpha: 0.6)),
                             onPressed: () {
                               setDialogState(() {
+                                mobileController.text = t.ownerMobileNumber.isNotEmpty ? t.ownerMobileNumber : t.uniqueTeamCode;
                                 teamCodeController.text = t.uniqueTeamCode;
                                 teamPassController.text = t.passcode;
                               });
@@ -2447,19 +3094,20 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   if (activeTab == 0) {
                     final ok = db.enterAuctionAsTeamOwner(
                       auctionId: auction.id,
-                      teamCode: teamCodeController.text,
-                      passcode: teamPassController.text,
+                      mobileNumber: mobileController.text.trim(),
+                      teamCode: teamCodeController.text.trim(),
+                      passcode: teamPassController.text.trim(),
                     );
                     if (ok) {
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           backgroundColor: const Color(0xFF059669),
-                          content: Text('Welcome, ${db.currentAuthenticatedTeam?.name}! You can now bid.'),
+                          content: Text('🎉 Welcome, ${db.currentAuthenticatedTeam?.name}! Dedicated bidding table unlocked.'),
                         ),
                       );
                     } else {
-                      setDialogState(() => errorMessage = 'Invalid Team Code or Passcode.');
+                      setDialogState(() => errorMessage = 'Invalid Mobile Number or Team Credentials.');
                     }
                   } else {
                     final ok = db.enterAuctionAsHost(

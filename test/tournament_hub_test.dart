@@ -285,5 +285,95 @@ void main() {
       expect(teamCountAfter, equals(teamCountBefore - 1));
       expect(db.getTeam(teamToEdit.id), isNull);
     });
+
+    test('Custom auction creation with team owner mobile numbers differentiates teams and allows mobile entry', () {
+      final db = MockDatabase();
+
+      // 1. Organize auction with custom teams and owner mobile numbers
+      final customTeams = [
+        {'name': 'Kolkata Tigers', 'shortName': 'KT', 'mobile': '9876543201'},
+        {'name': 'Mumbai Blasters', 'shortName': 'MB', 'mobile': '9876543202'},
+        {'name': 'Chennai Superstars', 'shortName': 'CS', 'mobile': '9876543203'},
+        {'name': 'Delhi Dynamos', 'shortName': 'DD', 'mobile': '9876543204'},
+      ];
+
+      final createdAuction = db.createAuction(
+        title: 'Bengal Community Premier Draft 2026',
+        maxPursePerTeam: 15000000,
+        minBidIncrement: 50000,
+        requiredTeamsCount: 4,
+        adminPasscode: 'host888',
+        customTeamsWithDetails: customTeams,
+      );
+
+      expect(createdAuction.title, equals('Bengal Community Premier Draft 2026'));
+      expect(createdAuction.maxPursePerTeam, equals(15000000));
+      expect(createdAuction.minBidIncrement, equals(50000));
+      expect(createdAuction.requiredTeamsCount, equals(4));
+
+      // Verify teams created with owner mobile numbers
+      final teams = db.teams.where((t) => t.tournamentId == createdAuction.tournamentId).toList();
+      expect(teams.length, equals(4));
+      expect(teams[0].name, equals('Kolkata Tigers'));
+      expect(teams[0].ownerMobileNumber, equals('9876543201'));
+      expect(teams[1].name, equals('Mumbai Blasters'));
+      expect(teams[1].ownerMobileNumber, equals('9876543202'));
+
+      // 2. Team owner enters using auction ID and registered mobile number
+      final loginSuccess = db.enterAuctionAsTeamOwner(
+        auctionId: createdAuction.id,
+        mobileNumber: '9876543201',
+      );
+
+      expect(loginSuccess, isTrue);
+      expect(db.isAuctionUnlocked, isTrue);
+      expect(db.authenticatedTeamId, equals(teams[0].id));
+      expect(db.currentAuthenticatedTeam?.name, equals('Kolkata Tigers'));
+      expect(db.currentAuthenticatedTeam?.ownerMobileNumber, equals('9876543201'));
+
+      // 3. Invalid mobile fails authentication
+      db.exitAuctionRoom();
+      expect(db.isAuctionUnlocked, isFalse);
+
+      final failedLogin = db.enterAuctionAsTeamOwner(
+        auctionId: createdAuction.id,
+        mobileNumber: '9999999999',
+      );
+      expect(failedLogin, isFalse);
+      expect(db.isAuctionUnlocked, isFalse);
+
+      // 4. Host can edit auction setup
+      db.updateAuction(
+        auctionId: createdAuction.id,
+        title: 'Bengal Super Mega Auction 2026',
+        maxPursePerTeam: 20000000,
+        minBidIncrement: 100000,
+        adminPasscode: 'host999',
+      );
+
+      final updatedAuc = db.auctions.firstWhere((a) => a.id == createdAuction.id);
+      expect(updatedAuc.title, equals('Bengal Super Mega Auction 2026'));
+      expect(updatedAuc.maxPursePerTeam, equals(20000000));
+      expect(updatedAuc.minBidIncrement, equals(100000));
+      expect(updatedAuc.adminPasscode, equals('host999'));
+
+      // 5. Host can add player to pool with mobile number and base price
+      final newPlayer = db.addPlayerToAuction(
+        auctionId: createdAuction.id,
+        fullName: 'Sourav Ganguly',
+        mobileNumber: '9830012345',
+        role: PlayerRole.batsman,
+        basePrice: 100000,
+      );
+
+      expect(newPlayer.fullName, equals('Sourav Ganguly'));
+      expect(newPlayer.mobileNumber, equals('9830012345'));
+      expect(newPlayer.basePrice, equals(100000));
+
+      final lot = db.auctionLots.where((l) => l.auctionId == createdAuction.id && l.playerId == newPlayer.id).firstOrNull;
+      expect(lot, isNotNull);
+      expect(lot?.basePrice, equals(100000));
+      expect(lot?.status, isIn([LotStatus.pending, LotStatus.bidding]));
+    });
   });
 }
