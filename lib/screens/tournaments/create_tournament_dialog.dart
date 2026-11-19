@@ -1025,7 +1025,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
               ActionChip(
                 onPressed: _addNewTeam,
                 avatar: const Icon(Icons.add, size: 14, color: Color(0xFF34D399)),
-                label: const Text('+ Add Team', style: TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                label: const Text('Add Team', style: TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold)),
                 backgroundColor: const Color(0xFF0F172A),
                 side: const BorderSide(color: Color(0xFF059669)),
               ),
@@ -1131,89 +1131,101 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 ],
               ),
               const SizedBox(height: 10),
-              // Squad Progress & Quick Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Squad: ${pList.length}/11 Players',
-                              style: TextStyle(
-                                color: pList.length >= 11 ? const Color(0xFF34D399) : Colors.white70,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (pList.length >= 11) ...[
-                              const SizedBox(width: 4),
-                              const Icon(Icons.check_circle, size: 12, color: Color(0xFF34D399)),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: (pList.length / 11.0).clamp(0.0, 1.0),
-                            backgroundColor: Colors.white12,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              pList.length >= 11 ? const Color(0xFF34D399) : activeColor,
-                            ),
-                            minHeight: 4,
-                          ),
-                        ),
-                      ],
+              // Squad Progress & Actions (Never Overflows)
+              if (pList.isEmpty) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      'Squad: 0/11 Players',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    Text(
+                      'Roster Empty',
+                      style: TextStyle(
+                        color: Colors.white38,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: const LinearProgressIndicator(
+                    value: 0.0,
+                    backgroundColor: Colors.white12,
+                    minHeight: 4,
                   ),
-                  const SizedBox(width: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () => _showPasteRosterDialog(selectedTeamIndex),
-                        icon: const Icon(Icons.content_paste, size: 11, color: Colors.white70),
-                        label: const Text('Paste', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white24),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Squad: ${pList.length}/11',
+                                style: TextStyle(
+                                  color: pList.length >= 11 ? const Color(0xFF34D399) : Colors.white70,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (pList.length >= 11) ...[
+                                const SizedBox(width: 4),
+                                const Icon(Icons.check_circle, size: 12, color: Color(0xFF34D399)),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: (pList.length / 11.0).clamp(0.0, 1.0),
+                              backgroundColor: Colors.white12,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                pList.length >= 11 ? const Color(0xFF34D399) : activeColor,
+                              ),
+                              minHeight: 4,
+                            ),
+                          ),
+                        ],
                       ),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          final short = teamShortCtrl.text.trim().isNotEmpty ? teamShortCtrl.text.trim() : 'T${selectedTeamIndex + 1}';
-                          _autoFillSampleSquad(selectedTeamIndex, short, '987${selectedTeamIndex}0');
-                        },
-                        icon: const Icon(Icons.flash_on, size: 11, color: Colors.amberAccent),
-                        label: const Text('Auto 11', style: TextStyle(color: Colors.amberAccent, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.amberAccent),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => _showPasteRosterDialog(selectedTeamIndex),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () => _addPlayerToTeam(selectedTeamIndex),
-                        icon: const Icon(Icons.add, size: 12, color: Colors.black),
-                        label: const Text('Add Player', style: TextStyle(color: Colors.black, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF34D399),
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                      child: const Text('Paste', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(width: 5),
+                    ElevatedButton.icon(
+                      onPressed: () => _addPlayerToTeam(selectedTeamIndex),
+                      icon: const Icon(Icons.add, size: 12, color: Colors.black),
+                      label: const Text('Add', style: TextStyle(color: Colors.black, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF34D399),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

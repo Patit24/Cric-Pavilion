@@ -64,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFF009270), // Cricbuzz Signature Green
         elevation: 1,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
