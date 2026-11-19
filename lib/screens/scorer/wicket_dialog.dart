@@ -49,6 +49,14 @@ class _WicketDialogState extends State<WicketDialog> {
     }
   }
 
+  String _playerName(Player p) {
+    final fn = p.fullName.trim();
+    if (fn.isNotEmpty) return fn;
+    final dn = p.displayName.trim();
+    if (dn.isNotEmpty) return dn;
+    return 'Batter';
+  }
+
   @override
   Widget build(BuildContext context) {
     final availableDugout = CricketRulesEngine.getAvailableIncomingBatsmen(
@@ -63,8 +71,9 @@ class _WicketDialogState extends State<WicketDialog> {
     final isAllOutAfterThis = widget.currentWickets + 1 >= 10 || availableDugout.isEmpty;
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF1E293B),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -77,17 +86,17 @@ class _WicketDialogState extends State<WicketDialog> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade100,
+                    color: Colors.redAccent.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.close, color: Colors.red, size: 20),
+                  child: const Icon(Icons.sports_cricket, color: Colors.redAccent, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('WICKET DISMISSAL', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.red)),
-                    Text(step == 1 ? 'Step 1: How Out?' : 'Step 2: Incoming Batter', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                    const Text('WICKET DISMISSAL', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.redAccent, letterSpacing: 0.8)),
+                    Text(step == 1 ? 'Step 1: How Out?' : 'Step 2: Incoming Batter', style: const TextStyle(fontSize: 11, color: Colors.white70)),
                   ],
                 ),
               ],
@@ -96,14 +105,24 @@ class _WicketDialogState extends State<WicketDialog> {
 
             if (step == 1) ...[
               // Out Player Choice
-              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
               const SizedBox(height: 6),
               Row(
                 children: [
                   Expanded(
                     child: ChoiceChip(
-                      label: Text('★ ${widget.striker.displayName} (Striker)', style: const TextStyle(fontSize: 11)),
+                      label: Text(
+                        '★ ${_playerName(widget.striker)} (Striker)',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: dismissedBatterId == widget.striker.id ? Colors.black : Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       selected: dismissedBatterId == widget.striker.id,
+                      selectedColor: const Color(0xFF34D399),
+                      backgroundColor: const Color(0xFF0F172A),
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.striker.id);
                       },
@@ -112,8 +131,18 @@ class _WicketDialogState extends State<WicketDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: ChoiceChip(
-                      label: Text('${widget.nonStriker.displayName} (Non-Striker)', style: const TextStyle(fontSize: 11)),
+                      label: Text(
+                        '• ${_playerName(widget.nonStriker)} (Non-Striker)',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: dismissedBatterId == widget.nonStriker.id ? Colors.black : Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       selected: dismissedBatterId == widget.nonStriker.id,
+                      selectedColor: const Color(0xFF34D399),
+                      backgroundColor: const Color(0xFF0F172A),
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.nonStriker.id);
                       },
@@ -124,7 +153,7 @@ class _WicketDialogState extends State<WicketDialog> {
               const SizedBox(height: 12),
 
               // Dismissal Mode
-              const Text('Dismissal Type:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const Text('Dismissal Type:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -132,9 +161,17 @@ class _WicketDialogState extends State<WicketDialog> {
                 children: DismissalType.values.map((type) {
                   final isSelected = selectedType == type;
                   return ChoiceChip(
-                    label: Text(type.name.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                    label: Text(
+                      type.name.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.redAccent : Colors.white70,
+                      ),
+                    ),
                     selected: isSelected,
-                    selectedColor: Colors.red.shade100,
+                    selectedColor: Colors.redAccent.withValues(alpha: 0.25),
+                    backgroundColor: const Color(0xFF0F172A),
                     onSelected: (val) {
                       setState(() => selectedType = type);
                     },
@@ -145,17 +182,23 @@ class _WicketDialogState extends State<WicketDialog> {
 
               // Fielder dropdown for caught/run-out/stumped
               if (selectedType == DismissalType.caught || selectedType == DismissalType.runOut || selectedType == DismissalType.stumped) ...[
-                const Text('Fielder Involved:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
-                const SizedBox(height: 4),
+                const Text('Fielder Involved:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+                const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   value: selectedFielderId,
                   isExpanded: true,
+                  dropdownColor: const Color(0xFF0F172A),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
                   ),
                   items: widget.bowlingTeamPlayers.map((p) {
-                    return DropdownMenuItem(value: p.id, child: Text(p.fullName, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis));
+                    final name = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                    return DropdownMenuItem(value: p.id, child: Text(name, overflow: TextOverflow.ellipsis));
                   }).toList(),
                   onChanged: (val) => setState(() => selectedFielderId = val),
                 ),
@@ -166,7 +209,6 @@ class _WicketDialogState extends State<WicketDialog> {
               ElevatedButton(
                 onPressed: () {
                   if (isAllOutAfterThis) {
-                    // All out, confirm directly
                     Navigator.pop(context);
                     widget.onConfirmWicket(
                       dismissalType: selectedType,
@@ -184,20 +226,21 @@ class _WicketDialogState extends State<WicketDialog> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
+                  backgroundColor: const Color(0xFF009270),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text(
                   isAllOutAfterThis ? 'Confirm Wicket (All Out)' : 'Next: Select Incoming Batter →',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
                 ),
               ),
             ] else ...[
               // Step 2: Select incoming batter
               Text(
                 'Select Incoming Batter (${availableDugout.length} in dugout):',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70),
               ),
               const SizedBox(height: 10),
 
@@ -209,6 +252,7 @@ class _WicketDialogState extends State<WicketDialog> {
                   itemBuilder: (context, index) {
                     final b = availableDugout[index];
                     final isSelected = nextBatterId == b.id;
+                    final bName = b.fullName.isNotEmpty ? b.fullName : b.displayName;
 
                     return InkWell(
                       onTap: () => setState(() => nextBatterId = b.id),
@@ -216,9 +260,9 @@ class _WicketDialogState extends State<WicketDialog> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFFD1FAE5) : Colors.grey.shade50,
+                          color: isSelected ? const Color(0xFF064E3B) : const Color(0xFF0F172A),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isSelected ? const Color(0xFF059669) : Colors.grey.shade300),
+                          border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white12),
                         ),
                         child: Row(
                           children: [
@@ -231,13 +275,21 @@ class _WicketDialogState extends State<WicketDialog> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(b.fullName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                  Text('${b.roleString} • ${b.battingStyle}', style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                                  Text(
+                                    bName,
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    '${b.roleString} • ${b.battingStyle}',
+                                    style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                             ),
                             if (isSelected)
-                              const Icon(Icons.check_circle, color: Color(0xFF059669), size: 18),
+                              const Icon(Icons.check_circle, color: Color(0xFF34D399), size: 18),
                           ],
                         ),
                       ),
@@ -251,7 +303,7 @@ class _WicketDialogState extends State<WicketDialog> {
                 children: [
                   TextButton(
                     onPressed: () => setState(() => step = 1),
-                    child: const Text('← Back'),
+                    child: const Text('← Back', style: TextStyle(color: Colors.white70)),
                   ),
                   const Spacer(),
                   ElevatedButton(
@@ -267,10 +319,12 @@ class _WicketDialogState extends State<WicketDialog> {
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
+                      backgroundColor: Colors.redAccent.shade700,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     ),
-                    child: const Text('Confirm Out & Bat', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text('Confirm Out & Bat 🏏', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

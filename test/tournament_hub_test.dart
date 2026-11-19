@@ -464,5 +464,99 @@ void main() {
       expect(inn.currentNonStrikerId, equals(teamAPlayers[0].id));
       expect(inn.currentBowlerId, equals(teamBPlayers[1].id));
     });
+
+    test('Innings 2 Scoring: allows starting chase early, auto-initializes crease, and scores deliveries smoothly without crashing', () {
+      final db = MockDatabase();
+
+      final tourn = db.createTournament(
+        name: 'Chase Trophy 2026',
+        shortName: 'CT 2026',
+        location: 'Eden Gardens',
+        overs: 5,
+        roomId: 'ROOM-CHASE-01',
+        passcode: '1234',
+        totalTeams: 2,
+        customTeamsWithPlayers: [
+          {
+            'name': 'Gopmahal Sizers',
+            'shortName': 'GS',
+            'players': [
+              {'name': 'GS Striker One', 'mobile': '9800000001', 'role': 'batter'},
+              {'name': 'GS Striker Two', 'mobile': '9800000002', 'role': 'batter'},
+              {'name': 'GS Bowler Ace', 'mobile': '9800000003', 'role': 'bowler'},
+            ],
+          },
+          {
+            'name': 'Howrah Chasers',
+            'shortName': 'HC',
+            'players': [
+              {'name': 'HC Chase Striker', 'mobile': '9811111111', 'role': 'batter'},
+              {'name': 'HC Chase NonStriker', 'mobile': '9811111112', 'role': 'batter'},
+              {'name': 'HC Bowler Ace', 'mobile': '9811111113', 'role': 'bowler'},
+            ],
+          },
+        ],
+      );
+
+      final match = db.matches.firstWhere((m) => m.tournamentId == tourn.id);
+      final teamAPlayers = db.getTeamPlayers(match.teamAId);
+      final teamBPlayers = db.getTeamPlayers(match.teamBId);
+
+      // 1. Start match with toss: Team A bats first
+      db.startMatchWithToss(
+        matchId: match.id,
+        tossWonBy: match.teamAId,
+        tossDecision: 'bat',
+        strikerId: teamAPlayers[0].id,
+        nonStrikerId: teamAPlayers[1].id,
+        bowlerId: teamBPlayers[2].id,
+      );
+
+      final inn1 = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 1);
+
+      // Score some runs in Innings 1: 4, 6, 1
+      db.recordDelivery(inningsId: inn1.id, runsBatter: 4);
+      db.recordDelivery(inningsId: inn1.id, runsBatter: 6);
+      db.recordDelivery(inningsId: inn1.id, runsBatter: 1);
+
+      expect(inn1.totalRuns, equals(11));
+      expect(inn1.wickets, equals(0));
+
+      // 2. User ends Innings 1 early or starts Innings 2 chase
+      final inn2 = db.startInnings2(matchId: match.id);
+
+      expect(inn1.isCompleted, isTrue);
+      expect(inn2.inningsNumber, equals(2));
+      expect(inn2.targetRuns, equals(12)); // 11 + 1 = 12
+      expect(inn2.battingTeamId, equals(match.teamBId));
+      expect(inn2.bowlingTeamId, equals(match.teamAId));
+      expect(inn2.currentStrikerId, isNotEmpty);
+      expect(inn2.currentNonStrikerId, isNotEmpty);
+      expect(inn2.currentBowlerId, isNotEmpty);
+      expect(match.currentInningsNumber, equals(2));
+      expect(match.status, equals(MatchStatus.live));
+
+      // 3. User scores deliveries in Innings 2 - MUST NOT CRASH with "Bad state: No element"
+      db.recordDelivery(inningsId: inn2.id, runsBatter: 4);
+      expect(inn2.totalRuns, equals(4));
+      expect(inn2.legalBalls, equals(1));
+
+      // Score a wide in Innings 2
+      db.recordDelivery(inningsId: inn2.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.wide);
+      expect(inn2.totalRuns, equals(5));
+      expect(inn2.totalExtras, equals(1));
+
+      // Hit a six: 5 + 6 = 11 runs
+      db.recordDelivery(inningsId: inn2.id, runsBatter: 6);
+      expect(inn2.totalRuns, equals(11));
+
+      // Take a single: 11 + 1 = 12 runs (Target reached! 12 >= 12)
+      db.recordDelivery(inningsId: inn2.id, runsBatter: 1);
+      expect(inn2.totalRuns, equals(12));
+      expect(inn2.isCompleted, isTrue);
+      expect(match.status, equals(MatchStatus.completed));
+      expect(match.winnerId, equals(match.teamBId)); // Howrah Chasers won!
+      expect(match.winMargin, contains('wickets'));
+    });
   });
 }

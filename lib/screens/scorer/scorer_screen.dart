@@ -116,7 +116,21 @@ class _ScorerScreenState extends State<ScorerScreen> {
     // Crease Players
     final striker = db.players.where((p) => p.id == currentInnings?.currentStrikerId).firstOrNull ?? battingTeamPlayers.firstOrNull;
     final nonStriker = db.players.where((p) => p.id == currentInnings?.currentNonStrikerId).firstOrNull ?? (battingTeamPlayers.length > 1 ? battingTeamPlayers[1] : null);
-    final bowler = db.players.where((p) => p.id == currentInnings?.currentBowlerId).firstOrNull;
+    final bowler = db.players.where((p) => p.id == currentInnings?.currentBowlerId).firstOrNull ??
+        bowlingTeamPlayers.where((p) => p.role == PlayerRole.bowler).firstOrNull ??
+        bowlingTeamPlayers.firstOrNull;
+
+    if (currentInnings != null) {
+      if (currentInnings.currentStrikerId == null && striker != null) {
+        currentInnings.currentStrikerId = striker.id;
+      }
+      if (currentInnings.currentNonStrikerId == null && nonStriker != null) {
+        currentInnings.currentNonStrikerId = nonStriker.id;
+      }
+      if (currentInnings.currentBowlerId == null && bowler != null) {
+        currentInnings.currentBowlerId = bowler.id;
+      }
+    }
 
     // Crease Scorecards
     final strikerCard = db.battingScorecards.where((b) => b.inningsId == currentInnings?.id && b.playerId == striker?.id).firstOrNull ??
@@ -245,6 +259,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     const SnackBar(content: Text('Locked scoring console. Returned to Spectator Mode.')),
                   );
                   break;
+                case 'end_inn1_early':
+                  _confirmEndInnings1Early(context, db, match, inn1, safeTeamAPlayers, safeTeamBPlayers);
+                  break;
                 case 'reset_match':
                   _confirmResetMatch(context, db, match);
                   break;
@@ -284,6 +301,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   ),
                 )
               else ...[
+                if (inn2 == null && currentInnings?.inningsNumber == 1)
+                  const PopupMenuItem(
+                    value: 'end_inn1_early',
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag_circle, color: Color(0xFF34D399), size: 17),
+                        SizedBox(width: 10),
+                        Text('End Innings 1 & Start Chase', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
                 const PopupMenuItem(
                   value: 'reset_match',
                   child: Row(
@@ -333,6 +361,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
                       bowlingTeamPlayers,
                       isScorer,
                       currentRoom,
+                      safeTeamAPlayers,
+                      safeTeamBPlayers,
                     ),
     );
   }
@@ -846,6 +876,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
     List<Player> bowlingTeamPlayers,
     bool isScorer,
     ScoringRoom? currentRoom,
+    List<Player> safeTeamAPlayers,
+    List<Player> safeTeamBPlayers,
   ) {
     final runsRemaining = (currentInnings.targetRuns != null) ? (currentInnings.targetRuns! - currentInnings.totalRuns) : null;
     final ballsRemaining = (match.overs * 6) - currentInnings.legalBalls;
@@ -885,13 +917,13 @@ class _ScorerScreenState extends State<ScorerScreen> {
               ),
               Expanded(
                 child: InkWell(
-                  onTap: (inn2 != null || inn1?.isCompleted == true)
-                      ? () => setState(() => selectedInningsNum = 2)
-                      : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Innings 2 unlocks after Innings 1 completes (20 ov or 10 wkts).')),
-                          );
-                        },
+                  onTap: () {
+                    if (inn2 != null) {
+                      setState(() => selectedInningsNum = 2);
+                    } else {
+                      _showStartInnings2Modal(context, db, match, inn1, safeTeamAPlayers, safeTeamBPlayers);
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
@@ -900,9 +932,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'Innings 2 ${inn2 != null ? "(${inn2.totalRuns}/${inn2.wickets})" : "(Locked)"}',
+                      'Innings 2 ${inn2 != null ? "(${inn2.totalRuns}/${inn2.wickets})" : "(Start Chase)"}',
                       style: TextStyle(
-                        color: (inn2 != null || inn1?.isCompleted == true) ? Colors.white : Colors.white30,
+                        color: selectedInningsNum == 2
+                            ? Colors.white
+                            : (inn2 != null ? Colors.white70 : const Color(0xFF34D399)),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -971,8 +1005,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               ),
                               if (currentInnings.targetRuns != null)
                                 Text(
-                                  'Target: ${currentInnings.targetRuns} (Need $runsRemaining in $ballsRemaining b, RRR: $rrr)',
-                                  style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                                  runsRemaining != null && runsRemaining <= 0
+                                      ? 'Target Reached! (${10 - currentInnings.wickets} wkts victory)'
+                                      : 'Target: ${currentInnings.targetRuns} (Need $runsRemaining in $ballsRemaining b, RRR: $rrr)',
+                                  style: TextStyle(
+                                    color: runsRemaining != null && runsRemaining <= 0 ? const Color(0xFF34D399) : Colors.amber,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                             ],
                           ),
@@ -994,6 +1034,48 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ],
                   ),
                 ),
+
+                if (currentInnings.inningsNumber == 2 && currentInnings.legalBalls == 0) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF059669)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.flag_circle, color: Color(0xFF34D399), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Chase Target: ${currentInnings.targetRuns ?? ((inn1?.totalRuns ?? 0) + 1)} runs in ${match.overs} ov',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        if (isScorer)
+                          InkWell(
+                            onTap: () => _showOpeningCreaseDialog(
+                              context,
+                              db,
+                              currentInnings,
+                              battingTeamPlayers,
+                              bowlingTeamPlayers,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF009270),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text('Change Openers', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 12),
 
@@ -1886,7 +1968,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
   void _showExtrasDialog(BuildContext context, MockDatabase db, Innings inn) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF1E293B),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return Padding(
@@ -1895,33 +1977,65 @@ class _ScorerScreenState extends State<ScorerScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('RECORD EXTRAS', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+              const Text(
+                'RECORD EXTRAS',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.8),
+              ),
               const SizedBox(height: 16),
               ListTile(
-                title: const Text('Wide (+1 Run)'),
-                subtitle: const Text('Bowler charged 1 run, not a legal ball'),
-                leading: const Icon(Icons.arrow_forward, color: Colors.amber),
+                title: const Text('Wide (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Bowler charged 1 run, not a legal ball', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.arrow_forward, color: Colors.amber, size: 20),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.wide);
                 },
               ),
+              const Divider(color: Colors.white10),
               ListTile(
-                title: const Text('No-Ball (+1 Run)'),
-                subtitle: const Text('Bowler charged 1 run, free hit awarded'),
-                leading: const Icon(Icons.not_interested, color: Colors.red),
+                title: const Text('No-Ball (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Bowler charged 1 run, free hit awarded', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.not_interested, color: Colors.redAccent, size: 20),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.noBall);
                 },
               ),
+              const Divider(color: Colors.white10),
               ListTile(
-                title: const Text('Bye / Leg Bye (+1 Run)'),
-                subtitle: const Text('Runs not charged to bowler, counts as legal delivery'),
-                leading: const Icon(Icons.run_circle, color: Colors.blue),
+                title: const Text('Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Runs not charged to bowler, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.directions_run, color: Colors.blueAccent, size: 20),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.bye);
+                },
+              ),
+              const Divider(color: Colors.white10),
+              ListTile(
+                title: const Text('Leg Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Ball hit pad/body, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFF34D399).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.shield_outlined, color: Color(0xFF34D399), size: 20),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.legBye);
                 },
               ),
             ],
@@ -1949,6 +2063,273 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _confirmEndInnings1Early(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Innings? inn1,
+    List<Player> teamAPlayers,
+    List<Player> teamBPlayers,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('End Innings 1 Early & Start Chase?', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(
+          'Innings 1 is currently ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} in ${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} overs.\n\nDo you want to declare/conclude Innings 1 and start Innings 2 with a target of ${(inn1?.totalRuns ?? 0) + 1} runs?',
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showStartInnings2Modal(context, db, match, inn1, teamAPlayers, teamBPlayers);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF009270),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Yes, Start Innings 2'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStartInnings2Modal(
+    BuildContext context,
+    MockDatabase db,
+    MatchModel match,
+    Innings? inn1,
+    List<Player> teamAPlayers,
+    List<Player> teamBPlayers,
+  ) {
+    final chasingTeamId = (inn1?.battingTeamId == match.teamAId) ? match.teamBId : match.teamAId;
+    final defendingTeamId = (chasingTeamId == match.teamAId) ? match.teamBId : match.teamAId;
+
+    final chasingTeam = db.getTeam(chasingTeamId) ?? MockDatabase.emptyTeam;
+    final defendingTeam = db.getTeam(defendingTeamId) ?? MockDatabase.emptyTeam;
+
+    final chasingPlayers = chasingTeamId == match.teamAId ? teamAPlayers : teamBPlayers;
+    final defendingPlayers = defendingTeamId == match.teamAId ? teamAPlayers : teamBPlayers;
+
+    String? selectedStrikerId = chasingPlayers.isNotEmpty ? chasingPlayers[0].id : null;
+    String? selectedNonStrikerId = chasingPlayers.length > 1 ? chasingPlayers[1].id : selectedStrikerId;
+    String? selectedBowlerId = defendingPlayers.where((p) => p.role == PlayerRole.bowler).firstOrNull?.id ??
+        (defendingPlayers.isNotEmpty ? defendingPlayers[0].id : null);
+
+    final target = (inn1?.totalRuns ?? 0) + 1;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            final isSameBatter = selectedStrikerId != null &&
+                selectedNonStrikerId != null &&
+                selectedStrikerId == selectedNonStrikerId;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF009270).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.sports_cricket, color: Color(0xFF34D399), size: 22),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Start Innings 2 (Chase)',
+                                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '${chasingTeam.name} needs $target runs in ${match.overs} overs to win',
+                                style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(modalCtx),
+                          icon: const Icon(Icons.close, color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Innings 1 Summary Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Innings 1 Total', style: TextStyle(color: Colors.white60, fontSize: 10)),
+                              Text(
+                                '${defendingTeam.name}: ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} (${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} ov)',
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF059669),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Target: $target',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    const Text(
+                      'SELECT OPENING CREASE LINEUP FOR INNINGS 2',
+                      style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Striker
+                    Text('Opening Striker (${chasingTeam.name}):', style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: selectedStrikerId,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF0F172A),
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: chasingPlayers.map((p) {
+                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                      }).toList(),
+                      onChanged: (val) => setModalState(() => selectedStrikerId = val),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Non-Striker
+                    Text('Opening Non-Striker (${chasingTeam.name}):', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: selectedNonStrikerId,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF0F172A),
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: chasingPlayers.map((p) {
+                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                      }).toList(),
+                      onChanged: (val) => setModalState(() => selectedNonStrikerId = val),
+                    ),
+                    const SizedBox(height: 10),
+
+                    if (isSameBatter) ...[
+                      const Text('⚠️ Striker & Non-Striker must be different players.', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // Bowler
+                    Text('Opening Bowler (${defendingTeam.name}):', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<String>(
+                      value: selectedBowlerId,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF0F172A),
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: defendingPlayers.map((p) {
+                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                      }).toList(),
+                      onChanged: (val) => setModalState(() => selectedBowlerId = val),
+                    ),
+                    const SizedBox(height: 18),
+
+                    ElevatedButton.icon(
+                      onPressed: (!isSameBatter && selectedStrikerId != null && selectedNonStrikerId != null && selectedBowlerId != null)
+                          ? () {
+                              Navigator.pop(modalCtx);
+                              db.startInnings2(
+                                matchId: match.id,
+                                strikerId: selectedStrikerId,
+                                nonStrikerId: selectedNonStrikerId,
+                                bowlerId: selectedBowlerId,
+                              );
+                              setState(() => selectedInningsNum = 2);
+                            }
+                          : null,
+                      icon: const Icon(Icons.play_arrow, size: 18),
+                      label: const Text('Start Innings 2 & Begin Scoring', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF009270),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

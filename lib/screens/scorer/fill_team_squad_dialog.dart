@@ -130,6 +130,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
 
     return Dialog(
       backgroundColor: const Color(0xFF1E293B),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),

@@ -1781,22 +1781,55 @@ class MockDatabase extends ChangeNotifier {
 
     inn.oversStr = CricketRulesEngine.formatOvers(inn.legalBalls);
 
-    // Striker & Bowler
-    final strikerId = inn.currentStrikerId ?? 'pl_1';
-    final nonStrikerId = inn.currentNonStrikerId ?? 'pl_3';
-    final bowlerId = inn.currentBowlerId ?? 'pl_4';
+    // Striker & Bowler (Resilient against null IDs or non-existent fallback IDs)
+    final battingPlayers = players.where((p) => p.teamId == inn.battingTeamId).toList();
+    final bowlingPlayers = players.where((p) => p.teamId == inn.bowlingTeamId).toList();
+
+    String strikerId = inn.currentStrikerId ?? '';
+    if (strikerId.isEmpty || !players.any((p) => p.id == strikerId)) {
+      if (battingPlayers.isNotEmpty) {
+        strikerId = battingPlayers[0].id;
+        inn.currentStrikerId = strikerId;
+      }
+    }
+
+    String nonStrikerId = inn.currentNonStrikerId ?? '';
+    if (nonStrikerId.isEmpty || !players.any((p) => p.id == nonStrikerId)) {
+      if (battingPlayers.length > 1) {
+        nonStrikerId = battingPlayers[1].id;
+        inn.currentNonStrikerId = nonStrikerId;
+      } else {
+        nonStrikerId = strikerId;
+        inn.currentNonStrikerId = nonStrikerId;
+      }
+    }
+
+    String bowlerId = inn.currentBowlerId ?? '';
+    if (bowlerId.isEmpty || !players.any((p) => p.id == bowlerId)) {
+      if (bowlingPlayers.isNotEmpty) {
+        final bP = bowlingPlayers.firstWhere(
+          (p) => p.role == PlayerRole.bowler,
+          orElse: () => bowlingPlayers.first,
+        );
+        bowlerId = bP.id;
+        inn.currentBowlerId = bowlerId;
+      }
+    }
 
     // Update Batter Scorecard
     var strikerCard = battingScorecards.firstWhere(
       (b) => b.inningsId == inningsId && b.playerId == strikerId,
       orElse: () {
-        final p = players.firstWhere((p) => p.id == strikerId);
+        final p = players.where((p) => p.id == strikerId).firstOrNull ??
+            battingPlayers.where((p) => p.id == strikerId).firstOrNull ??
+            battingPlayers.firstOrNull ??
+            Player(id: strikerId, fullName: 'Striker', displayName: 'Striker', role: PlayerRole.batsman);
         final newCard = BattingScorecard(
           id: 'bat_${inningsId}_$strikerId',
           inningsId: inningsId,
           matchId: match.id,
           playerId: strikerId,
-          playerName: p.fullName,
+          playerName: p.fullName.isNotEmpty ? p.fullName : p.displayName,
         );
         battingScorecards.add(newCard);
         return newCard;
@@ -1815,13 +1848,16 @@ class MockDatabase extends ChangeNotifier {
     var bowlerCard = bowlingScorecards.firstWhere(
       (b) => b.inningsId == inningsId && b.playerId == bowlerId,
       orElse: () {
-        final p = players.firstWhere((p) => p.id == bowlerId);
+        final p = players.where((p) => p.id == bowlerId).firstOrNull ??
+            bowlingPlayers.where((p) => p.id == bowlerId).firstOrNull ??
+            bowlingPlayers.firstOrNull ??
+            Player(id: bowlerId, fullName: 'Bowler', displayName: 'Bowler', role: PlayerRole.bowler);
         final newCard = BowlingScorecard(
           id: 'bowl_${inningsId}_$bowlerId',
           inningsId: inningsId,
           matchId: match.id,
           playerId: bowlerId,
-          playerName: p.fullName,
+          playerName: p.fullName.isNotEmpty ? p.fullName : p.displayName,
         );
         bowlingScorecards.add(newCard);
         return newCard;
@@ -1841,7 +1877,18 @@ class MockDatabase extends ChangeNotifier {
     if (isWicket) {
       inn.wickets++;
       final outPlayerId = dismissedPlayerId ?? strikerId;
-      var outCard = battingScorecards.firstWhere((b) => b.inningsId == inningsId && b.playerId == outPlayerId);
+      var outCard = battingScorecards.where((b) => b.inningsId == inningsId && b.playerId == outPlayerId).firstOrNull;
+      if (outCard == null) {
+        final outPlayer = players.where((p) => p.id == outPlayerId).firstOrNull;
+        outCard = BattingScorecard(
+          id: 'bat_${inningsId}_$outPlayerId',
+          inningsId: inningsId,
+          matchId: match.id,
+          playerId: outPlayerId,
+          playerName: outPlayer?.fullName.isNotEmpty == true ? outPlayer!.fullName : 'Batter',
+        );
+        battingScorecards.add(outCard);
+      }
       outCard.isOut = true;
       outCard.dismissalText = dismissalType?.name.toUpperCase() ?? 'OUT';
 
@@ -1905,21 +1952,7 @@ class MockDatabase extends ChangeNotifier {
     // Innings 1 Completion Check
     if (inn.inningsNumber == 1 && (inn.legalBalls >= match.overs * 6 || inn.wickets >= 10)) {
       inn.isCompleted = true;
-      match.status = MatchStatus.inningsBreak;
-
-      // Auto initialize Innings 2 if not present
-      if (!inningsList.any((i) => i.matchId == match.id && i.inningsNumber == 2)) {
-        final inn2 = Innings(
-          id: 'inn_${match.id}_2',
-          matchId: match.id,
-          inningsNumber: 2,
-          battingTeamId: inn.bowlingTeamId,
-          bowlingTeamId: inn.battingTeamId,
-          targetRuns: inn.totalRuns + 1,
-        );
-        inningsList.add(inn2);
-        match.currentInningsNumber = 2;
-      }
+      startInnings2(matchId: match.id);
     }
 
     // Innings 2 Chasing Check
@@ -1970,6 +2003,85 @@ class MockDatabase extends ChangeNotifier {
     inn.currentStrikerId = strikerId;
     inn.currentNonStrikerId = nonStrikerId;
     inn.currentBowlerId = bowlerId;
+    notifyListeners();
+  }
+
+  Innings startInnings2({
+    required String matchId,
+    String? strikerId,
+    String? nonStrikerId,
+    String? bowlerId,
+  }) {
+    final match = matches.firstWhere((m) => m.id == matchId);
+    final inn1 = inningsList.firstWhere(
+      (i) => i.matchId == matchId && i.inningsNumber == 1,
+      orElse: () {
+        final newInn1 = Innings(
+          id: 'inn_${matchId}_1',
+          matchId: matchId,
+          inningsNumber: 1,
+          battingTeamId: match.battingFirstId ?? match.teamAId,
+          bowlingTeamId: (match.battingFirstId == match.teamAId) ? match.teamBId : match.teamAId,
+        );
+        inningsList.add(newInn1);
+        return newInn1;
+      },
+    );
+    inn1.isCompleted = true;
+
+    final battingTeamId = inn1.bowlingTeamId;
+    final bowlingTeamId = inn1.battingTeamId;
+
+    final battingPlayers = players.where((p) => p.teamId == battingTeamId).toList();
+    final bowlingPlayers = players.where((p) => p.teamId == bowlingTeamId).toList();
+
+    final actualStrikerId = strikerId ?? (battingPlayers.isNotEmpty ? battingPlayers[0].id : '');
+    final actualNonStrikerId = nonStrikerId ?? (battingPlayers.length > 1 ? battingPlayers[1].id : actualStrikerId);
+    final actualBowlerId = bowlerId ?? (bowlingPlayers.isNotEmpty ? (bowlingPlayers.firstWhere((p) => p.role == PlayerRole.bowler, orElse: () => bowlingPlayers.first).id) : '');
+
+    var inn2 = inningsList.where((i) => i.matchId == matchId && i.inningsNumber == 2).firstOrNull;
+    if (inn2 == null) {
+      inn2 = Innings(
+        id: 'inn_${match.id}_2',
+        matchId: match.id,
+        inningsNumber: 2,
+        battingTeamId: battingTeamId,
+        bowlingTeamId: bowlingTeamId,
+        targetRuns: inn1.totalRuns + 1,
+      );
+      inningsList.add(inn2);
+    }
+
+    inn2.currentStrikerId = actualStrikerId;
+    inn2.currentNonStrikerId = actualNonStrikerId;
+    inn2.currentBowlerId = actualBowlerId;
+    inn2.targetRuns = inn1.totalRuns + 1;
+    match.currentInningsNumber = 2;
+    match.status = MatchStatus.live;
+
+    notifyListeners();
+    return inn2;
+  }
+
+  void endInningsEarly(String inningsId) {
+    final inn = inningsList.firstWhere((i) => i.id == inningsId);
+    inn.isCompleted = true;
+    final match = matches.firstWhere((m) => m.id == inn.matchId);
+
+    if (inn.inningsNumber == 1) {
+      startInnings2(matchId: match.id);
+    } else {
+      match.status = MatchStatus.completed;
+      if (inn.targetRuns != null) {
+        if (inn.totalRuns >= inn.targetRuns!) {
+          match.winnerId = inn.battingTeamId;
+          match.winMargin = '${10 - inn.wickets} wickets';
+        } else {
+          match.winnerId = inn.bowlingTeamId;
+          match.winMargin = '${(inn.targetRuns! - 1) - inn.totalRuns} runs';
+        }
+      }
+    }
     notifyListeners();
   }
 

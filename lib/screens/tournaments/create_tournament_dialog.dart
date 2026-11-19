@@ -313,7 +313,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           // Short Code & Format (EDITABLE OVERS)
           LayoutBuilder(
             builder: (ctx, constraints) {
-              if (constraints.maxWidth < 340) {
+              if (constraints.maxWidth < 420) {
                 return Column(
                   children: [
                     _buildShortCodeField(),
@@ -353,7 +353,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           // Location & Teams Count (EDITABLE TEAMS COUNT)
           LayoutBuilder(
             builder: (ctx, constraints) {
-              if (constraints.maxWidth < 340) {
+              if (constraints.maxWidth < 420) {
                 return Column(
                   children: [
                     _buildLocationField(),
@@ -400,7 +400,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 const SizedBox(height: 8),
                 LayoutBuilder(
                   builder: (ctx, constraints) {
-                    if (constraints.maxWidth < 340) {
+                    if (constraints.maxWidth < 420) {
                       return Column(
                         children: [
                           _buildRoomIdField(),
