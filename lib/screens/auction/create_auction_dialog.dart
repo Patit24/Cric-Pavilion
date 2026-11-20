@@ -184,8 +184,11 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.gavel, color: Colors.black, size: 20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.gavel, color: Colors.black, size: 18),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -194,25 +197,40 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                       children: const [
                         Text(
                           'Host New Player Auction',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Manual tournament draft, team purse budgets & player lots',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          'Draft setup, team budgets & player pool',
+                          style: TextStyle(color: Colors.white54, fontSize: 10.5),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: _quickFillSample,
-                    icon: const Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
-                    label: const Text('Auto-Fill Sample', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
-                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
+                  InkWell(
+                    onTap: _quickFillSample,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.flash_on, size: 11, color: Colors.amberAccent),
+                          SizedBox(width: 4),
+                          Text('Sample', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                    icon: const Icon(Icons.close, color: Colors.white54, size: 18),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),

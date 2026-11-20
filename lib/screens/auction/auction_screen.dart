@@ -128,10 +128,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
   Widget _buildEmptyAuctionDirectory(BuildContext context, MockDatabase db) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: const Color(0xFF070B14),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
-        title: const Text('Franchise Auctions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        backgroundColor: const Color(0xFF0B1120),
+        elevation: 0,
+        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+        title: const Text('Franchise Auctions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         actions: const [RoleSwitcherChip(compact: true), SizedBox(width: 8)],
       ),
       body: Center(
@@ -140,16 +142,24 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.gavel_outlined, size: 54, color: Colors.amberAccent),
-              const SizedBox(height: 16),
-              const Text('No Player Auctions Created', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                ),
+                child: const Icon(Icons.gavel_outlined, size: 52, color: Colors.amberAccent),
+              ),
+              const SizedBox(height: 20),
+              const Text('No Player Auctions Created', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
               const Text(
                 'Host a live player auction with franchise budgets, player wheel spin, and owner bidding.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white60, fontSize: 12),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
                   final created = await showDialog<Auction>(
@@ -165,7 +175,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 },
                 icon: const Icon(Icons.add, size: 16, color: Colors.black),
                 label: const Text('Host New Auction', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.amberAccent),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ],
           ),
@@ -179,22 +193,26 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   // =========================================================================
   Widget _buildAuctionDirectory(BuildContext context, MockDatabase db) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: const Color(0xFF070B14),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
+        backgroundColor: const Color(0xFF0B1120),
         elevation: 0,
+        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(color: Colors.amber.shade400, borderRadius: BorderRadius.circular(6)),
-              child: const Icon(Icons.gavel, size: 14, color: Colors.black),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.gavel, size: 15, color: Colors.black),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             const Flexible(
               child: Text(
-                'Auctions',
+                'Auctions Arena',
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -443,12 +461,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     final unsoldLotsCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.unsold).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: const Color(0xFF070B14),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
+        backgroundColor: const Color(0xFF0B1120),
         elevation: 0,
+        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           tooltip: 'All Auctions',
           onPressed: () => setState(() => selectedAuctionId = null),
         ),
@@ -1118,7 +1137,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Transform.rotate(
                         angle: _isSpinning ? _wheelAnimation.value : _currentAngle,
                         child: CustomPaint(
-                          size: const Size(180, 180),
+                          size: const Size(190, 190),
                           painter: AuctionWheelPainter(itemsCount: max(4, min(8, eligibleSpinCount))),
                         ),
                       ),
@@ -1146,38 +1165,62 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           _spinWheel(db, auction);
                         },
                         child: Container(
-                          width: 56,
-                          height: 56,
+                          width: 66,
+                          height: 66,
                           decoration: BoxDecoration(
-                            color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amber.shade500 : Colors.grey.shade800,
                             shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: auction.isReadyToStart && db.canSpinPlayer(auction.id)
+                                  ? [const Color(0xFFFDE68A), const Color(0xFFF59E0B), const Color(0xFFB45309)]
+                                  : [const Color(0xFF334155), const Color(0xFF1E293B), const Color(0xFF0F172A)],
+                            ),
+                            border: Border.all(
+                              color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amberAccent : Colors.white24,
+                              width: 2.5,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: (auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amber : Colors.black).withValues(alpha: 0.5),
-                                blurRadius: 16,
+                                blurRadius: 18,
                                 spreadRadius: 2,
                               ),
                             ],
                           ),
                           alignment: Alignment.center,
-                          child: Text(
-                            _isSpinning
-                                ? '...'
-                                : (!auction.isReadyToStart
-                                    ? '8 TEAMS'
-                                    : (db.canSpinPlayer(auction.id) ? 'SPIN' : 'LOCKED')),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: db.canSpinPlayer(auction.id) ? Colors.black : Colors.white70,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _isSpinning
+                                    ? Icons.sync
+                                    : (!auction.isReadyToStart
+                                        ? Icons.lock
+                                        : (db.canSpinPlayer(auction.id) ? Icons.gavel : Icons.lock_outline)),
+                                size: 16,
+                                color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : Colors.white70,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _isSpinning
+                                    ? '...'
+                                    : (!auction.isReadyToStart
+                                        ? '8 TEAMS'
+                                        : (db.canSpinPlayer(auction.id) ? 'SPIN' : 'LOCKED')),
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                  color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : Colors.white70,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                       // Top Pointer Indicator
                       const Positioned(
-                        top: 0,
-                        child: Icon(Icons.arrow_drop_down, size: 36, color: Colors.amber),
+                        top: 2,
+                        child: Icon(Icons.arrow_drop_down, size: 36, color: Color(0xFFF59E0B)),
                       ),
                     ],
                   ),
@@ -1234,32 +1277,48 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
                                 children: [
+                                  // Role chip
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.shade900.withValues(alpha: 0.4),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: Colors.amber.shade600),
-                                    ),
-                                    child: Text(
-                                      currentLot.category.toUpperCase(),
-                                      style: TextStyle(color: Colors.amber.shade400, fontSize: 9, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF064E3B),
                                       borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: const Color(0xFF059669)),
                                     ),
                                     child: Text(
                                       currentPlayer.roleString.toUpperCase(),
                                       style: const TextStyle(color: Color(0xFF34D399), fontSize: 9, fontWeight: FontWeight.bold),
                                     ),
                                   ),
+                                  // Category chip (shown only if distinct from role)
+                                  if (currentLot.category.trim().isNotEmpty &&
+                                      currentLot.category.trim().toLowerCase() != currentPlayer.roleString.trim().toLowerCase())
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.shade900.withValues(alpha: 0.4),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.amber.shade600),
+                                      ),
+                                      child: Text(
+                                        currentLot.category.toUpperCase(),
+                                        style: TextStyle(color: Colors.amber.shade400, fontSize: 9, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  if (currentPlayer.isOverseas)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF1E3A8A),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: const Color(0xFF3B82F6)),
+                                      ),
+                                      child: const Text('OVERSEAS', style: TextStyle(color: Color(0xFF93C5FD), fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: 6),
@@ -1842,9 +1901,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: [
             const Icon(Icons.warning_amber, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Text(
-              '⚠️ GOING ONCE at ${currencyFormat.format(auction.currentBid)} to ${highBidder?.name ?? "..."}!',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+            Flexible(
+              child: Text(
+                '⚠️ GOING ONCE at ${currencyFormat.format(auction.currentBid)} to ${highBidder?.name ?? "..."}!',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1859,12 +1921,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.campaign, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              '🚨 GOING TWICE! LAST CHANCE TO COUNTER-BID!',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+          children: const [
+            Icon(Icons.campaign, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                '🚨 GOING TWICE! LAST CHANCE TO COUNTER-BID!',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1882,9 +1947,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: const [
             Icon(Icons.gavel, color: Colors.white, size: 18),
             SizedBox(width: 8),
-            Text(
-              '⚡ FAIR WARNING! GAVEL ABOUT TO FALL!',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+            Flexible(
+              child: Text(
+                '⚡ FAIR WARNING! GAVEL ABOUT TO FALL!',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1901,9 +1969,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: const [
             Icon(Icons.pause_circle_filled, color: Colors.white70, size: 18),
             SizedBox(width: 8),
-            Text(
-              '⏸️ FLOOR PAUSED BY AUCTIONEER',
-              style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+            Flexible(
+              child: Text(
+                '⏸️ FLOOR PAUSED BY AUCTIONEER',
+                style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1919,94 +1990,101 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.45)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: const [
-                  Icon(Icons.shield, color: Colors.amber, size: 14),
-                  SizedBox(width: 6),
-                  Text(
-                    'AUCTIONEER COCKPIT (HOST DOES NOT BID)',
-                    style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
-                  ),
-                ],
+              const Icon(Icons.shield, color: Colors.amber, size: 14),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'AUCTIONEER COCKPIT',
+                  style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: () => _showManualStartingPriceDialog(context, db, auction, currentLot),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
                   ),
-                  child: const Text('Edit Start Price', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit, size: 10, color: Colors.amber),
+                      SizedBox(width: 4),
+                      Text('Edit Price', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
 
-          // Countdown Warnings Strip (Going Once / Going Twice / Fair Warning)
+          // Countdown Warnings Strip (Going Once / Going Twice / Fair Warning / Pause)
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.goingOnce),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.amber,
-                    side: const BorderSide(color: Colors.amber),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text('Going Once', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                child: _buildGavelActionPill(
+                  label: 'Once',
+                  subtitle: 'Gavel 1',
+                  color: Colors.amber,
+                  isActive: auction.floorStatus == FloorStatus.goingOnce,
+                  onTap: () => db.setFloorStatus(auction.id, FloorStatus.goingOnce),
                 ),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.goingTwice),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.redAccent,
-                    side: const BorderSide(color: Colors.redAccent),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text('Going Twice', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                child: _buildGavelActionPill(
+                  label: 'Twice',
+                  subtitle: 'Gavel 2',
+                  color: const Color(0xFFF97316),
+                  isActive: auction.floorStatus == FloorStatus.goingTwice,
+                  onTap: () => db.setFloorStatus(auction.id, FloorStatus.goingTwice),
                 ),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => db.setFloorStatus(auction.id, FloorStatus.fairWarning),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.purpleAccent,
-                    side: const BorderSide(color: Colors.purpleAccent),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text('Fair Warning', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                child: _buildGavelActionPill(
+                  label: 'Final',
+                  subtitle: 'Warning',
+                  color: const Color(0xFFEF4444),
+                  isActive: auction.floorStatus == FloorStatus.fairWarning,
+                  onTap: () => db.setFloorStatus(auction.id, FloorStatus.fairWarning),
                 ),
               ),
               const SizedBox(width: 6),
-              IconButton(
-                tooltip: auction.floorStatus == FloorStatus.paused ? 'Resume Floor' : 'Pause Floor',
-                icon: Icon(
-                  auction.floorStatus == FloorStatus.paused ? Icons.play_arrow : Icons.pause,
-                  color: Colors.white70,
-                  size: 20,
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white24),
                 ),
-                onPressed: () {
-                  final next = auction.floorStatus == FloorStatus.paused ? FloorStatus.open : FloorStatus.paused;
-                  db.setFloorStatus(auction.id, next);
-                },
+                child: IconButton(
+                  tooltip: auction.floorStatus == FloorStatus.paused ? 'Resume Floor' : 'Pause Floor',
+                  padding: const EdgeInsets.all(7),
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    auction.floorStatus == FloorStatus.paused ? Icons.play_arrow : Icons.pause,
+                    color: Colors.white70,
+                    size: 18,
+                  ),
+                  onPressed: () {
+                    final next = auction.floorStatus == FloorStatus.paused ? FloorStatus.open : FloorStatus.paused;
+                    db.setFloorStatus(auction.id, next);
+                  },
+                ),
               ),
             ],
           ),
@@ -2100,6 +2178,35 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGavelActionPill({
+    required String label,
+    required String subtitle,
+    required Color color,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: BoxDecoration(
+          color: isActive ? color.withValues(alpha: 0.25) : const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isActive ? color : color.withValues(alpha: 0.4), width: isActive ? 1.5 : 1.0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 1),
+            Text(subtitle, style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 8.5)),
+          ],
+        ),
       ),
     );
   }
@@ -4514,20 +4621,21 @@ class AuctionWheelPainter extends CustomPainter {
     final radius = size.width / 2;
     final sweepAngle = (2 * pi) / itemsCount;
 
-    final colors = [
-      const Color(0xFF059669),
-      const Color(0xFFD97706),
-      const Color(0xFF7C3AED),
-      const Color(0xFF0284C7),
-      const Color(0xFFDC2626),
-      const Color(0xFF10B981),
-      const Color(0xFFF59E0B),
-      const Color(0xFF4F46E5),
+    // High-end dark stadium metallic palette with subtle sheen
+    final segmentColors = [
+      const Color(0xFF0F172A),
+      const Color(0xFF1E293B),
+      const Color(0xFF131D31),
+      const Color(0xFF1A2642),
+      const Color(0xFF111C2E),
+      const Color(0xFF1E2C44),
+      const Color(0xFF152238),
+      const Color(0xFF1D2A40),
     ];
 
     for (int i = 0; i < itemsCount; i++) {
       final paint = Paint()
-        ..color = colors[i % colors.length]
+        ..color = segmentColors[i % segmentColors.length]
         ..style = PaintingStyle.fill;
 
       canvas.drawArc(
@@ -4537,14 +4645,47 @@ class AuctionWheelPainter extends CustomPainter {
         true,
         paint,
       );
+
+      // Subtle metallic divider line
+      final dividerPaint = Paint()
+        ..color = const Color(0xFF334155).withValues(alpha: 0.8)
+        ..strokeWidth = 1.2
+        ..style = PaintingStyle.stroke;
+
+      final edgeX = center.dx + radius * cos(i * sweepAngle);
+      final edgeY = center.dy + radius * sin(i * sweepAngle);
+      canvas.drawLine(center, Offset(edgeX, edgeY), dividerPaint);
+
+      // Gold notch dot at the outer perimeter
+      final dotPaint = Paint()
+        ..color = const Color(0xFFF59E0B)
+        ..style = PaintingStyle.fill;
+      final dotX = center.dx + (radius - 7) * cos(i * sweepAngle + sweepAngle / 2);
+      final dotY = center.dy + (radius - 7) * sin(i * sweepAngle + sweepAngle / 2);
+      canvas.drawCircle(Offset(dotX, dotY), 2.2, dotPaint);
     }
 
-    // Outer ring
-    final borderPaint = Paint()
-      ..color = Colors.amber
+    // Outer luxury gold metallic broadcast bezel
+    final outerRing = Paint()
+      ..shader = const SweepGradient(
+        colors: [
+          Color(0xFFD97706),
+          Color(0xFFFDE68A),
+          Color(0xFFB45309),
+          Color(0xFFF59E0B),
+          Color(0xFFD97706),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawCircle(center, radius, borderPaint);
+      ..strokeWidth = 3.5;
+    canvas.drawCircle(center, radius - 2, outerRing);
+
+    // Inner shadow track
+    final innerTrack = Paint()
+      ..color = const Color(0xFF020617).withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawCircle(center, radius - 5, innerTrack);
   }
 
   @override

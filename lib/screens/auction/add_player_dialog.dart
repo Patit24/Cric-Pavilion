@@ -34,15 +34,28 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E293B),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: const Color(0xFF0F172A),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFF334155)),
+      ),
       title: Row(
-        children: const [
-          Icon(Icons.person_add, color: Color(0xFF34D399), size: 22),
-          SizedBox(width: 8),
-          Text(
-            'Add Player to Auction Pool',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF059669).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.person_add, color: Color(0xFF34D399), size: 20),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'Add Player to Auction Pool',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -52,8 +65,8 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Host can add player name, portrait image URL, position, base price, and category to the auction pool.',
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+              'Add player name, contact mobile, position, and base price to the draft lot.',
+              style: TextStyle(color: Colors.white60, fontSize: 11),
             ),
             const SizedBox(height: 14),
             TextField(
@@ -61,11 +74,13 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Player Full Name *',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
                 hintText: 'e.g. Rohit Sharma',
+                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                fillColor: const Color(0xFF1E293B),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
             const SizedBox(height: 10),
@@ -75,12 +90,14 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Mobile Number *',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
                 hintText: 'e.g. 9876543210',
+                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
                 prefixIcon: const Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                fillColor: const Color(0xFF1E293B),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
             const SizedBox(height: 10),
@@ -89,66 +106,71 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Player Photo URL (Optional)',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
                 hintText: 'https://...',
+                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                prefixIcon: const Icon(Icons.image, size: 16, color: Colors.amber),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                fillColor: const Color(0xFF1E293B),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
+            const SizedBox(height: 12),
+
+            // Role selection chips
+            const Text('Player Role *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<PlayerRole>(
-                    value: selectedRole,
-                    isExpanded: true,
-                    dropdownColor: const Color(0xFF1E293B),
-                    decoration: InputDecoration(
-                      labelText: 'Role / Position',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    items: const [
-                      DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
-                      DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
-                      DropdownMenuItem(value: PlayerRole.allRounder, child: Text('All-Rounder')),
-                      DropdownMenuItem(value: PlayerRole.wicketKeeper, child: Text('Wicketkeeper')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          selectedRole = val;
-                          selectedCategory = val == PlayerRole.batsman
-                              ? 'batsman'
-                              : (val == PlayerRole.bowler ? 'bowler' : 'all_rounder');
-                        });
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: basePriceController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      labelText: 'Base Price (₹)',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: '500000',
-                      filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
+                _buildRoleSelectChip('Batter', PlayerRole.batsman),
+                _buildRoleSelectChip('Bowler', PlayerRole.bowler),
+                _buildRoleSelectChip('All-Rounder', PlayerRole.allRounder),
+                _buildRoleSelectChip('Wicketkeeper', PlayerRole.wicketKeeper),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: basePriceController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              decoration: InputDecoration(
+                labelText: 'Base Price (₹) *',
+                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                hintText: 'e.g. 500 or 500000',
+                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                prefixIcon: const Icon(Icons.monetization_on, size: 16, color: Colors.amber),
+                filled: true,
+                fillColor: const Color(0xFF1E293B),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 6),
+            // Quick price chips
+            Wrap(
+              spacing: 6,
+              children: [500, 1000, 5000, 25000, 50000].map((pr) {
+                return InkWell(
+                  onTap: () => setState(() => basePriceController.text = pr.toString()),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Text('₹$pr', style: const TextStyle(color: Colors.amber, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+
             Row(
               children: [
                 Expanded(
@@ -158,10 +180,11 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                     dropdownColor: const Color(0xFF1E293B),
                     decoration: InputDecoration(
                       labelText: 'Batting Style',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      fillColor: const Color(0xFF1E293B),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                     items: const [
@@ -179,10 +202,11 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                     dropdownColor: const Color(0xFF1E293B),
                     decoration: InputDecoration(
                       labelText: 'Bowling Style',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      fillColor: const Color(0xFF1E293B),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                     items: const [
@@ -204,12 +228,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
         ),
         ElevatedButton(
           onPressed: () {
             if (nameController.text.trim().isEmpty) return;
-            final basePrice = int.tryParse(basePriceController.text.trim()) ?? 25000;
+            final basePrice = int.tryParse(basePriceController.text.trim()) ?? 500;
 
             widget.db.addPlayerToAuction(
               auctionId: widget.auctionId,
@@ -232,13 +256,39 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             );
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF34D399),
-            foregroundColor: Colors.black,
+            backgroundColor: const Color(0xFF059669),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: const Text('Add Player', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: const Text('Add to Pool', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         ),
       ],
+    );
+  }
+
+  Widget _buildRoleSelectChip(String label, PlayerRole role) {
+    final isSelected = selectedRole == role;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      selectedColor: const Color(0xFF059669),
+      backgroundColor: const Color(0xFF1E293B),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : Colors.white70,
+        fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
+        fontSize: 10.5,
+      ),
+      onSelected: (val) {
+        if (val) {
+          setState(() {
+            selectedRole = role;
+            selectedCategory = role == PlayerRole.batsman
+                ? 'batsman'
+                : (role == PlayerRole.bowler ? 'bowler' : (role == PlayerRole.wicketKeeper ? 'wicketkeeper' : 'all_rounder'));
+          });
+        }
+      },
     );
   }
 }
