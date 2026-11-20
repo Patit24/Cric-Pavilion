@@ -152,9 +152,26 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         ),
                         child: Column(
                           children: [
-                            Text(widget.teamA.shortName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.teamA.primaryColor)),
+                            Text(
+                              widget.teamA.shortName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: (widget.teamA.primaryColor.computeLuminance() > 0.6)
+                                    ? const Color(0xFF059669)
+                                    : widget.teamA.primaryColor,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(widget.teamA.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text(
+                              widget.teamA.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -179,9 +196,26 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         ),
                         child: Column(
                           children: [
-                            Text(widget.teamB.shortName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: widget.teamB.primaryColor)),
+                            Text(
+                              widget.teamB.shortName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: (widget.teamB.primaryColor.computeLuminance() > 0.6)
+                                    ? const Color(0xFF0284C7)
+                                    : widget.teamB.primaryColor,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(widget.teamB.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text(
+                              widget.teamB.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
                           ],
                         ),
                       ),

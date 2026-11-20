@@ -61,6 +61,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
   void _spinWheel(MockDatabase db, Auction auction) {
     if (_isSpinning) return;
+    if (!db.canSpinPlayer(auction.id)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Access Denied: Only the assigned Auctioneer can spin and reveal the next player!'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
     if (!auction.isReadyToStart) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Auction cannot start until all 8 franchise teams enter the room!')),
@@ -490,28 +499,89 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             },
           ),
           const RoleSwitcherChip(compact: true),
-          if (isAdmin)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
-              tooltip: 'Host Controls',
-              color: const Color(0xFF1E293B),
-              onSelected: (val) {
-                if (val == 'edit') {
-                  _showEditAuctionDialog(context, db, auction);
-                } else if (val == 'pool') {
-                  _showHostPlayerPoolManagerDialog(context, db, auction);
-                } else if (val == 'player') {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
-                  );
-                } else if (val == 'approvals') {
-                  _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams);
-                } else if (val == 'team') {
-                  _showAddTeamDialog(context, db, auction);
-                }
-              },
-              itemBuilder: (ctx) => [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+            tooltip: 'Auction Menu',
+            color: const Color(0xFF1E293B),
+            onSelected: (val) {
+              if (val == 'hub') {
+                _showPlayersHubDialog(context, db, auction);
+              } else if (val == 'reports') {
+                _showAuctionReportsDialog(context, db, auction);
+              } else if (val == 'whatsapp') {
+                _showWhatsAppNotificationsDialog(context, db, auction);
+              } else if (val == 'audit') {
+                _showAuditTrailDialog(context, db, auction);
+              } else if (val == 'bulk') {
+                _showBulkImportCsvDialog(context, db, auction);
+              } else if (val == 'edit') {
+                _showEditAuctionDialog(context, db, auction);
+              } else if (val == 'pool') {
+                _showHostPlayerPoolManagerDialog(context, db, auction);
+              } else if (val == 'player') {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AddPlayerDialog(db: db, auctionId: auction.id),
+                );
+              } else if (val == 'approvals') {
+                _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams);
+              } else if (val == 'team') {
+                _showAddTeamDialog(context, db, auction);
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'hub',
+                child: Row(
+                  children: [
+                    Icon(Icons.people_alt, color: Color(0xFF34D399), size: 16),
+                    SizedBox(width: 8),
+                    Text('Players Hub (Available / Sold / Unsold)', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'reports',
+                child: Row(
+                  children: [
+                    Icon(Icons.assessment, color: Colors.amber, size: 16),
+                    SizedBox(width: 8),
+                    Text('Auction Reports & CSV Export', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'whatsapp',
+                child: Row(
+                  children: [
+                    Icon(Icons.chat_bubble, color: Color(0xFF22C55E), size: 16),
+                    SizedBox(width: 8),
+                    Text('WhatsApp Notifications Log', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'audit',
+                child: Row(
+                  children: [
+                    Icon(Icons.history, color: Colors.cyanAccent, size: 16),
+                    SizedBox(width: 8),
+                    Text('Immutable Audit Trail', style: TextStyle(color: Colors.white, fontSize: 12)),
+                  ],
+                ),
+              ),
+              if (isAdmin) ...[
+                const PopupMenuDivider(height: 8),
+                const PopupMenuItem(
+                  value: 'bulk',
+                  child: Row(
+                    children: [
+                      Icon(Icons.file_upload, color: Color(0xFF38BDF8), size: 16),
+                      SizedBox(width: 8),
+                      Text('Bulk Import Players (CSV)', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'edit',
                   child: Row(
@@ -563,7 +633,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   ),
                 ),
               ],
-            ),
+            ],
+          ),
           if (!isUnlocked)
             TextButton.icon(
               onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
@@ -589,6 +660,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // =========================================================
+            // DEDICATED REGISTERED PLAYER PERSONA DASHBOARD
+            // =========================================================
+            if (db.isPlayerPersona) ...[
+              _buildPlayerPersonaDashboard(context, db, auction),
+              const SizedBox(height: 12),
+            ],
+
             // =========================================================
             // DEDICATED TEAM OWNER DESK BANNER (IF AUTHENTICATED)
             // =========================================================
@@ -1052,9 +1131,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             );
                             return;
                           }
-                          if (!isAdmin) {
+                          final canSpin = db.canSpinPlayer(auction.id);
+                          if (!canSpin) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Only the Auctioneer Host can spin the wheel to reveal players!')),
+                              SnackBar(
+                                content: Text(
+                                  'Access Denied: Only the assigned Auctioneer (${auction.assignedAuctioneerName.isNotEmpty ? auction.assignedAuctioneerName : "Auctioneer"}) can spin and reveal players!',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             return;
                           }
@@ -1064,11 +1149,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: auction.isReadyToStart && isAdmin ? Colors.amber.shade500 : Colors.grey.shade800,
+                            color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amber.shade500 : Colors.grey.shade800,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: (auction.isReadyToStart && isAdmin ? Colors.amber : Colors.black).withValues(alpha: 0.5),
+                                color: (auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amber : Colors.black).withValues(alpha: 0.5),
                                 blurRadius: 16,
                                 spreadRadius: 2,
                               ),
@@ -1080,11 +1165,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                 ? '...'
                                 : (!auction.isReadyToStart
                                     ? '8 TEAMS'
-                                    : (isAdmin ? 'SPIN' : 'HOST')),
+                                    : (db.canSpinPlayer(auction.id) ? 'SPIN' : 'LOCKED')),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: auction.isReadyToStart && isAdmin ? Colors.black : Colors.white70,
+                              color: db.canSpinPlayer(auction.id) ? Colors.black : Colors.white70,
                             ),
                           ),
                         ),
@@ -3425,6 +3510,995 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           );
         },
       ),
+    );
+  }
+
+  // =========================================================================
+  // DEDICATED REGISTERED PLAYER PERSONA DASHBOARD
+  // =========================================================================
+  Widget _buildPlayerPersonaDashboard(BuildContext context, MockDatabase db, Auction auction) {
+    final player = (db.authenticatedPlayerId != null
+            ? db.players.where((p) => p.id == db.authenticatedPlayerId).firstOrNull
+            : null) ??
+        db.players.firstOrNull;
+
+    if (player == null) return const SizedBox.shrink();
+
+    final isSold = player.auctionStatus == PlayerAuctionStatus.sold;
+    final isInAuction = player.auctionStatus == PlayerAuctionStatus.inAuction ||
+        (auction.currentLotId != null &&
+            db.auctionLots.where((l) => l.id == auction.currentLotId && l.playerId == player.id).isNotEmpty);
+    final isUnsold = player.auctionStatus == PlayerAuctionStatus.unsold;
+    final winningTeam = player.soldTeamId != null ? db.teams.where((t) => t.id == player.soldTeamId).firstOrNull : null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isSold
+              ? [const Color(0xFF065F46), const Color(0xFF0F172A)]
+              : (isInAuction
+                  ? [const Color(0xFF991B1B), const Color(0xFF0F172A)]
+                  : [const Color(0xFF1E3A8A), const Color(0xFF0F172A)]),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isSold ? const Color(0xFF34D399) : (isInAuction ? Colors.redAccent : const Color(0xFF60A5FA)),
+          width: 1.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSold ? const Color(0xFF34D399) : (isInAuction ? Colors.redAccent : Colors.blue)).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 26,
+                  backgroundImage: NetworkImage(player.photoUrl),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            player.fullName,
+                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF10B981)),
+                          ),
+                          child: const Text('APPROVED PLAYER', style: TextStyle(color: Color(0xFF34D399), fontSize: 9, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${player.roleString} • ${player.battingStyle} • ${player.city.isNotEmpty ? player.city : "Domestic"} • Base: ${currencyFormat.format(player.basePrice)}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Live Auction Status Card
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: isSold
+                ? Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.stars, color: Colors.amber, size: 18),
+                          SizedBox(width: 6),
+                          Text('🎉 CONGRATULATIONS! YOU ARE SOLD!', style: TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (winningTeam != null)
+                            CircleAvatar(radius: 12, backgroundImage: NetworkImage(winningTeam.logoUrl)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Franchise: ${winningTeam?.name ?? "Winning Franchise"}',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Winning Bid: ${currencyFormat.format(player.soldPrice ?? player.basePrice)} • Round ${player.soldRound ?? 1}',
+                        style: const TextStyle(color: Color(0xFF34D399), fontSize: 15, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.chat_bubble, size: 12, color: Color(0xFF22C55E)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Automated WhatsApp notification sent to ${player.mobileNumber}',
+                            style: const TextStyle(color: Colors.white60, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : (isInAuction
+                    ? Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.whatshot, color: Colors.redAccent, size: 18),
+                              SizedBox(width: 6),
+                              Text('🔴 YOU ARE LIVE ON THE AUCTION FLOOR!', style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Current Highest Bid: ${currencyFormat.format(auction.currentBid ?? player.basePrice)}',
+                            style: const TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Leader: ${auction.highBidderTeamId != null ? (db.teams.where((t) => t.id == auction.highBidderTeamId).firstOrNull?.name ?? "Bid Placed") : "Base Price (Opening Bid)"}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          ),
+                        ],
+                      )
+                    : (isUnsold
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.info_outline, color: Colors.orangeAccent, size: 16),
+                              const SizedBox(width: 8),
+                              Text('Unsold in Round ${auction.currentRound}. Re-eligible for upcoming rounds.', style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.hourglass_top, color: Color(0xFF60A5FA), size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                'In Auction Pool (Base: ${currencyFormat.format(player.basePrice)}). Ready for spin.',
+                                style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // PLAYERS HUB: AVAILABLE, SOLD, AND UNSOLD SECTIONS
+  // =========================================================================
+  void _showPlayersHubDialog(BuildContext context, MockDatabase db, Auction auction) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return DefaultTabController(
+          length: 3,
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              final aLots = db.auctionLots.where((l) => l.auctionId == auction.id).toList();
+              final availableLots = aLots.where((l) => l.status == LotStatus.pending).toList();
+              final soldLots = aLots.where((l) => l.status == LotStatus.sold).toList();
+              final unsoldLots = aLots.where((l) => l.status == LotStatus.unsold).toList();
+              final isAdmin = db.canManageAuctionFloor(auction.id);
+
+              return DraggableScrollableSheet(
+                initialChildSize: 0.85,
+                maxChildSize: 0.95,
+                minChildSize: 0.5,
+                expand: false,
+                builder: (context, scrollController) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.people_alt, color: Color(0xFF34D399), size: 20),
+                                SizedBox(width: 8),
+                                Text('Players Hub', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white54),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Tab Bar: Available / Sold / Unsold
+                        Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TabBar(
+                            indicatorColor: const Color(0xFF009270),
+                            indicatorWeight: 3,
+                            labelColor: const Color(0xFF34D399),
+                            unselectedLabelColor: Colors.white60,
+                            tabs: [
+                              Tab(text: 'Available (${availableLots.length})'),
+                              Tab(text: 'Sold (${soldLots.length})'),
+                              Tab(text: 'Unsold (${unsoldLots.length})'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Tab Views
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              // 1. AVAILABLE PLAYERS
+                              ListView.separated(
+                                controller: scrollController,
+                                itemCount: availableLots.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                itemBuilder: (context, i) {
+                                  final lot = availableLots[i];
+                                  final player = db.players.where((p) => p.id == lot.playerId).firstOrNull;
+                                  return Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E293B),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.white12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(backgroundImage: NetworkImage(player?.photoUrl ?? ''), radius: 18),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(player?.fullName ?? 'Player #${lot.lotNumber}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                              Text(
+                                                '${player?.roleString ?? lot.category} • Base: ${currencyFormat.format(lot.basePrice)}',
+                                                style: const TextStyle(color: Colors.white60, fontSize: 11),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isAdmin)
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              db.callPlayerLotToBoard(auction.id, lot.id);
+                                              Navigator.pop(ctx);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('${player?.fullName} brought to the stage!')),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF009270),
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                              minimumSize: Size.zero,
+                                            ),
+                                            child: const Text('Bring to Stage', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // 2. SOLD PLAYERS (WITH REVERSE SALE OPTION)
+                              soldLots.isEmpty
+                                  ? const Center(child: Text('No players sold yet.', style: TextStyle(color: Colors.white54)))
+                                  : ListView.separated(
+                                      controller: scrollController,
+                                      itemCount: soldLots.length,
+                                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                      itemBuilder: (context, i) {
+                                        final lot = soldLots[i];
+                                        final player = db.players.where((p) => p.id == lot.playerId).firstOrNull;
+                                        final team = db.teams.where((t) => t.id == lot.winningTeamId).firstOrNull;
+                                        final soldPrice = lot.soldPrice ?? lot.currentBid ?? lot.basePrice;
+
+                                        return Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF1E293B),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.5)),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(backgroundImage: NetworkImage(player?.photoUrl ?? ''), radius: 18),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Flexible(
+                                                          child: Text(player?.fullName ?? 'Player', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                        ),
+                                                        const SizedBox(width: 6),
+                                                        Text('₹${(soldPrice / 100000).toStringAsFixed(1)}L', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 12)),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        if (team != null) ...[
+                                                          CircleAvatar(radius: 6, backgroundImage: NetworkImage(team.logoUrl)),
+                                                          const SizedBox(width: 4),
+                                                        ],
+                                                        Text('${team?.name ?? "Sold Team"} • Rnd ${lot.round}', style: const TextStyle(color: Colors.white60, fontSize: 10.5)),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              if (isAdmin)
+                                                IconButton(
+                                                  tooltip: 'Reverse Sold Lot (Correction)',
+                                                  icon: const Icon(Icons.undo, color: Colors.redAccent, size: 18),
+                                                  onPressed: () {
+                                                    final ok = db.reverseSoldLot(
+                                                      auctionId: auction.id,
+                                                      lotId: lot.id,
+                                                      reason: 'Corrected by Tournament Admin',
+                                                    );
+                                                    if (ok) {
+                                                      setSheetState(() {});
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(content: Text('Reversed sale of ${player?.fullName}. Purse refunded.')),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+
+                              // 3. UNSOLD PLAYERS (WITH ADVANCE ROUND TRIGGER)
+                              unsoldLots.isEmpty
+                                  ? const Center(child: Text('No unsold players.', style: TextStyle(color: Colors.white54)))
+                                  : Column(
+                                      children: [
+                                        if (isAdmin) ...[
+                                          Container(
+                                            padding: const EdgeInsets.all(10),
+                                            margin: const EdgeInsets.only(bottom: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.amber),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.replay, color: Colors.amber, size: 18),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    '${unsoldLots.length} Unsold. Advance to Round ${auction.currentRound + 1}?',
+                                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    db.advanceAuctionRound(auctionId: auction.id, unsoldPriceDiscount: 0.20);
+                                                    setSheetState(() {});
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text('Advanced to Round ${auction.currentRound}! Unsold players re-entered.')),
+                                                    );
+                                                  },
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.amber,
+                                                    foregroundColor: Colors.black,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                    minimumSize: Size.zero,
+                                                  ),
+                                                  child: const Text('Advance Round', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                        Expanded(
+                                          child: ListView.separated(
+                                            controller: scrollController,
+                                            itemCount: unsoldLots.length,
+                                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                            itemBuilder: (context, i) {
+                                              final lot = unsoldLots[i];
+                                              final player = db.players.where((p) => p.id == lot.playerId).firstOrNull;
+                                              return Container(
+                                                padding: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF1E293B),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    CircleAvatar(backgroundImage: NetworkImage(player?.photoUrl ?? ''), radius: 18),
+                                                    const SizedBox(width: 10),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(player?.fullName ?? 'Player', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                          Text('Base: ${currencyFormat.format(lot.basePrice)} • Unsold', style: const TextStyle(color: Colors.redAccent, fontSize: 10.5)),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // =========================================================================
+  // BULK IMPORT PLAYERS (EXCEL / CSV IMPORT)
+  // =========================================================================
+  void _showBulkImportCsvDialog(BuildContext context, MockDatabase db, Auction auction) {
+    final csvController = TextEditingController();
+
+    const sampleCsv = '''FullName, Mobile, Role, BasePrice, Category, BattingStyle, BowlingStyle, Age, City, Overseas
+Virat Kohli, 9800000001, batsman, 2000000, marquee, Right Hand Bat, Right Arm Medium, 35, Delhi, false
+Jasprit Bumrah, 9800000002, bowler, 2000000, marquee, Right Hand Bat, Right Arm Fast, 30, Ahmedabad, false
+Andre Russell, 9800000003, allrounder, 1500000, marquee, Right Hand Bat, Right Arm Fast, 36, Kingston, true
+Heinrich Klaasen, 9800000004, wicketkeeper, 1500000, marquee, Right Hand Bat, Off Break, 33, Pretoria, true
+Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 27, Aligarh, false''';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.file_upload, color: Color(0xFF38BDF8), size: 22),
+              SizedBox(width: 8),
+              Text('Bulk Player Import (CSV)', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Paste CSV / Excel lines with player details. Duplicates by name or mobile will be skipped automatically.',
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => csvController.text = sampleCsv,
+                    icon: const Icon(Icons.flash_on, size: 14, color: Colors.amberAccent),
+                    label: const Text('Paste Sample CSV', style: TextStyle(color: Colors.amberAccent, fontSize: 11)),
+                  ),
+                ),
+                TextField(
+                  controller: csvController,
+                  maxLines: 8,
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                  decoration: InputDecoration(
+                    hintText: 'FullName, Mobile, Role, BasePrice, Category...',
+                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 11),
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                final result = db.bulkImportPlayersFromCsv(auctionId: auction.id, csvData: csvController.text);
+                Navigator.pop(ctx);
+                if (result['success'] == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Successfully imported ${result['imported']} players! (${result['duplicates']} duplicates skipped)'),
+                      backgroundColor: const Color(0xFF009270),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Import error: ${result['error']}'), backgroundColor: Colors.redAccent),
+                  );
+                }
+              },
+              icon: const Icon(Icons.check, size: 16),
+              label: const Text('Import Players', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009270), foregroundColor: Colors.white),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // =========================================================================
+  // WHATSAPP CLOUD API NOTIFICATIONS LOG
+  // =========================================================================
+  void _showWhatsAppNotificationsDialog(BuildContext context, MockDatabase db, Auction auction) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final notifs = db.whatsappNotifications.where((n) => n.auctionId == auction.id).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              maxChildSize: 0.9,
+              minChildSize: 0.4,
+              expand: false,
+              builder: (context, scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.chat_bubble, color: Color(0xFF22C55E), size: 20),
+                              SizedBox(width: 8),
+                              Text('WhatsApp Notifications', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white54),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.verified, size: 14, color: Color(0xFF22C55E)),
+                            SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Meta WhatsApp Cloud API: Active • Template: cricket_sold_alert',
+                                style: TextStyle(color: Color(0xFF86EFAC), fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Expanded(
+                        child: notifs.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No notifications sent yet. Whenever a player is SOLD, congratulatory messages are dispatched automatically.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                                ),
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                itemCount: notifs.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                itemBuilder: (context, i) {
+                                  final n = notifs[i];
+                                  final isSent = n.status == WhatsAppNotificationStatus.sent;
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E293B),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: isSent ? const Color(0xFF22C55E).withValues(alpha: 0.4) : Colors.amber.withValues(alpha: 0.4)),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'To: ${n.recipientName} (${n.recipientMobile})',
+                                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: (isSent ? const Color(0xFF22C55E) : Colors.amber).withValues(alpha: 0.2),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                n.status.name.toUpperCase(),
+                                                style: TextStyle(color: isSent ? const Color(0xFF86EFAC) : Colors.amberAccent, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(n.messageContent, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          DateFormat('dd MMM, hh:mm:ss a').format(n.timestamp),
+                                          style: const TextStyle(color: Colors.white38, fontSize: 9.5),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // =========================================================================
+  // AUCTION SUMMARY REPORTS & CSV EXPORT
+  // =========================================================================
+  void _showAuctionReportsDialog(BuildContext context, MockDatabase db, Auction auction) {
+    final report = db.generateAuctionReport(auction.id);
+    final teamsData = (report['teams'] as List<dynamic>? ?? []);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.assessment, color: Colors.amber, size: 20),
+                          SizedBox(width: 8),
+                          Text('Auction Report & Analytics', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white54),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Quick Metrics Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('TOTAL SPENDING', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              Text(currencyFormat.format(report['totalSpent'] ?? 0), style: const TextStyle(color: Color(0xFF34D399), fontSize: 14, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('PLAYERS SOLD', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              Text('${report['soldLots']} / ${report['totalLots']}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('TOP BUY', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              Text(report['topPlayerName'] ?? 'N/A', style: const TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.w900), overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  const Text('FRANCHISE SPENDING BREAKDOWN', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: ListView.separated(
+                      controller: scrollController,
+                      itemCount: teamsData.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, i) {
+                        final t = teamsData[i];
+                        return Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(t['name'] ?? 'Team', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                    Text('Owner: ${t['owner']} • Squad: ${t['squadCount']} players', style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('Spent: ${currencyFormat.format(t['spent'] ?? 0)}', style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  Text('Remaining: ${currencyFormat.format(t['purseRemaining'] ?? 0)}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 10)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final csv = db.exportAuctionReportCsv(auction.id);
+                      Navigator.pop(ctx);
+                      showDialog(
+                        context: context,
+                        builder: (c) => AlertDialog(
+                          backgroundColor: const Color(0xFF1E293B),
+                          title: const Text('Exported CSV Preview', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          content: SingleChildScrollView(
+                            child: SelectableText(csv, style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'monospace')),
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(c), child: const Text('Close')),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.download, size: 16),
+                    label: const Text('Export Report (CSV)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009270), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // =========================================================================
+  // IMMUTABLE AUDIT TRAIL MODAL
+  // =========================================================================
+  void _showAuditTrailDialog(BuildContext context, MockDatabase db, Auction auction) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        final logs = db.auditLogs.where((l) => l.auctionId == auction.id || l.category == 'auction').toList();
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.history, color: Colors.cyanAccent, size: 20),
+                          SizedBox(width: 8),
+                          Text('Immutable Audit Trail', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white54),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: logs.isEmpty
+                        ? const Center(child: Text('No audit logs recorded yet.', style: TextStyle(color: Colors.white54)))
+                        : ListView.separated(
+                            controller: scrollController,
+                            itemCount: logs.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            itemBuilder: (context, i) {
+                              final log = logs[i];
+                              return Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E293B),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.cyan.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(log.action, style: const TextStyle(color: Colors.cyanAccent, fontSize: 9.5, fontWeight: FontWeight.bold)),
+                                        ),
+                                        Text(DateFormat('hh:mm:ss a').format(log.timestamp), style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(log.details, style: const TextStyle(color: Colors.white, fontSize: 11)),
+                                    const SizedBox(height: 2),
+                                    Text('By: ${log.performedBy} (${log.role.isNotEmpty ? log.role : "User"})', style: const TextStyle(color: Colors.white54, fontSize: 9.5)),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

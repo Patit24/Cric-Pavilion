@@ -62,7 +62,6 @@ class RoleSwitcherChip extends StatelessWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
-            final team = db.currentAuthenticatedTeam;
             return SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -102,8 +101,16 @@ class RoleSwitcherChip extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Primary User Roles (Admin vs Regular User vs Team Owner)
-                    ...[AppUserRole.viewer, AppUserRole.superAdmin, AppUserRole.teamOwner].map((role) {
+                    // All RBAC Roles
+                    ...[
+                      AppUserRole.superAdmin,
+                      AppUserRole.tournamentAdmin,
+                      AppUserRole.auctioneer,
+                      AppUserRole.auctionOperator,
+                      AppUserRole.teamOwner,
+                      AppUserRole.player,
+                      AppUserRole.viewer,
+                    ].map((role) {
                       final isSelected = db.currentRole == role;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -111,6 +118,8 @@ class RoleSwitcherChip extends StatelessWidget {
                           onTap: () {
                             if (role == AppUserRole.teamOwner && db.teams.isNotEmpty) {
                               _showTeamPickerSubDialog(context, db);
+                            } else if (role == AppUserRole.player && db.players.isNotEmpty) {
+                              _showPlayerPickerSubDialog(context, db);
                             } else {
                               db.setRole(role);
                               Navigator.pop(ctx);
@@ -147,9 +156,7 @@ class RoleSwitcherChip extends StatelessWidget {
                                       Row(
                                         children: [
                                           Text(
-                                            role == AppUserRole.viewer
-                                                ? 'Regular User (Viewer Mode)'
-                                                : (role == AppUserRole.superAdmin ? 'Admin (Master Access)' : 'Franchise Team Owner'),
+                                            role.displayName,
                                             style: TextStyle(
                                               color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
                                               fontSize: 14,
@@ -164,9 +171,7 @@ class RoleSwitcherChip extends StatelessWidget {
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
-                                              role == AppUserRole.viewer
-                                                  ? 'PUBLIC USER'
-                                                  : (role == AppUserRole.superAdmin ? 'ORGANIZER / HOST' : 'APPROVED TO BID'),
+                                              role.badge,
                                               style: TextStyle(
                                                 color: role.color,
                                                 fontSize: 8.5,
@@ -178,11 +183,7 @@ class RoleSwitcherChip extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        role == AppUserRole.viewer
-                                            ? 'Spectator by default. Automatically gets full scoring/auction control over any tournaments you create.'
-                                            : (role == AppUserRole.superAdmin
-                                                ? 'Master administrator with full scoring, match conduct, and auction floor hammer controls.'
-                                                : (team != null ? 'Franchise: ${team.name} • Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L' : 'Franchise owner approved by the auction host to place live bids.')),
+                                        role.description,
                                         style: const TextStyle(color: Colors.white54, fontSize: 11),
                                       ),
                                     ],
@@ -240,6 +241,50 @@ class RoleSwitcherChip extends StatelessWidget {
                     db.setRole(AppUserRole.teamOwner, teamId: team.id);
                     Navigator.pop(ctx); // Close dialog
                     Navigator.pop(context); // Close bottom sheet
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPlayerPickerSubDialog(BuildContext context, MockDatabase db) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.person, color: Color(0xFF10B981), size: 20),
+              SizedBox(width: 8),
+              Text('Select Player Persona', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: db.players.take(15).length,
+              itemBuilder: (ctx, i) {
+                final player = db.players[i];
+                final isCurrent = db.authenticatedPlayerId == player.id;
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(player.photoUrl),
+                    radius: 16,
+                  ),
+                  title: Text(player.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text('${player.roleString} • Base: ₹${player.basePrice} • Status: ${player.auctionStatus.displayName}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  trailing: isCurrent ? const Icon(Icons.check_circle, color: Color(0xFF34D399), size: 18) : null,
+                  onTap: () {
+                    db.setRole(AppUserRole.player, playerId: player.id);
+                    Navigator.pop(ctx);
+                    Navigator.pop(context);
                   },
                 );
               },

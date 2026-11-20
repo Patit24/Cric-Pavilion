@@ -8,28 +8,97 @@ enum AuctionStatus { draft, preview, live, paused, completed }
 enum LotStatus { pending, bidding, sold, unsold }
 enum FloorStatus { open, paused, goingOnce, goingTwice, fairWarning, sold, unsold }
 
+enum PlayerRegistrationStatus {
+  pendingApproval,
+  approved,
+  rejected,
+  withdrawn;
+
+  String get label {
+    switch (this) {
+      case PlayerRegistrationStatus.pendingApproval:
+        return 'Pending Approval';
+      case PlayerRegistrationStatus.approved:
+        return 'Approved';
+      case PlayerRegistrationStatus.rejected:
+        return 'Rejected';
+      case PlayerRegistrationStatus.withdrawn:
+        return 'Withdrawn';
+    }
+  }
+}
+
+enum PlayerAuctionStatus {
+  available,
+  inAuction,
+  sold,
+  unsold,
+  withdrawn;
+
+  String get displayName => label;
+
+  String get label {
+    switch (this) {
+      case PlayerAuctionStatus.available:
+        return 'Available';
+      case PlayerAuctionStatus.inAuction:
+        return 'In Auction';
+      case PlayerAuctionStatus.sold:
+        return 'Sold';
+      case PlayerAuctionStatus.unsold:
+        return 'Unsold';
+      case PlayerAuctionStatus.withdrawn:
+        return 'Withdrawn';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case PlayerAuctionStatus.available:
+        return const Color(0xFF38BDF8); // Sky blue
+      case PlayerAuctionStatus.inAuction:
+        return const Color(0xFFF59E0B); // Amber
+      case PlayerAuctionStatus.sold:
+        return const Color(0xFF10B981); // Emerald
+      case PlayerAuctionStatus.unsold:
+        return const Color(0xFFEF4444); // Red
+      case PlayerAuctionStatus.withdrawn:
+        return const Color(0xFF94A3B8); // Slate grey
+    }
+  }
+}
+
 enum AppUserRole {
   superAdmin,
   tournamentAdmin,
   auctionAdmin,
+  auctioneer,
+  auctionOperator,
   teamOwner,
+  player,
   scorer,
   viewer;
 
   String get displayName {
     switch (this) {
       case AppUserRole.superAdmin:
-        return 'Admin (Master)';
+        return 'Super Admin';
       case AppUserRole.tournamentAdmin:
         return 'Tournament Admin';
       case AppUserRole.auctionAdmin:
         return 'Auction Host';
+      case AppUserRole.auctioneer:
+        return 'Official Auctioneer';
+      case AppUserRole.auctionOperator:
+        return 'Auction Operator';
       case AppUserRole.teamOwner:
         return 'Team Owner (Bidder)';
+      case AppUserRole.player:
+        return 'Registered Player';
       case AppUserRole.scorer:
         return 'Match Scorer';
       case AppUserRole.viewer:
-        return 'User (Viewer)';
+        return 'Public Viewer';
     }
   }
 
@@ -41,14 +110,22 @@ enum AppUserRole {
         return 'T. Admin';
       case AppUserRole.auctionAdmin:
         return 'Host';
+      case AppUserRole.auctioneer:
+        return 'Auctioneer';
+      case AppUserRole.auctionOperator:
+        return 'Operator';
       case AppUserRole.teamOwner:
         return 'Owner';
+      case AppUserRole.player:
+        return 'Player';
       case AppUserRole.scorer:
         return 'Scorer';
       case AppUserRole.viewer:
         return 'Viewer';
     }
   }
+
+  String get badge => badgeLabel;
 
   String get badgeLabel {
     switch (this) {
@@ -58,12 +135,18 @@ enum AppUserRole {
         return 'TOURNAMENT ADMIN';
       case AppUserRole.auctionAdmin:
         return 'AUCTION ADMIN';
+      case AppUserRole.auctioneer:
+        return 'AUCTIONEER';
+      case AppUserRole.auctionOperator:
+        return 'OPERATOR';
       case AppUserRole.teamOwner:
         return 'TEAM OWNER';
+      case AppUserRole.player:
+        return 'PLAYER';
       case AppUserRole.scorer:
         return 'SCORER';
       case AppUserRole.viewer:
-        return 'PUBLIC SPECTATOR';
+        return 'PUBLIC VIEWER';
     }
   }
 
@@ -74,9 +157,15 @@ enum AppUserRole {
       case AppUserRole.tournamentAdmin:
         return Icons.emoji_events;
       case AppUserRole.auctionAdmin:
+        return Icons.tune;
+      case AppUserRole.auctioneer:
         return Icons.gavel;
+      case AppUserRole.auctionOperator:
+        return Icons.manage_accounts;
       case AppUserRole.teamOwner:
         return Icons.business_center;
+      case AppUserRole.player:
+        return Icons.sports_cricket;
       case AppUserRole.scorer:
         return Icons.sports_score;
       case AppUserRole.viewer:
@@ -92,10 +181,16 @@ enum AppUserRole {
         return const Color(0xFF7C3AED); // Purple
       case AppUserRole.auctionAdmin:
         return const Color(0xFFD97706); // Amber
+      case AppUserRole.auctioneer:
+        return const Color(0xFFEA580C); // Orange-Red Gavel
+      case AppUserRole.auctionOperator:
+        return const Color(0xFF0D9488); // Teal
       case AppUserRole.teamOwner:
         return const Color(0xFF0284C7); // Sky Blue
+      case AppUserRole.player:
+        return const Color(0xFF10B981); // Emerald
       case AppUserRole.scorer:
-        return const Color(0xFF059669); // Emerald
+        return const Color(0xFF059669); // Green
       case AppUserRole.viewer:
         return const Color(0xFF64748B); // Slate
     }
@@ -104,17 +199,23 @@ enum AppUserRole {
   String get description {
     switch (this) {
       case AppUserRole.superAdmin:
-        return 'Full control: tournaments, auctions, teams, scorers, and rules.';
+        return 'Master control: manage all tournaments, users, permissions, and audit logs.';
       case AppUserRole.tournamentAdmin:
-        return 'Create tournaments, manage teams, fixtures, and assign officials.';
+        return 'Configure tournaments, player pools, franchise budgets, and officials.';
       case AppUserRole.auctionAdmin:
-        return 'Configure auction floor, spin wheel, manage timer, and hammer sold/unsold.';
+        return 'Configure auction floor, rules, increments, and WhatsApp notifications.';
+      case AppUserRole.auctioneer:
+        return 'Sole authority to spin and reveal players, start bidding, and confirm sold/unsold.';
+      case AppUserRole.auctionOperator:
+        return 'Manage queue, timer, screen displays, and assist the Auctioneer.';
       case AppUserRole.teamOwner:
-        return 'Participate in live bidding with budget protection and inspect squad.';
+        return 'Live interactive bidding console with budget protection and squad inspector.';
+      case AppUserRole.player:
+        return 'Personal player dashboard: registration status, auction outcome, and team details.';
       case AppUserRole.scorer:
-        return 'Operate ball-by-ball matches, toss, crease hud, and scorecards.';
+        return 'Operate live ball-by-ball matches, coin toss, crease HUD, and scorecards.';
       case AppUserRole.viewer:
-        return 'Public live scorecards, commentary, standings, and squad viewer.';
+        return 'Full broadcast viewer: projector mode, stats, leaderboards, and results.';
     }
   }
 }
@@ -168,6 +269,10 @@ class Team {
   final int minSquadRequirement;
   final int maxSquadLimit;
 
+  int get totalSpent => (maxPurse - purseRemaining).clamp(0, maxPurse);
+  int get totalPurseBudget => maxPurse;
+  int overseasCount;
+
   Team({
     required this.id,
     this.tournamentId = 'tourn_bpl_2026',
@@ -184,6 +289,7 @@ class Team {
     required this.squadCount,
     this.minSquadRequirement = 15,
     this.maxSquadLimit = 18,
+    this.overseasCount = 0,
   });
 
   int get playersStillNeeded => (minSquadRequirement - squadCount).clamp(0, minSquadRequirement);
@@ -207,30 +313,56 @@ class Team {
 
 class Player {
   final String id;
+  final String tournamentId;
   final String fullName;
   final String displayName;
   final String mobileNumber;
+  final int age;
+  final String dateOfBirth;
+  final String city;
   final PlayerRole role;
   final String battingStyle;
   final String bowlingStyle;
+  final int experienceYears;
+  final String category; // 'Marquee', 'Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Emerging'
   final int basePrice;
   final String photoUrl;
+  PlayerRegistrationStatus registrationStatus;
+  PlayerAuctionStatus auctionStatus;
   String? teamId;
+  String? get soldTeamId => teamId;
+  set soldTeamId(String? val) => teamId = val;
+  int? soldPrice;
+  int? soldRound;
+  DateTime? soldTimestamp;
+  final bool isOverseas;
   int runs;
   int wickets;
   int matches;
 
   Player({
     required this.id,
+    this.tournamentId = 'tourn_bpl_2026',
     required this.fullName,
     required this.displayName,
     this.mobileNumber = '',
+    this.age = 24,
+    this.dateOfBirth = '2000-01-01',
+    this.city = 'Kolkata',
     required this.role,
     this.battingStyle = 'Right Hand Bat',
     this.bowlingStyle = 'Right Arm Medium',
+    this.experienceYears = 3,
+    this.category = 'Batsman',
     this.basePrice = 500,
     this.photoUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+    this.registrationStatus = PlayerRegistrationStatus.approved,
+    this.auctionStatus = PlayerAuctionStatus.available,
     this.teamId,
+    this.soldPrice,
+    this.soldRound,
+    this.soldTimestamp,
+    this.isOverseas = false,
     this.runs = 0,
     this.wickets = 0,
     this.matches = 0,
@@ -248,6 +380,11 @@ class Player {
         return 'Wicketkeeper';
     }
   }
+
+  bool get isSold => auctionStatus == PlayerAuctionStatus.sold && teamId != null;
+  bool get isAvailable => auctionStatus == PlayerAuctionStatus.available && registrationStatus == PlayerRegistrationStatus.approved;
+  bool get isInAuction => auctionStatus == PlayerAuctionStatus.inAuction;
+  bool get isUnsold => auctionStatus == PlayerAuctionStatus.unsold;
 }
 
 class MatchModel {
@@ -460,6 +597,8 @@ class Auction {
   final String id;
   final String tournamentId;
   final String title;
+  String get name => title;
+  int gavelWarningCount;
   AuctionStatus status;
   FloorStatus floorStatus;
   String? currentLotId;
@@ -475,6 +614,29 @@ class Auction {
   int biddingSecondsRemaining;
   int defaultTimerSeconds;
   bool isTimerRunning;
+  bool isBiddingActive;
+
+  // Role Assignments
+  final String assignedAuctioneerId;
+  final String assignedAuctioneerName;
+  final List<String> assignedOperatorIds;
+
+  // Tournament & Round Configuration
+  int currentRound;
+  final int totalRounds;
+  final int minSquadSize;
+  final int maxSquadSize;
+  final int maxOverseasPlayers;
+  final bool allowUnsoldReEntry;
+  final int basePrice;
+  final List<int> bidIncrements;
+
+  // WhatsApp Integration Settings
+  final bool whatsappEnabled;
+  final String whatsappPhoneNumberId;
+  final String whatsappAccessToken;
+  final String whatsappTemplateName;
+  final String whatsappOrganizingCommittee;
 
   Auction({
     required this.id,
@@ -482,6 +644,7 @@ class Auction {
     required this.title,
     this.status = AuctionStatus.live,
     this.floorStatus = FloorStatus.open,
+    this.gavelWarningCount = 0,
     this.currentLotId,
     this.currentBid,
     this.highBidderTeamId,
@@ -495,7 +658,26 @@ class Auction {
     this.biddingSecondsRemaining = 15,
     this.defaultTimerSeconds = 15,
     this.isTimerRunning = false,
-  }) : joinedTeamIds = joinedTeamIds ?? {};
+    this.isBiddingActive = false,
+    this.assignedAuctioneerId = 'auctioneer_01',
+    this.assignedAuctioneerName = 'Official Auctioneer (Gavel Master)',
+    List<String>? assignedOperatorIds,
+    this.currentRound = 1,
+    this.totalRounds = 3,
+    this.minSquadSize = 15,
+    this.maxSquadSize = 18,
+    this.maxOverseasPlayers = 4,
+    this.allowUnsoldReEntry = true,
+    this.basePrice = 25000,
+    List<int>? bidIncrements,
+    this.whatsappEnabled = true,
+    this.whatsappPhoneNumberId = 'WHATSAPP-CRIC-CLOUD-01',
+    this.whatsappAccessToken = 'CRIC_WHATSAPP_TOKEN_SECURE',
+    this.whatsappTemplateName = 'cricket_auction_player_sold_v1',
+    this.whatsappOrganizingCommittee = 'CricPavilion Organizing Committee',
+  })  : joinedTeamIds = joinedTeamIds ?? {},
+        assignedOperatorIds = assignedOperatorIds ?? ['operator_01'],
+        bidIncrements = bidIncrements ?? [10000, 25000, 50000, 100000, 250000];
 
   bool get isReadyToStart => joinedTeamIds.length >= requiredTeamsCount;
 }
@@ -512,6 +694,9 @@ class AuctionLot {
   String? winningTeamId;
   LotStatus status;
   bool isSelectedForSpin; // Host toggle for active spin wheel pool
+  int round;
+  int? soldPrice;
+  DateTime? soldTimestamp;
 
   AuctionLot({
     required this.id,
@@ -525,6 +710,9 @@ class AuctionLot {
     this.winningTeamId,
     this.status = LotStatus.pending,
     this.isSelectedForSpin = true,
+    this.round = 1,
+    this.soldPrice,
+    this.soldTimestamp,
   });
 }
 
@@ -535,6 +723,11 @@ class AuctionBid {
   final String teamName;
   final int amount;
   final DateTime timestamp;
+  final String auctionId;
+  final String playerId;
+  final int round;
+  final bool isValid;
+  final String? rejectionReason;
 
   AuctionBid({
     required this.id,
@@ -543,7 +736,125 @@ class AuctionBid {
     required this.teamName,
     required this.amount,
     required this.timestamp,
+    this.auctionId = '',
+    this.playerId = '',
+    this.round = 1,
+    this.isValid = true,
+    this.rejectionReason,
   });
+}
+
+class AuctionTransactionType {
+  static const String purchase = 'PURCHASE';
+  static const String reversal = 'REVERSAL';
+  static const String adjustment = 'ADJUSTMENT';
+}
+
+class AuctionTransaction {
+  final String id;
+  final String tournamentId;
+  final String auctionId;
+  final String lotId;
+  final String playerId;
+  final String playerName;
+  final String teamId;
+  final String teamName;
+  final int amount;
+  final int round;
+  final String type; // 'PURCHASE', 'REVERSAL', 'ADJUSTMENT'
+  final DateTime timestamp;
+  final String performedBy;
+  final String? notes;
+
+  AuctionTransaction({
+    required this.id,
+    this.tournamentId = '',
+    required this.auctionId,
+    required this.lotId,
+    required this.playerId,
+    this.playerName = '',
+    required this.teamId,
+    this.teamName = '',
+    required this.amount,
+    required this.round,
+    required this.type,
+    required this.timestamp,
+    this.performedBy = 'Auctioneer',
+    this.notes,
+  });
+}
+
+enum WhatsAppNotificationStatus {
+  queued,
+  sent,
+  delivered,
+  failed;
+
+  String get label {
+    switch (this) {
+      case WhatsAppNotificationStatus.queued:
+        return 'Queued';
+      case WhatsAppNotificationStatus.sent:
+        return 'Sent';
+      case WhatsAppNotificationStatus.delivered:
+        return 'Delivered';
+      case WhatsAppNotificationStatus.failed:
+        return 'Failed';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case WhatsAppNotificationStatus.queued:
+        return const Color(0xFFF59E0B);
+      case WhatsAppNotificationStatus.sent:
+        return const Color(0xFF38BDF8);
+      case WhatsAppNotificationStatus.delivered:
+        return const Color(0xFF10B981);
+      case WhatsAppNotificationStatus.failed:
+        return const Color(0xFFEF4444);
+    }
+  }
+}
+
+class WhatsAppNotification {
+  final String id;
+  final String tournamentId;
+  final String auctionId;
+  final String playerId;
+  final String playerName;
+  final String recipientMobile;
+  final String messageType; // 'SOLD', 'UNSOLD', 'REGISTRATION', 'REMINDER'
+  final String messageBody;
+  WhatsAppNotificationStatus status;
+  final DateTime timestamp;
+  DateTime? deliveredTimestamp;
+  String? errorMessage;
+  final String? responseId;
+
+  String get recipientName => playerName;
+  String get messageContent => messageBody;
+  DateTime? get sentTimestamp => deliveredTimestamp;
+  set sentTimestamp(DateTime? val) => deliveredTimestamp = val;
+
+  WhatsAppNotification({
+    required this.id,
+    this.tournamentId = '',
+    required this.auctionId,
+    required this.playerId,
+    String? playerName,
+    String? recipientName,
+    required this.recipientMobile,
+    this.messageType = 'SOLD',
+    String? messageBody,
+    String? messageContent,
+    this.status = WhatsAppNotificationStatus.queued,
+    required this.timestamp,
+    this.deliveredTimestamp,
+    this.errorMessage,
+    this.responseId,
+  })  : playerName = playerName ?? recipientName ?? '',
+        messageBody = messageBody ?? messageContent ?? '';
 }
 
 class TournamentStanding {
@@ -611,6 +922,9 @@ class AuditLog {
   final String action;
   final String details;
   final String performedBy;
+  final String tournamentId;
+  final String auctionId;
+  final String role;
 
   AuditLog({
     required this.id,
@@ -619,6 +933,9 @@ class AuditLog {
     required this.action,
     required this.details,
     required this.performedBy,
+    this.tournamentId = '',
+    this.auctionId = '',
+    this.role = '',
   });
 }
 

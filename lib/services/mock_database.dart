@@ -44,6 +44,12 @@ class MockDatabase extends ChangeNotifier {
   Auction get auction => auctions.isNotEmpty ? auctions.first : _emptyAuction;
   late List<AuctionLot> auctionLots;
   late List<AuctionBid> auctionBids;
+  late List<AuctionTransaction> auctionTransactions;
+  late List<WhatsAppNotification> whatsappNotifications;
+
+  String? authenticatedAuctioneerId;
+  String? authenticatedOperatorId;
+  String? authenticatedPlayerId;
 
   static final Team emptyTeam = Team(
     id: 'empty_team',
@@ -106,6 +112,8 @@ class MockDatabase extends ChangeNotifier {
     auctions = [];
     auctionLots = [];
     auctionBids = [];
+    auctionTransactions = [];
+    whatsappNotifications = [];
     scoringRooms = [];
     auctionRooms = [];
     createdTournamentIds.clear();
@@ -118,6 +126,9 @@ class MockDatabase extends ChangeNotifier {
     isAuctionAdmin = false;
     currentAuctionRoomId = null;
     authenticatedTeamId = null;
+    authenticatedAuctioneerId = null;
+    authenticatedOperatorId = null;
+    authenticatedPlayerId = null;
     notifyListeners();
   }
 
@@ -132,15 +143,30 @@ class MockDatabase extends ChangeNotifier {
   AppUserRole currentRole = AppUserRole.superAdmin;
   final List<AuditLog> auditLogs = [];
 
-  void setRole(AppUserRole role, {String? teamId}) {
+  void setRole(AppUserRole role, {String? teamId, String? auctioneerId, String? operatorId, String? playerId}) {
     currentRole = role;
     if (role == AppUserRole.superAdmin) {
       isAuctionAdmin = true;
       isAuctionUnlocked = true;
+      authenticatedTeamId = null;
+    } else if (role == AppUserRole.tournamentAdmin) {
+      isAuctionAdmin = true;
+      isAuctionUnlocked = true;
+      authenticatedTeamId = null;
     } else if (role == AppUserRole.auctionAdmin) {
       isAuctionAdmin = true;
       isAuctionUnlocked = true;
       authenticatedTeamId = null;
+    } else if (role == AppUserRole.auctioneer) {
+      isAuctionAdmin = true;
+      isAuctionUnlocked = true;
+      authenticatedTeamId = null;
+      authenticatedAuctioneerId = auctioneerId ?? 'auctioneer_01';
+    } else if (role == AppUserRole.auctionOperator) {
+      isAuctionAdmin = false;
+      isAuctionUnlocked = true;
+      authenticatedTeamId = null;
+      authenticatedOperatorId = operatorId ?? 'operator_01';
     } else if (role == AppUserRole.teamOwner) {
       isAuctionAdmin = false;
       isAuctionUnlocked = true;
@@ -149,6 +175,11 @@ class MockDatabase extends ChangeNotifier {
       } else if (authenticatedTeamId == null && teams.isNotEmpty) {
         authenticatedTeamId = teams.first.id;
       }
+    } else if (role == AppUserRole.player) {
+      isAuctionAdmin = false;
+      isAuctionUnlocked = false;
+      authenticatedTeamId = null;
+      authenticatedPlayerId = playerId ?? (players.isNotEmpty ? players.first.id : null);
     } else if (role == AppUserRole.scorer) {
       isAuctionAdmin = false;
     } else if (role == AppUserRole.viewer) {
@@ -169,13 +200,70 @@ class MockDatabase extends ChangeNotifier {
   bool get canManageAuction => currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctionAdmin;
   bool get canScoreMatches => currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.scorer;
   bool get isTeamOwner => currentRole == AppUserRole.teamOwner;
+  bool get isAuctioneer => currentRole == AppUserRole.auctioneer;
+  bool get isAuctionOperator => currentRole == AppUserRole.auctionOperator;
+  bool get isPlayerPersona => currentRole == AppUserRole.player;
   bool get isViewer => currentRole == AppUserRole.viewer;
+
+  /// Strict RBAC rule: ONLY the assigned Auctioneer (or Super Admin) can spin & reveal next player!
+  bool canSpinPlayer(String auctionId) {
+    if (currentRole == AppUserRole.superAdmin) return true;
+    if (currentRole == AppUserRole.auctioneer) {
+      final auc = getAuction(auctionId);
+      if (authenticatedAuctioneerId != null &&
+          authenticatedAuctioneerId!.isNotEmpty &&
+          auc.assignedAuctioneerId.isNotEmpty &&
+          authenticatedAuctioneerId != auc.assignedAuctioneerId) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool canStartBidding(String auctionId) {
+    return currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctioneer;
+  }
+
+  bool canPlaceBid(String auctionId, String teamId) {
+    if (currentRole == AppUserRole.superAdmin) return true;
+    if (currentRole == AppUserRole.teamOwner) {
+      return authenticatedTeamId == teamId;
+    }
+    return false;
+  }
+
+  bool canManageTimer(String auctionId) {
+    return currentRole == AppUserRole.superAdmin ||
+        currentRole == AppUserRole.auctioneer ||
+        currentRole == AppUserRole.auctionOperator ||
+        currentRole == AppUserRole.auctionAdmin;
+  }
+
+  bool canConfirmOutcome(String auctionId) {
+    return currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctioneer;
+  }
+
+  bool canConfigureAuction(String auctionId) {
+    return currentRole == AppUserRole.superAdmin ||
+        currentRole == AppUserRole.tournamentAdmin ||
+        currentRole == AppUserRole.auctionAdmin;
+  }
+
+  bool canManagePlayers(String auctionId) {
+    return currentRole == AppUserRole.superAdmin ||
+        currentRole == AppUserRole.tournamentAdmin ||
+        currentRole == AppUserRole.auctionAdmin;
+  }
 
   void logAudit({
     required String category,
     required String action,
     required String details,
     String? performedBy,
+    String tournamentId = '',
+    String auctionId = '',
+    String role = '',
   }) {
     auditLogs.insert(
       0,
@@ -186,6 +274,9 @@ class MockDatabase extends ChangeNotifier {
         action: action,
         details: details,
         performedBy: performedBy ?? currentRole.displayName,
+        tournamentId: tournamentId,
+        auctionId: auctionId,
+        role: role.isNotEmpty ? role : currentRole.shortDisplayName,
       ),
     );
   }
@@ -1742,6 +1833,9 @@ class MockDatabase extends ChangeNotifier {
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
     ];
+
+    auctionTransactions = [];
+    whatsappNotifications = [];
   }
 
   // ==========================================
@@ -2335,6 +2429,19 @@ class MockDatabase extends ChangeNotifier {
     required int increment,
   }) {
     final auc = getAuction(auctionId);
+    final team = teams.firstWhere((t) => t.id == teamId, orElse: () => teams.first);
+
+    // Rule: Role-Based Access Control - only authorized team owner or super admin can bid
+    if (!canPlaceBid(auctionId, teamId)) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED_UNAUTHORIZED',
+        details: 'Only the authenticated Team Owner or Super Admin can place bids for ${team.name}. Attempt by ${currentRole.displayName} rejected.',
+        auctionId: auctionId,
+        role: currentRole.shortDisplayName,
+      );
+      return false;
+    }
 
     // Rule: Host is NOT allowed to bid!
     if (isAuctionAdmin && authenticatedTeamId == null) {
@@ -2363,7 +2470,20 @@ class MockDatabase extends ChangeNotifier {
       return false;
     }
 
-    final team = teams.firstWhere((t) => t.id == teamId, orElse: () => teams.first);
+    final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
+    final currentPl = currentLot != null ? players.where((p) => p.id == currentLot.playerId).firstOrNull : null;
+
+    // Rule: Max overseas player limit
+    if (currentPl != null && currentPl.isOverseas && team.overseasCount >= auc.maxOverseasPlayers) {
+      logAudit(
+        category: 'auction',
+        action: 'BID_REJECTED_OVERSEAS_LIMIT',
+        details: 'Max overseas players limit reached (${auc.maxOverseasPlayers}) for ${team.name}.',
+        performedBy: team.name,
+      );
+      return false;
+    }
+
     final nextAmount = (auc.currentBid ?? 300000) + increment;
 
     // Rule: Squad limit check
@@ -2378,7 +2498,6 @@ class MockDatabase extends ChangeNotifier {
     }
 
     // Rule: Minimum remaining budget protection formula
-    final currentLot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
     final minLotBasePrice = currentLot?.basePrice ?? 100000;
     final maxAllowedBid = team.getMaxEligibleBid(minLotBasePrice);
 
@@ -2409,6 +2528,8 @@ class MockDatabase extends ChangeNotifier {
     auc.floorStatus = FloorStatus.open;
     auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
     auc.isTimerRunning = true;
+    auc.isBiddingActive = true;
+    auc.gavelWarningCount = 0;
 
     if (currentLot != null) {
       currentLot.currentBid = nextAmount;
@@ -2554,8 +2675,27 @@ class MockDatabase extends ChangeNotifier {
   }
 
   AuctionLot? spinToRandomEligibleLot(String auctionId) {
+    if (!canSpinPlayer(auctionId)) {
+      logAudit(
+        category: 'auction',
+        action: 'SPIN_ACCESS_DENIED',
+        details: 'Only the assigned Auctioneer can spin and reveal the next player. Attempt by ${currentRole.displayName} rejected.',
+        auctionId: auctionId,
+        role: currentRole.shortDisplayName,
+      );
+      return null;
+    }
+
     final auc = getAuction(auctionId);
-    final eligible = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending && l.isSelectedForSpin).toList();
+    final eligible = auctionLots.where((l) {
+      if (l.auctionId != auc.id || l.status != LotStatus.pending || !l.isSelectedForSpin) return false;
+      final p = players.where((pl) => pl.id == l.playerId).firstOrNull;
+      if (p != null && (p.auctionStatus == PlayerAuctionStatus.sold || p.registrationStatus == PlayerRegistrationStatus.rejected)) {
+        return false;
+      }
+      return true;
+    }).toList();
+
     if (eligible.isEmpty) return null;
 
     final picked = eligible[Random().nextInt(eligible.length)];
@@ -2565,33 +2705,240 @@ class MockDatabase extends ChangeNotifier {
     auc.floorStatus = FloorStatus.open;
     auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
     auc.isTimerRunning = true;
+    auc.isBiddingActive = true;
+    auc.gavelWarningCount = 0;
     picked.status = LotStatus.bidding;
+
+    final player = players.where((p) => p.id == picked.playerId).firstOrNull;
+    if (player != null) {
+      player.auctionStatus = PlayerAuctionStatus.inAuction;
+    }
+
+    logAudit(
+      category: 'auction',
+      action: 'PLAYER_REVEALED',
+      details: '${player?.fullName ?? "Player"} revealed on auction floor. Base price: ₹${auc.currentBid}',
+      performedBy: currentRole == AppUserRole.auctioneer ? (auc.assignedAuctioneerName.isNotEmpty ? auc.assignedAuctioneerName : 'Auctioneer') : currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+
     notifyListeners();
     return picked;
   }
 
-  void sellCurrentLot([String? auctionId]) {
-    final targetAuctionId = auctionId ?? auctions.first.id;
-    final auc = getAuction(targetAuctionId);
+  /// Manual lot selection for authorized Auctioneer / Admin with full audit logging
+  AuctionLot? manualSelectPlayerLot({
+    required String auctionId,
+    required String lotId,
+  }) {
+    if (!canSpinPlayer(auctionId) && !canConfigureAuction(auctionId)) {
+      logAudit(
+        category: 'auction',
+        action: 'MANUAL_SELECT_DENIED',
+        details: 'Unauthorized manual lot selection attempt by ${currentRole.displayName}',
+        auctionId: auctionId,
+      );
+      return null;
+    }
 
+    final auc = getAuction(auctionId);
+    final lot = auctionLots.where((l) => l.id == lotId && l.auctionId == auc.id).firstOrNull;
+    if (lot == null || lot.status == LotStatus.sold) return null;
+
+    auc.currentLotId = lot.id;
+    auc.currentBid = lot.startingPrice ?? lot.basePrice;
+    auc.highBidderTeamId = null;
+    auc.floorStatus = FloorStatus.open;
+    auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+    auc.isTimerRunning = true;
+    auc.isBiddingActive = true;
+    auc.gavelWarningCount = 0;
+    lot.status = LotStatus.bidding;
+
+    final player = players.where((p) => p.id == lot.playerId).firstOrNull;
+    if (player != null) {
+      player.auctionStatus = PlayerAuctionStatus.inAuction;
+    }
+
+    logAudit(
+      category: 'auction',
+      action: 'MANUAL_LOT_SELECTED',
+      details: '${player?.fullName ?? "Player"} manually selected by ${currentRole.displayName}',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+
+    notifyListeners();
+    return lot;
+  }
+
+  void startBidding(String auctionId) {
+    if (!canStartBidding(auctionId)) return;
+    final auc = getAuction(auctionId);
+    auc.isBiddingActive = true;
+    auc.isTimerRunning = true;
+    auc.floorStatus = FloorStatus.open;
+    auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
+    auc.gavelWarningCount = 0;
+
+    logAudit(
+      category: 'auction',
+      action: 'BIDDING_STARTED',
+      details: 'Bidding opened for current lot at ₹${auc.currentBid}',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+    notifyListeners();
+  }
+
+  void pauseBidding(String auctionId) {
+    if (!canManageTimer(auctionId)) return;
+    final auc = getAuction(auctionId);
+    auc.isBiddingActive = false;
+    auc.isTimerRunning = false;
+    auc.floorStatus = FloorStatus.paused;
+
+    logAudit(
+      category: 'auction',
+      action: 'BIDDING_PAUSED',
+      details: 'Bidding paused at ₹${auc.currentBid}',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+    notifyListeners();
+  }
+
+  void resumeBidding(String auctionId) {
+    if (!canManageTimer(auctionId)) return;
+    final auc = getAuction(auctionId);
+    auc.isBiddingActive = true;
+    auc.isTimerRunning = true;
+    auc.floorStatus = FloorStatus.open;
+
+    logAudit(
+      category: 'auction',
+      action: 'BIDDING_RESUMED',
+      details: 'Bidding resumed at ₹${auc.currentBid}',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+    notifyListeners();
+  }
+
+  void closeBidding(String auctionId) {
+    if (!canManageTimer(auctionId)) return;
+    final auc = getAuction(auctionId);
+    auc.isBiddingActive = false;
+    auc.isTimerRunning = false;
+
+    logAudit(
+      category: 'auction',
+      action: 'BIDDING_CLOSED',
+      details: 'Bidding closed at ₹${auc.currentBid} by ${currentRole.displayName}',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+    notifyListeners();
+  }
+
+  void sellCurrentLot([String? auctionId]) {
+    final targetAuctionId = auctionId ?? (auctions.isNotEmpty ? auctions.first.id : '');
+    if (targetAuctionId.isEmpty) return;
+
+    if (!canConfirmOutcome(targetAuctionId)) {
+      logAudit(
+        category: 'auction',
+        action: 'CONFIRM_OUTCOME_DENIED',
+        details: 'Only assigned auctioneer or super admin can confirm SOLD.',
+        auctionId: targetAuctionId,
+        role: currentRole.shortDisplayName,
+      );
+      return;
+    }
+
+    final auc = getAuction(targetAuctionId);
     if (auc.currentLotId == null || auc.highBidderTeamId == null) return;
 
-    final lot = auctionLots.firstWhere((l) => l.id == auc.currentLotId);
-    final team = teams.firstWhere((t) => t.id == auc.highBidderTeamId);
-    final player = players.firstWhere((p) => p.id == lot.playerId);
+    final lot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
+    if (lot == null || lot.status == LotStatus.sold) return; // Prevent double deduction!
+
+    final team = teams.where((t) => t.id == auc.highBidderTeamId).firstOrNull;
+    if (team == null) return;
+
+    final player = players.where((p) => p.id == lot.playerId).firstOrNull;
+    if (player == null) return;
+
+    final finalPrice = (lot.currentBid ?? auc.currentBid ?? lot.basePrice);
 
     lot.status = LotStatus.sold;
     lot.winningTeamId = team.id;
-    team.purseRemaining -= (lot.currentBid ?? lot.basePrice);
+    lot.soldPrice = finalPrice;
+    lot.soldTimestamp = DateTime.now();
+
+    team.purseRemaining -= finalPrice;
     team.squadCount++;
+    if (player.isOverseas) {
+      team.overseasCount++;
+    }
+
     player.teamId = team.id;
+    player.soldTeamId = team.id;
+    player.soldPrice = finalPrice;
+    player.soldRound = auc.currentRound;
+    player.soldTimestamp = DateTime.now();
+    player.auctionStatus = PlayerAuctionStatus.sold;
+
     auc.completedLots++;
+    auc.isBiddingActive = false;
+    auc.isTimerRunning = false;
+
+    // Record immutable audit transaction
+    auctionTransactions.add(
+      AuctionTransaction(
+        id: 'tx_${DateTime.now().millisecondsSinceEpoch}_${lot.id}',
+        auctionId: auc.id,
+        lotId: lot.id,
+        playerId: player.id,
+        teamId: team.id,
+        type: AuctionTransactionType.purchase,
+        amount: finalPrice,
+        round: auc.currentRound,
+        timestamp: DateTime.now(),
+        notes: 'Player ${player.fullName} bought by ${team.name} for ₹$finalPrice',
+      ),
+    );
+
+    // Queue WhatsApp notification to registered player mobile
+    queueWhatsAppNotification(
+      auctionId: auc.id,
+      playerId: player.id,
+      playerName: player.fullName,
+      recipientMobile: player.mobileNumber,
+      teamName: team.name,
+      amount: finalPrice,
+      tournamentName: getTournament(auc.tournamentId)?.name ?? 'Tournament',
+    );
 
     logAudit(
       category: 'auction',
       action: 'LOT_SOLD',
-      details: '${player.fullName} sold to ${team.name} for ₹${lot.currentBid ?? lot.basePrice}',
-      performedBy: 'Auctioneer',
+      details: '${player.fullName} sold to ${team.name} for ₹$finalPrice in Round ${auc.currentRound}',
+      performedBy: currentRole == AppUserRole.auctioneer ? (auc.assignedAuctioneerName.isNotEmpty ? auc.assignedAuctioneerName : 'Auctioneer') : currentRole.displayName,
+      auctionId: targetAuctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
     );
 
     // Pick next lot
@@ -2602,29 +2949,61 @@ class MockDatabase extends ChangeNotifier {
       auc.highBidderTeamId = null;
       auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
       auc.isTimerRunning = true;
+      auc.isBiddingActive = true;
+      auc.gavelWarningCount = 0;
       pending.first.status = LotStatus.bidding;
+      final nextPlayer = players.where((p) => p.id == pending.first.playerId).firstOrNull;
+      if (nextPlayer != null) {
+        nextPlayer.auctionStatus = PlayerAuctionStatus.inAuction;
+      }
     } else {
       auc.status = AuctionStatus.completed;
       auc.isTimerRunning = false;
+      auc.isBiddingActive = false;
     }
 
     notifyListeners();
   }
 
   void passCurrentLot([String? auctionId]) {
-    final targetAuctionId = auctionId ?? auctions.first.id;
-    final auc = getAuction(targetAuctionId);
+    final targetAuctionId = auctionId ?? (auctions.isNotEmpty ? auctions.first.id : '');
+    if (targetAuctionId.isEmpty) return;
 
+    if (!canConfirmOutcome(targetAuctionId)) {
+      logAudit(
+        category: 'auction',
+        action: 'CONFIRM_OUTCOME_DENIED',
+        details: 'Only assigned auctioneer or super admin can mark UNSOLD.',
+        auctionId: targetAuctionId,
+        role: currentRole.shortDisplayName,
+      );
+      return;
+    }
+
+    final auc = getAuction(targetAuctionId);
     if (auc.currentLotId == null) return;
-    final lot = auctionLots.firstWhere((l) => l.id == auc.currentLotId);
+
+    final lot = auctionLots.where((l) => l.id == auc.currentLotId).firstOrNull;
+    if (lot == null) return;
+
     lot.status = LotStatus.unsold;
     auc.completedLots++;
+    auc.isBiddingActive = false;
+    auc.isTimerRunning = false;
+
+    final player = players.where((p) => p.id == lot.playerId).firstOrNull;
+    if (player != null) {
+      player.auctionStatus = PlayerAuctionStatus.unsold;
+    }
 
     logAudit(
       category: 'auction',
       action: 'LOT_UNSOLD',
-      details: 'Lot #${lot.lotNumber} was marked unsold',
-      performedBy: 'Auctioneer',
+      details: '${player?.fullName ?? "Lot #${lot.lotNumber}"} was passed as UNSOLD in Round ${auc.currentRound}',
+      performedBy: currentRole == AppUserRole.auctioneer ? (auc.assignedAuctioneerName.isNotEmpty ? auc.assignedAuctioneerName : 'Auctioneer') : currentRole.displayName,
+      auctionId: targetAuctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
     );
 
     final pending = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.pending).toList();
@@ -2634,13 +3013,388 @@ class MockDatabase extends ChangeNotifier {
       auc.highBidderTeamId = null;
       auc.biddingSecondsRemaining = auc.defaultTimerSeconds;
       auc.isTimerRunning = true;
+      auc.isBiddingActive = true;
+      auc.gavelWarningCount = 0;
       pending.first.status = LotStatus.bidding;
+      final nextPlayer = players.where((p) => p.id == pending.first.playerId).firstOrNull;
+      if (nextPlayer != null) {
+        nextPlayer.auctionStatus = PlayerAuctionStatus.inAuction;
+      }
     } else {
       auc.status = AuctionStatus.completed;
       auc.isTimerRunning = false;
+      auc.isBiddingActive = false;
     }
 
     notifyListeners();
+  }
+
+  /// Correction transaction: Reverses a mistakenly SOLD lot and restores purse & squad
+  bool reverseSoldLot({
+    required String auctionId,
+    required String lotId,
+    String reason = 'Correction by Tournament Admin',
+  }) {
+    if (!canConfigureAuction(auctionId)) {
+      logAudit(
+        category: 'auction',
+        action: 'REVERSAL_DENIED',
+        details: 'Unauthorized reversal attempt by ${currentRole.displayName}',
+        auctionId: auctionId,
+      );
+      return false;
+    }
+
+    final auc = getAuction(auctionId);
+    final lot = auctionLots.where((l) => l.id == lotId && l.auctionId == auc.id).firstOrNull;
+    if (lot == null || lot.status != LotStatus.sold) return false;
+
+    final teamId = lot.winningTeamId;
+    final team = teams.where((t) => t.id == teamId).firstOrNull;
+    final player = players.where((p) => p.id == lot.playerId).firstOrNull;
+    final refundAmount = lot.soldPrice ?? lot.currentBid ?? lot.basePrice;
+
+    if (team != null) {
+      team.purseRemaining += refundAmount;
+      team.squadCount = (team.squadCount - 1).clamp(0, 100);
+      if (player != null && player.isOverseas) {
+        team.overseasCount = (team.overseasCount - 1).clamp(0, 100);
+      }
+    }
+
+    if (player != null) {
+      player.teamId = null;
+      player.soldTeamId = null;
+      player.soldPrice = null;
+      player.soldRound = null;
+      player.soldTimestamp = null;
+      player.auctionStatus = PlayerAuctionStatus.available;
+    }
+
+    lot.status = LotStatus.pending;
+    lot.winningTeamId = null;
+    lot.soldPrice = null;
+    lot.soldTimestamp = null;
+    lot.currentBid = null;
+    auc.completedLots = (auc.completedLots - 1).clamp(0, 1000);
+
+    // Record reversal transaction
+    auctionTransactions.add(
+      AuctionTransaction(
+        id: 'tx_rev_${DateTime.now().millisecondsSinceEpoch}_${lot.id}',
+        auctionId: auc.id,
+        lotId: lot.id,
+        playerId: player?.id ?? '',
+        teamId: team?.id ?? '',
+        type: AuctionTransactionType.reversal,
+        amount: refundAmount,
+        round: auc.currentRound,
+        timestamp: DateTime.now(),
+        notes: reason,
+      ),
+    );
+
+    logAudit(
+      category: 'auction',
+      action: 'LOT_SOLD_REVERSED',
+      details: 'Reversed sale of ${player?.fullName ?? "Lot #${lot.lotNumber}"} to ${team?.name}. Refunded ₹$refundAmount. Reason: $reason',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+
+    notifyListeners();
+    return true;
+  }
+
+  /// Advances to the next auction round and optionally re-introduces unsold lots with discounted base price
+  void advanceAuctionRound({
+    required String auctionId,
+    double unsoldPriceDiscount = 0.0,
+  }) {
+    if (!canConfigureAuction(auctionId)) return;
+    final auc = getAuction(auctionId);
+    auc.currentRound++;
+
+    if (auc.allowUnsoldReEntry) {
+      final unsoldLots = auctionLots.where((l) => l.auctionId == auc.id && l.status == LotStatus.unsold).toList();
+      for (final lot in unsoldLots) {
+        lot.status = LotStatus.pending;
+        lot.isSelectedForSpin = true;
+        if (unsoldPriceDiscount > 0.0) {
+          lot.startingPrice = (lot.basePrice * (1.0 - unsoldPriceDiscount)).toInt();
+        }
+        final p = players.where((pl) => pl.id == lot.playerId).firstOrNull;
+        if (p != null) {
+          p.auctionStatus = PlayerAuctionStatus.available;
+        }
+      }
+    }
+
+    logAudit(
+      category: 'auction',
+      action: 'ROUND_ADVANCED',
+      details: 'Advanced to Round ${auc.currentRound} (Unsold discount: ${(unsoldPriceDiscount * 100).toInt()}%)',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+
+    notifyListeners();
+  }
+
+  /// Bulk import players from CSV / Excel text
+  Map<String, dynamic> bulkImportPlayersFromCsv({
+    required String auctionId,
+    required String csvData,
+  }) {
+    if (!canManagePlayers(auctionId)) {
+      return {'success': false, 'error': 'Unauthorized to manage players.'};
+    }
+
+    final auc = getAuction(auctionId);
+    final lines = csvData.split(RegExp(r'\r?\n')).where((l) => l.trim().isNotEmpty).toList();
+    if (lines.isEmpty) {
+      return {'success': false, 'error': 'CSV data is empty.'};
+    }
+
+    int importedCount = 0;
+    int skippedDuplicates = 0;
+    final List<String> errors = [];
+
+    // Optional header detection
+    int startIndex = 0;
+    final firstLine = lines.first.toLowerCase();
+    if (firstLine.contains('name') || firstLine.contains('player') || firstLine.contains('role')) {
+      startIndex = 1;
+    }
+
+    for (int i = startIndex; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+
+      final parts = line.split(',').map((p) => p.trim()).toList();
+      if (parts.isEmpty || parts[0].isEmpty) continue;
+
+      final name = parts[0];
+      final mobile = parts.length > 1 ? parts[1] : '';
+      final roleStr = parts.length > 2 ? parts[2].toLowerCase() : 'batsman';
+      final basePriceStr = parts.length > 3 ? parts[3] : '';
+      final category = parts.length > 4 ? parts[4].toLowerCase() : 'emerging';
+      final battingStyle = parts.length > 5 ? parts[5] : 'Right Hand Bat';
+      final bowlingStyle = parts.length > 6 ? parts[6] : 'Right Arm Medium';
+      final ageStr = parts.length > 7 ? parts[7] : '24';
+      final city = parts.length > 8 ? parts[8] : 'Kolkata';
+      final isOverseas = parts.length > 9 ? (parts[9].toLowerCase() == 'true' || parts[9] == '1') : false;
+
+      // Duplicate prevention in the same tournament
+      final existingPlayer = players.where((p) =>
+          p.tournamentId == auc.tournamentId &&
+          (p.fullName.toLowerCase() == name.toLowerCase() ||
+              (mobile.isNotEmpty && p.mobileNumber == mobile))).firstOrNull;
+
+      if (existingPlayer != null) {
+        skippedDuplicates++;
+        continue;
+      }
+
+      PlayerRole role = PlayerRole.batsman;
+      if (roleStr.contains('bowl')) {
+        role = PlayerRole.bowler;
+      } else if (roleStr.contains('all')) {
+        role = PlayerRole.allRounder;
+      } else if (roleStr.contains('keep') || roleStr.contains('wk')) {
+        role = PlayerRole.wicketKeeper;
+      }
+
+      final parsedPrice = int.tryParse(basePriceStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? auc.basePrice;
+      final parsedAge = int.tryParse(ageStr) ?? 24;
+
+      addPlayerToAuction(
+        auctionId: auc.id,
+        fullName: name,
+        mobileNumber: mobile,
+        role: role,
+        battingStyle: battingStyle,
+        bowlingStyle: bowlingStyle,
+        basePrice: parsedPrice,
+        category: category,
+        age: parsedAge,
+        city: city,
+        isOverseas: isOverseas,
+      );
+      importedCount++;
+    }
+
+    logAudit(
+      category: 'auction',
+      action: 'BULK_IMPORT',
+      details: 'Imported $importedCount players from CSV ($skippedDuplicates duplicates skipped).',
+      performedBy: currentRole.displayName,
+      auctionId: auctionId,
+      tournamentId: auc.tournamentId,
+      role: currentRole.shortDisplayName,
+    );
+
+    notifyListeners();
+    return {
+      'success': true,
+      'imported': importedCount,
+      'duplicates': skippedDuplicates,
+      'errors': errors,
+    };
+  }
+
+  void updatePlayerRegistrationStatus({
+    required String playerId,
+    required PlayerRegistrationStatus status,
+  }) {
+    final player = players.where((p) => p.id == playerId).firstOrNull;
+    if (player == null) return;
+    player.registrationStatus = status;
+    if (status == PlayerRegistrationStatus.rejected || status == PlayerRegistrationStatus.withdrawn) {
+      player.auctionStatus = PlayerAuctionStatus.withdrawn;
+      for (final lot in auctionLots.where((l) => l.playerId == playerId)) {
+        lot.status = LotStatus.unsold;
+        lot.isSelectedForSpin = false;
+      }
+    }
+    logAudit(
+      category: 'auction',
+      action: 'PLAYER_STATUS_UPDATED',
+      details: '${player.fullName} registration status changed to ${status.name}',
+      performedBy: currentRole.displayName,
+    );
+    notifyListeners();
+  }
+
+  void queueWhatsAppNotification({
+    required String auctionId,
+    required String playerId,
+    required String playerName,
+    required String recipientMobile,
+    required String teamName,
+    required int amount,
+    required String tournamentName,
+  }) {
+    final targetMobile = recipientMobile.trim().isNotEmpty ? recipientMobile.trim() : '+91 98300 00000';
+
+    final message = 'Congratulations $playerName! You have been bought by $teamName for ₹$amount in $tournamentName.';
+    final notif = WhatsAppNotification(
+      id: 'wa_${DateTime.now().millisecondsSinceEpoch}_$playerId',
+      auctionId: auctionId,
+      playerId: playerId,
+      recipientMobile: targetMobile,
+      recipientName: playerName,
+      messageContent: message,
+      status: WhatsAppNotificationStatus.queued,
+      timestamp: DateTime.now(),
+    );
+
+    whatsappNotifications.insert(0, notif);
+
+    // Simulate async delivery
+    Future.delayed(const Duration(milliseconds: 300), () {
+      notif.status = WhatsAppNotificationStatus.sent;
+      notif.sentTimestamp = DateTime.now();
+      notifyListeners();
+    });
+  }
+
+  void retryWhatsAppNotification(String notifId) {
+    final notif = whatsappNotifications.where((n) => n.id == notifId).firstOrNull;
+    if (notif != null) {
+      notif.status = WhatsAppNotificationStatus.sent;
+      notif.sentTimestamp = DateTime.now();
+      notif.errorMessage = null;
+      notifyListeners();
+    }
+  }
+
+  /// Generates a comprehensive Auction Report
+  Map<String, dynamic> generateAuctionReport(String auctionId) {
+    final auc = getAuction(auctionId);
+    final tourn = getTournament(auc.tournamentId);
+    final aLots = auctionLots.where((l) => l.auctionId == auc.id).toList();
+    final aTeams = teams.where((t) => t.tournamentId == auc.tournamentId || (auc.joinedTeamIds.contains(t.id))).toList();
+
+    final soldLots = aLots.where((l) => l.status == LotStatus.sold).toList();
+    final unsoldLots = aLots.where((l) => l.status == LotStatus.unsold).toList();
+    final pendingLots = aLots.where((l) => l.status == LotStatus.pending).toList();
+
+    int totalSpent = 0;
+    AuctionLot? topLot;
+    int topPrice = 0;
+
+    for (final lot in soldLots) {
+      final price = lot.soldPrice ?? lot.currentBid ?? lot.basePrice;
+      totalSpent += price;
+      if (price > topPrice) {
+        topPrice = price;
+        topLot = lot;
+      }
+    }
+
+    final topPlayer = topLot != null ? players.where((p) => p.id == topLot!.playerId).firstOrNull : null;
+    final topTeam = topLot != null ? teams.where((t) => t.id == topLot!.winningTeamId).firstOrNull : null;
+
+    final List<Map<String, dynamic>> teamSummaries = aTeams.map((t) {
+      final boughtPlayers = players.where((p) => p.teamId == t.id).toList();
+      final spent = boughtPlayers.fold<int>(0, (sum, p) => sum + (p.soldPrice ?? 0));
+      return {
+        'id': t.id,
+        'name': t.name,
+        'owner': t.ownerName,
+        'squadCount': boughtPlayers.length,
+        'totalBudget': t.totalPurseBudget,
+        'spent': spent,
+        'purseRemaining': t.purseRemaining,
+        'overseasCount': t.overseasCount,
+      };
+    }).toList();
+
+    return {
+      'auctionId': auc.id,
+      'auctionName': auc.name,
+      'tournamentName': tourn?.name ?? 'Cricket Tournament',
+      'currentRound': auc.currentRound,
+      'totalLots': aLots.length,
+      'soldLots': soldLots.length,
+      'unsoldLots': unsoldLots.length,
+      'pendingLots': pendingLots.length,
+      'totalSpent': totalSpent,
+      'topPlayerName': topPlayer?.fullName ?? 'N/A',
+      'topPlayerPrice': topPrice,
+      'topTeamName': topTeam?.name ?? 'N/A',
+      'teams': teamSummaries,
+    };
+  }
+
+  /// Exports full CSV report string
+  String exportAuctionReportCsv(String auctionId) {
+    final report = generateAuctionReport(auctionId);
+    final auc = getAuction(auctionId);
+    final aLots = auctionLots.where((l) => l.auctionId == auc.id).toList();
+
+    final buffer = StringBuffer();
+    buffer.writeln('CRICKET AUCTION REPORT - ${report['auctionName']}');
+    buffer.writeln('Tournament: ${report['tournamentName']}');
+    buffer.writeln('Generated: ${DateTime.now().toIso8601String()}');
+    buffer.writeln('Total Spending: ₹${report['totalSpent']}, Sold: ${report['soldLots']}, Unsold: ${report['unsoldLots']}');
+    buffer.writeln('');
+    buffer.writeln('Lot Number,Player Name,Role,Category,Base Price,Status,Winning Team,Final Price,Round');
+
+    for (final lot in aLots) {
+      final p = players.where((pl) => pl.id == lot.playerId).firstOrNull;
+      final t = lot.winningTeamId != null ? teams.where((tm) => tm.id == lot.winningTeamId).firstOrNull : null;
+      buffer.writeln(
+        '${lot.lotNumber},"${p?.fullName ?? "Player"}",${p?.roleString ?? "Batsman"},${p?.category ?? "general"},${lot.basePrice},${lot.status.name},"${t?.name ?? "N/A"}",${lot.soldPrice ?? 0},${lot.round}',
+      );
+    }
+
+    return buffer.toString();
   }
 
   /// Host adds a new player directly into the auction pool
@@ -2654,6 +3408,9 @@ class MockDatabase extends ChangeNotifier {
     String bowlingStyle = 'Right Arm Medium',
     int basePrice = 25000,
     String category = 'marquee',
+    int age = 24,
+    String city = 'Kolkata',
+    bool isOverseas = false,
   }) {
     final auc = getAuction(auctionId);
     final newPlayerId = 'pl_${DateTime.now().millisecondsSinceEpoch}';
@@ -2667,6 +3424,10 @@ class MockDatabase extends ChangeNotifier {
       battingStyle: battingStyle,
       bowlingStyle: bowlingStyle,
       basePrice: basePrice,
+      category: category,
+      age: age,
+      city: city,
+      isOverseas: isOverseas,
       photoUrl: photoUrl.trim().isNotEmpty
           ? photoUrl.trim()
           : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
