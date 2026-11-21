@@ -145,6 +145,28 @@ void main() {
       expect(inn1.currentStrikerId, 'pl_5');
     });
 
+    test('Innings 1 completion unlocks and transitions to Innings 2 chase scoring', () {
+      final db = MockDatabase(loadDemoSeed: true);
+      final match = db.matches.firstWhere((m) => m.id == 'match_1');
+      final inn1 = db.inningsList.firstWhere((i) => i.id == 'inn_1');
+
+      // End Innings 1 early (declare / finish overs)
+      db.endInningsEarly(inn1.id);
+      expect(inn1.isCompleted, isTrue);
+
+      // Verify Innings 2 is initialized with correct target
+      final inn2 = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 2);
+      expect(inn2, isNotNull);
+      expect(inn2.targetRuns, inn1.totalRuns + 1);
+      expect(match.currentInningsNumber, 2);
+
+      // Deliveries on Innings 2 score cleanly
+      final initialInn2Runs = inn2.totalRuns;
+      db.recordDelivery(inningsId: inn2.id, runsBatter: 4);
+      expect(inn2.totalRuns, initialInn2Runs + 4);
+      expect(inn2.legalBalls, 1);
+    });
+
     test('Auction bidding increments current bid and tracks highest bidder', () {
       final db = MockDatabase(loadDemoSeed: true);
       final initialBid = db.auction.currentBid ?? 450000;

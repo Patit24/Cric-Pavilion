@@ -96,6 +96,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final inn1 = matchInnings.where((i) => i.inningsNumber == 1).firstOrNull;
     final inn2 = matchInnings.where((i) => i.inningsNumber == 2).firstOrNull;
 
+    // Auto-advance selectedInningsNum if Innings 1 is completed and Innings 2 is active
+    if (match.currentInningsNumber == 2 && inn2 != null && !inn2.isCompleted && selectedInningsNum == 1 && (inn1?.isCompleted ?? false)) {
+      selectedInningsNum = 2;
+    }
+
     // Track active innings
     final currentInnings = (selectedInningsNum == 2 && inn2 != null) ? inn2 : (inn1 ?? matchInnings.firstOrNull);
 
@@ -1355,6 +1360,146 @@ class _ScorerScreenState extends State<ScorerScreen> {
     List<Player> bowlingTeamPlayers,
     String? prevBowlerId,
   ) {
+    // If innings or match is completed, show intuitive transition/result console instead of locked run keys
+    if (currentInnings.isCompleted || match.status == MatchStatus.completed) {
+      final isInn1 = currentInnings.inningsNumber == 1;
+      final inn2 = db.inningsList.where((i) => i.matchId == match.id && i.inningsNumber == 2).firstOrNull;
+      final inn1 = db.inningsList.where((i) => i.matchId == match.id && i.inningsNumber == 1).firstOrNull;
+      final chasingTeam = db.getTeam(isInn1 ? (inn1?.bowlingTeamId ?? match.teamBId) : currentInnings.battingTeamId) ?? MockDatabase.emptyTeam;
+      final target = (inn1?.totalRuns ?? 0) + 1;
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0B1120),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isInn1) ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF064E3B).withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF059669)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Color(0xFF34D399), size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'INNINGS 1 CONCLUDED (${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0})',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Target for ${chasingTeam.name}: $target runs in ${match.overs} overs.',
+                      style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (inn2 != null) {
+                    setState(() => selectedInningsNum = 2);
+                  } else {
+                    _showStartInnings2Modal(context, db, match, inn1, battingTeamPlayers, bowlingTeamPlayers);
+                  }
+                },
+                icon: const Icon(Icons.play_arrow, size: 18),
+                label: Text(
+                  inn2 != null ? 'Switch to Live Innings 2 Chase →' : 'Start Innings 2 Run Chase →',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF009270),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ] else ...[
+              // Match Finished / Innings 2 Completed
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.emoji_events, color: Colors.amber, size: 28),
+                    const SizedBox(height: 6),
+                    Text(
+                      match.winMargin != null && match.winnerId != null
+                          ? '${db.getTeam(match.winnerId)?.name ?? "Winner"} won by ${match.winMargin}'
+                          : 'MATCH COMPLETED',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Final Score: ${currentInnings.totalRuns}/${currentInnings.wickets} in ${currentInnings.oversStr} ov',
+                      style: const TextStyle(color: Colors.white60, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _confirmResetMatch(context, db, match),
+                      icon: const Icon(Icons.refresh, size: 16, color: Colors.amber),
+                      label: const Text('Reset', style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.amber),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => FullScorecardDialog(match: match, db: db),
+                        );
+                      },
+                      icon: const Icon(Icons.receipt_long, size: 16),
+                      label: const Text('Full Scorecard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF009270),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       decoration: const BoxDecoration(

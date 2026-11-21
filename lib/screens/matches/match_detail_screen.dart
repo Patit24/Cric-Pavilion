@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/app_animations.dart';
 import '../scorer/full_scorecard_dialog.dart';
+import '../scorer/scorer_screen.dart';
 
 class MatchDetailScreen extends StatefulWidget {
   final String matchId;
@@ -147,7 +148,72 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
 
   Widget _buildLiveTab(BuildContext context, MockDatabase db, MatchModel match, Innings? inn, List<Delivery> dels) {
     if (inn == null) {
-      return const Center(child: Text('No active innings yet', style: TextStyle(color: Colors.white54)));
+      final tossWinner = match.tossWonBy != null ? db.getTeam(match.tossWonBy) : null;
+
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF064E3B).withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF059669)),
+                ),
+                child: const Icon(Icons.sports_cricket, color: Color(0xFF34D399), size: 30),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                match.stage,
+                style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${match.overs} Overs Match • ${match.venue}',
+                style: const TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Text(
+                  tossWinner != null
+                      ? '🪙 Toss: ${tossWinner.name} elected to ${match.tossDecision ?? "bat"}'
+                      : '🪙 Toss Pending',
+                  style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => ScorerScreen(initialMatchId: match.id),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.scoreboard_outlined, size: 16),
+                label: const Text('Open Scorer Console →', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF009270),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final striker = db.players.where((p) => p.id == inn.currentStrikerId).firstOrNull;

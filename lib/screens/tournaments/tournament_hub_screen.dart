@@ -1321,6 +1321,37 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
   Widget _buildPointsTableTab(BuildContext context, MockDatabase db, Tournament tourn) {
     final standings = db.getTournamentStandings(tourn.id);
 
+    if (standings.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: const Icon(Icons.leaderboard_outlined, size: 28, color: Colors.white38),
+              ),
+              const SizedBox(height: 14),
+              const Text('No Standings Yet', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              const Text(
+                'Add teams in the Teams tab and schedule matches to compute tournament standings and Net Run Rate (NRR).',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
