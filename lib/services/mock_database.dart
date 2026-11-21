@@ -3495,6 +3495,13 @@ class MockDatabase extends ChangeNotifier {
     );
     tournaments.insert(0, newTourn);
 
+    logAudit(
+      category: 'tournament',
+      action: 'Tournament Created',
+      details: 'Organized "$name" ($overs Overs) with $actualTeamCount teams.',
+      tournamentId: cleanId,
+    );
+
     // Track ownership: Creator automatically gets full control!
     createdTournamentIds.add(cleanId);
     authenticatedTournamentIds.add(cleanId);

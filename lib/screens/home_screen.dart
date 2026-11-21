@@ -11,6 +11,7 @@ import 'tournaments/create_tournament_dialog.dart';
 import 'tournaments/tournament_hub_screen.dart';
 import 'auction/create_auction_dialog.dart';
 import 'matches/match_detail_screen.dart';
+import '../../widgets/activity_audit_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onTabChange;
@@ -95,46 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          // Clean Slate vs Sample Data Toggle
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: OutlinedButton.icon(
-              onPressed: () {
-                if (db.isDemoDataLoaded) {
-                  db.clearAllDemoData();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Color(0xFF1F2937),
-                      content: Text('🧹 Clean Slate active! All demo content cleared. Create your own tournament.'),
-                    ),
-                  );
-                } else {
-                  db.reloadDemoData();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Color(0xFF009270),
-                      content: Text('📦 Sample BPL 2026 tournament & auction data loaded!'),
-                    ),
-                  );
-                }
-              },
-              icon: Icon(
-                db.isDemoDataLoaded ? Icons.cleaning_services_outlined : Icons.inventory_2_outlined,
-                size: 13,
-                color: Colors.white,
-              ),
-              label: Text(
-                db.isDemoDataLoaded ? 'Clean' : 'Sample',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white60),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-              ),
-            ),
+          // Activity & Audit Log Access
+          IconButton(
+            tooltip: 'System Audit Log',
+            icon: const Icon(Icons.receipt_long, color: Colors.white, size: 20),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => ActivityAuditDialog(db: db),
+              );
+            },
           ),
-          const SizedBox(width: 6),
           const RoleSwitcherChip(compact: true),
           const SizedBox(width: 4),
           IconButton(
@@ -416,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Create a tournament or tap "Load Sample" to explore Cricbuzz live match centre.',
+              'Organize a tournament to schedule fixtures, conduct toss, and broadcast live scoring.',
               style: TextStyle(color: Colors.white60, fontSize: 11),
               textAlign: TextAlign.center,
             ),
@@ -656,6 +628,11 @@ class _HomeScreenState extends State<HomeScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (selectedFilter == 'featured') ...[
+            _buildProductionMetricsSection(context, db),
+            _buildPendingTasksSection(context, db),
+          ],
+
           // Live Match Centre Card
           if (liveMatch != null && liveInnings != null && liveTeamA != null && liveTeamB != null) ...[
             _buildCricbuzzLiveScorecard(
@@ -696,6 +673,11 @@ class _HomeScreenState extends State<HomeScreen> {
               isTeamOwner,
             ),
             const SizedBox(height: 14),
+          ],
+
+          if (selectedFilter == 'featured') ...[
+            _buildTournamentLifecycleWorkflowCard(context, db),
+            _buildRecentAuditLogStrip(context, db),
           ],
 
           // Role Command Banner
@@ -1188,6 +1170,427 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductionMetricsSection(BuildContext context, MockDatabase db) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text(
+                'LIVE PLATFORM METRICS',
+                style: TextStyle(
+                  color: Color(0xFF34D399),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              Text(
+                'Production Verified',
+                style: TextStyle(color: Colors.white38, fontSize: 10),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildMetricCard('Tournaments', '${db.tournaments.length}', Icons.emoji_events_outlined, const Color(0xFF059669)),
+              const SizedBox(width: 8),
+              _buildMetricCard('Teams', '${db.teams.length}', Icons.groups_outlined, const Color(0xFF0284C7)),
+              const SizedBox(width: 8),
+              _buildMetricCard('Players', '${db.players.length}', Icons.person_search_outlined, const Color(0xFFF59E0B)),
+              const SizedBox(width: 8),
+              _buildMetricCard('Matches', '${db.matches.length}', Icons.sports_cricket_outlined, const Color(0xFFA855F7)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTournamentLifecycleWorkflowCard(BuildContext context, MockDatabase db) {
+    final hasTourn = db.tournaments.isNotEmpty;
+    final hasTeams = db.teams.isNotEmpty;
+    final hasPlayers = db.players.isNotEmpty;
+    final hasAuction = db.auctions.isNotEmpty;
+    final hasMatches = db.matches.isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF334155)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.timeline, size: 16, color: Color(0xFF34D399)),
+                  SizedBox(width: 6),
+                  Text(
+                    'TOURNAMENT LIFECYCLE WORKFLOW',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF059669).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  hasTourn ? 'Active' : 'Get Started',
+                  style: const TextStyle(color: Color(0xFF34D399), fontSize: 9.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          _buildWorkflowStepRow(
+            step: 1,
+            title: '1. Create Tournament & Formats',
+            subtitle: hasTourn ? '${db.tournaments.first.name} (${db.tournaments.first.overs} Ov)' : 'Configure tournament overs, venue & scorer PIN',
+            isComplete: hasTourn,
+            onTap: () {
+              if (hasTourn) {
+                widget.onTabChange(4);
+              } else {
+                showDialog(context: context, builder: (ctx) => CreateTournamentDialog(db: db));
+              }
+            },
+          ),
+          const Divider(color: Colors.white10, height: 16),
+
+          _buildWorkflowStepRow(
+            step: 2,
+            title: '2. Setup Teams & Owner Codes',
+            subtitle: hasTeams ? '${db.teams.length} participating franchises registered' : 'Register competing teams and owner phone numbers',
+            isComplete: hasTeams,
+            onTap: () => widget.onTabChange(4),
+          ),
+          const Divider(color: Colors.white10, height: 16),
+
+          _buildWorkflowStepRow(
+            step: 3,
+            title: '3. Register Player Pool',
+            subtitle: hasPlayers ? '${db.players.length} registered players across categories' : 'Add batters, bowlers, keepers and base prices',
+            isComplete: hasPlayers,
+            onTap: () => widget.onTabChange(4),
+          ),
+          const Divider(color: Colors.white10, height: 16),
+
+          _buildWorkflowStepRow(
+            step: 4,
+            title: '4. Player Auction / Squad Draft',
+            subtitle: hasAuction ? 'Live auction floor provisioned' : 'Spin wheel, live bidding & auto squad updates',
+            isComplete: hasAuction,
+            onTap: () => widget.onTabChange(2),
+          ),
+          const Divider(color: Colors.white10, height: 16),
+
+          _buildWorkflowStepRow(
+            step: 5,
+            title: '5. Match Scheduling & Live Scoring',
+            subtitle: hasMatches ? '${db.matches.length} fixtures scheduled with live ball-by-ball' : 'Toss, crease selection, balls & ICC NRR tables',
+            isComplete: hasMatches,
+            onTap: () => widget.onTabChange(1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkflowStepRow({
+    required int step,
+    required String title,
+    required String subtitle,
+    required bool isComplete,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: isComplete ? const Color(0xFF059669) : const Color(0xFF0F172A),
+                shape: BoxShape.circle,
+                border: Border.all(color: isComplete ? const Color(0xFF34D399) : Colors.white24),
+              ),
+              child: Icon(
+                isComplete ? Icons.check : Icons.circle_outlined,
+                size: 13,
+                color: isComplete ? Colors.white : Colors.white38,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isComplete ? Colors.white : Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white38, fontSize: 10.5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 16, color: Colors.white38),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPendingTasksSection(BuildContext context, MockDatabase db) {
+    final tasks = <Map<String, dynamic>>[];
+
+    if (db.tournaments.isEmpty) {
+      tasks.add({
+        'title': 'Organize Inaugural Tournament',
+        'desc': 'Set match overs, venue, and host access PIN to get started.',
+        'actionLabel': '+ Create Tournament',
+        'action': () => showDialog(context: context, builder: (ctx) => CreateTournamentDialog(db: db)),
+        'color': const Color(0xFF059669),
+      });
+    } else {
+      final activeTourn = db.tournaments.first;
+      if (db.teams.isEmpty) {
+        tasks.add({
+          'title': 'Add Participating Teams',
+          'desc': 'Register at least 2 teams for ${activeTourn.shortName}.',
+          'actionLabel': 'Add Teams →',
+          'action': () => widget.onTabChange(4),
+          'color': const Color(0xFF0284C7),
+        });
+      }
+
+      final scheduledMatches = db.matches.where((m) => m.status == MatchStatus.scheduled || m.status == MatchStatus.toss).toList();
+      if (scheduledMatches.isNotEmpty) {
+        final nextMatch = scheduledMatches.first;
+        tasks.add({
+          'title': 'Conduct Coin Toss & Score',
+          'desc': '${nextMatch.stage} at ${nextMatch.venue}.',
+          'actionLabel': 'Open Scorer →',
+          'action': () => widget.onTabChange(1),
+          'color': const Color(0xFFF59E0B),
+        });
+      }
+
+      if (db.auctions.isNotEmpty && db.auctions.any((a) => a.status == AuctionStatus.live)) {
+        final activeAuc = db.auctions.firstWhere((a) => a.status == AuctionStatus.live);
+        tasks.add({
+          'title': 'Active Auction Floor',
+          'desc': '${activeAuc.title} is live and awaiting bids.',
+          'actionLabel': 'Enter Auction →',
+          'action': () => widget.onTabChange(2),
+          'color': Colors.amber,
+        });
+      }
+    }
+
+    if (tasks.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.assignment_outlined, size: 14, color: Colors.amberAccent),
+              SizedBox(width: 6),
+              Text(
+                'IMPORTANT PENDING TASKS',
+                style: TextStyle(
+                  color: Colors.amberAccent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...tasks.map((task) {
+            final tColor = task['color'] as Color;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tColor.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          task['title'] as String,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          task['desc'] as String,
+                          style: const TextStyle(color: Colors.white60, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: task['action'] as VoidCallback,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: tColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text(task['actionLabel'] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentAuditLogStrip(BuildContext context, MockDatabase db) {
+    final recentLogs = db.auditLogs.take(3).toList();
+    if (recentLogs.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.history, size: 14, color: Color(0xFF34D399)),
+                  SizedBox(width: 6),
+                  Text(
+                    'RECENT SYSTEM ACTIVITY',
+                    style: TextStyle(
+                      color: Color(0xFF34D399),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () {
+                  showDialog(context: context, builder: (ctx) => ActivityAuditDialog(db: db));
+                },
+                child: const Text('View All →', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...recentLogs.map((log) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF34D399)),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${log.action}: ${log.details}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

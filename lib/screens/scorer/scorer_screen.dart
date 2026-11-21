@@ -58,7 +58,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 const Text('No Matches Scheduled', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 const Text(
-                  'Create a tournament or tap "Load Sample" on the Home tab to start scoring live.',
+                  'Organize a tournament to schedule matches, conduct toss, and score live ball-by-ball.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white60, fontSize: 12),
                 ),
