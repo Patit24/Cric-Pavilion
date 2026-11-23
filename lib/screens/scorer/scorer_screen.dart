@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../services/cricket_rules_engine.dart';
-import '../../widgets/role_switcher_chip.dart';
+import '../../theme/neo_glass_theme.dart';
 import 'crease_hud_widget.dart';
 import 'over_complete_dialog.dart';
 import 'wicket_dialog.dart';
@@ -38,14 +38,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
 
     if (db.matches.isEmpty) {
       return Scaffold(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: NeoGlassTheme.bgCanvas,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF009270),
-          title: const Text('Live Scorer Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          actions: const [
-            RoleSwitcherChip(compact: true),
-            SizedBox(width: 8),
-          ],
+          backgroundColor: NeoGlassTheme.bgSurface,
+          elevation: 0,
+          shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
+          title: const Text('Live Scorer Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
         ),
         body: Center(
           child: Padding(
@@ -150,22 +148,23 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final bool areTeamsReady = db.areTeamsReadyForScoring(match.teamAId, match.teamBId);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: NeoGlassTheme.bgCanvas,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
+        backgroundColor: const Color(0xCC0B1120),
         elevation: 0,
+        titleSpacing: 8,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 180),
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.42),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: selectedMatchId,
                   isExpanded: true,
                   isDense: true,
-                  dropdownColor: const Color(0xFF1F2937),
-                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                  dropdownColor: const Color(0xFF0F172A),
+                  icon: const Icon(Icons.keyboard_arrow_down, color: NeoGlassTheme.neonEmerald, size: 18),
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   items: db.matches.map((m) {
                     return DropdownMenuItem<String>(
@@ -196,7 +195,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 Icon(
                   isScorer ? Icons.check_circle : Icons.lock_outline,
                   size: 11,
-                  color: isScorer ? Colors.white : Colors.amberAccent,
+                  color: isScorer ? NeoGlassTheme.neonEmerald : Colors.amberAccent,
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -205,7 +204,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         ? 'Scorer: ${currentRoom?.id ?? "ROOM-01"}'
                         : 'Spectator Mode',
                     style: TextStyle(
-                      color: isScorer ? Colors.white : Colors.amberAccent,
+                      color: isScorer ? NeoGlassTheme.neonEmerald : Colors.amberAccent,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -217,11 +216,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ],
         ),
         actions: [
-          const RoleSwitcherChip(compact: true),
-          const SizedBox(width: 2),
           IconButton(
             tooltip: 'Team Squads & Mobile Numbers',
-            icon: const Icon(Icons.people_alt, color: Colors.white, size: 18),
+            icon: const Icon(Icons.people_alt, color: Colors.white70, size: 18),
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
               showDialog(
                 context: context,
@@ -960,26 +959,42 @@ class _ScorerScreenState extends State<ScorerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // MAIN SCORE BANNER
-                Container(
+                // MAIN SCORE BANNER (Neo-Glass Card)
+                NeoGlassCard(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF064E3B), Color(0xFF022C22)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF047857)),
+                  borderRadius: 22,
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0x3300F5A0),
+                      Color(0x1800D9F5),
+                      Color(0xF00B1120),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderColor: NeoGlassTheme.glassBorder,
+                  glowColor: NeoGlassTheme.neonEmerald,
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${match.stage} • Innings ${currentInnings.inningsNumber}',
-                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: NeoGlassTheme.neonEmerald,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${match.stage} • Innings ${currentInnings.inningsNumber}',
+                                style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
                           Text(
                             'Max ${match.overs} Ov (4 ov/bowler)',
@@ -994,11 +1009,20 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         children: [
                           Text(
                             '${currentInnings.totalRuns}',
-                            style: const TextStyle(color: Colors.white, fontSize: 44, fontWeight: FontWeight.w900),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 46,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1,
+                            ),
                           ),
                           Text(
                             '/${currentInnings.wickets}',
-                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 32, fontWeight: FontWeight.w900),
+                            style: const TextStyle(
+                              color: NeoGlassTheme.neonEmerald,
+                              fontSize: 34,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                           const Spacer(),
                           Column(
@@ -1006,7 +1030,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                             children: [
                               Text(
                                 'CRR: ${currentInnings.runRate.toStringAsFixed(2)}',
-                                style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: NeoGlassTheme.neonCyan, fontSize: 13, fontWeight: FontWeight.bold),
                               ),
                               if (currentInnings.targetRuns != null)
                                 Text(
@@ -1014,8 +1038,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                       ? 'Target Reached! (${10 - currentInnings.wickets} wkts victory)'
                                       : 'Target: ${currentInnings.targetRuns} (Need $runsRemaining in $ballsRemaining b, RRR: $rrr)',
                                   style: TextStyle(
-                                    color: runsRemaining != null && runsRemaining <= 0 ? const Color(0xFF34D399) : Colors.amber,
-                                    fontSize: 10,
+                                    color: runsRemaining != null && runsRemaining <= 0 ? NeoGlassTheme.neonEmerald : Colors.amber,
+                                    fontSize: 10.5,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1023,6 +1047,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           Text(
@@ -1537,15 +1562,52 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ),
           const SizedBox(height: 6),
 
-          // Runs Keypad (0, 1, 2, 3, 4, 6)
+          // Runs Keypad (0, 1, 2, 3, 4, 6) - Tactile Neo-Glass Keypad
           Row(
             children: [0, 1, 2, 3, 4, 6].map((run) {
-              final isBoundary = run == 4 || run == 6;
+              final isFour = run == 4;
+              final isSix = run == 6;
+              final isDot = run == 0;
+
+              LinearGradient? buttonGradient;
+              Color buttonColor = const Color(0xFF0F172A);
+              Color textColor = Colors.white;
+              Color borderColor = Colors.white12;
+              Color? glowColor;
+
+              if (isFour) {
+                buttonGradient = const LinearGradient(
+                  colors: [Color(0xFF0284C7), Color(0xFF00D9F5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                );
+                textColor = Colors.black;
+                glowColor = NeoGlassTheme.neonCyan;
+                borderColor = Colors.transparent;
+              } else if (isSix) {
+                buttonGradient = const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFA855F7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                );
+                textColor = Colors.white;
+                glowColor = NeoGlassTheme.neonViolet;
+                borderColor = Colors.transparent;
+              } else if (isDot) {
+                buttonColor = const Color(0xFF0B1120);
+                textColor = Colors.white54;
+                borderColor = Colors.white10;
+              } else {
+                buttonColor = const Color(0xFF131D31);
+                textColor = NeoGlassTheme.neonEmerald;
+                borderColor = NeoGlassTheme.neonEmerald.withValues(alpha: 0.35);
+              }
+
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: ElevatedButton(
-                    onPressed: bowler == null
+                  child: InkWell(
+                    onTap: bowler == null
                         ? () {
                             _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
                           }
@@ -1555,17 +1617,30 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               runsBatter: run,
                             );
                           },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isBoundary
-                          ? (run == 4 ? Colors.blue.shade700 : Colors.purple.shade700)
-                          : (run == 0 ? Colors.grey.shade800 : Colors.white),
-                      foregroundColor: (run == 0 || isBoundary) ? Colors.white : Colors.black,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      '$run',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                      decoration: BoxDecoration(
+                        color: buttonGradient == null ? buttonColor : null,
+                        gradient: buttonGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderColor, width: 1.2),
+                        boxShadow: [
+                          NeoGlassTheme.neoDarkShadow,
+                          NeoGlassTheme.neoLightHighlight,
+                          if (glowColor != null)
+                            NeoGlassTheme.neoGlowShadow(glowColor, opacity: 0.35),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$run',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -1575,27 +1650,43 @@ class _ScorerScreenState extends State<ScorerScreen> {
 
           const SizedBox(height: 10),
 
-          // Action Row: EXTRAS & WICKET
+          // Action Row: EXTRAS & WICKET (Tactile Neo-Glass Action Buttons)
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  onPressed: bowler == null
+                child: InkWell(
+                  onTap: bowler == null
                       ? null
                       : () => _showExtrasDialog(context, db, currentInnings),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber.shade700,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    decoration: BoxDecoration(
+                      gradient: NeoGlassTheme.amberGoldGradient,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                      boxShadow: [
+                        NeoGlassTheme.neoDarkShadow,
+                        NeoGlassTheme.neoGlowShadow(Colors.amber, opacity: 0.25),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'EXTRAS (Wd/Nb/B)',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
-                  child: const Text('EXTRAS (Wd/Nb/B)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: (bowler == null || striker == null || nonStriker == null)
+                child: InkWell(
+                  onTap: (bowler == null || striker == null || nonStriker == null)
                       ? null
                       : () {
                           showDialog(
@@ -1627,13 +1718,33 @@ class _ScorerScreenState extends State<ScorerScreen> {
                             ),
                           );
                         },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade700,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFF87171)),
+                      boxShadow: [
+                        NeoGlassTheme.neoDarkShadow,
+                        NeoGlassTheme.neoGlowShadow(NeoGlassTheme.neonRose, opacity: 0.35),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'WICKET (OUT!)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
-                  child: const Text('WICKET (OUT!)', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                 ),
               ),
             ],
@@ -2113,23 +2224,48 @@ class _ScorerScreenState extends State<ScorerScreen> {
   void _showExtrasDialog(BuildContext context, MockDatabase db, Innings inn) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xF50B1120),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: NeoGlassTheme.glassBorder, width: 1.2),
+            boxShadow: [
+              NeoGlassTheme.neoDarkShadow,
+              NeoGlassTheme.neoLightHighlight,
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
               const Text(
                 'RECORD EXTRAS',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.8),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: NeoGlassTheme.neonEmerald,
+                  letterSpacing: 1.2,
+                ),
               ),
               const SizedBox(height: 16),
               ListTile(
-                title: const Text('Wide (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: const Text('Wide (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 subtitle: const Text('Bowler charged 1 run, not a legal ball', style: TextStyle(color: Colors.white60, fontSize: 11)),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -2141,9 +2277,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.wide);
                 },
               ),
-              const Divider(color: Colors.white10),
+              const Divider(color: Colors.white12, height: 1),
               ListTile(
-                title: const Text('No-Ball (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: const Text('No-Ball (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 subtitle: const Text('Bowler charged 1 run, free hit awarded', style: TextStyle(color: Colors.white60, fontSize: 11)),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -2155,9 +2291,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.noBall);
                 },
               ),
-              const Divider(color: Colors.white10),
+              const Divider(color: Colors.white12, height: 1),
               ListTile(
-                title: const Text('Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: const Text('Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 subtitle: const Text('Runs not charged to bowler, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -2169,9 +2305,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.bye);
                 },
               ),
-              const Divider(color: Colors.white10),
+              const Divider(color: Colors.white12, height: 1),
               ListTile(
-                title: const Text('Leg Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: const Text('Leg Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 subtitle: const Text('Ball hit pad/body, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -2221,31 +2357,42 @@ class _ScorerScreenState extends State<ScorerScreen> {
   ) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('End Innings 1 Early & Start Chase?', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-        content: Text(
-          'Innings 1 is currently ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} in ${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} overs.\n\nDo you want to declare/conclude Innings 1 and start Innings 2 with a target of ${(inn1?.totalRuns ?? 0) + 1} runs?',
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showStartInnings2Modal(context, db, match, inn1, teamAPlayers, teamBPlayers);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF009270),
-              foregroundColor: Colors.white,
+      builder: (ctx) => NeoGlassDialog(
+        glowColor: NeoGlassTheme.neonEmerald,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'End Innings 1 Early & Start Chase?',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            child: const Text('Yes, Start Innings 2'),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              'Innings 1 is currently ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} in ${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} overs.\n\nDo you want to declare/conclude Innings 1 and start Innings 2 with a target of ${(inn1?.totalRuns ?? 0) + 1} runs?',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                ),
+                const SizedBox(width: 8),
+                NeoGlassButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _showStartInnings2Modal(context, db, match, inn1, teamAPlayers, teamBPlayers);
+                  },
+                  gradient: NeoGlassTheme.neonGradient,
+                  child: const Text('Yes, Start Innings 2', style: TextStyle(fontWeight: FontWeight.w900)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2277,8 +2424,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E293B),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
@@ -2286,7 +2432,13 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 selectedNonStrikerId != null &&
                 selectedStrikerId == selectedNonStrikerId;
 
-            return Padding(
+            return Container(
+              decoration: BoxDecoration(
+                color: NeoGlassTheme.bgSurface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: NeoGlassTheme.glassBorder),
+                boxShadow: [NeoGlassTheme.neoDarkShadow],
+              ),
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
@@ -2303,10 +2455,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF009270).withValues(alpha: 0.2),
+                            color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
                           ),
-                          child: const Icon(Icons.sports_cricket, color: Color(0xFF34D399), size: 22),
+                          child: const Icon(Icons.sports_cricket, color: NeoGlassTheme.neonEmerald, size: 22),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -2319,7 +2472,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               ),
                               Text(
                                 '${chasingTeam.name} needs $target runs in ${match.overs} overs to win',
-                                style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.w600),
+                                style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -2336,7 +2489,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: NeoGlassTheme.bgCanvas,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -2356,12 +2509,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF059669),
+                              gradient: NeoGlassTheme.neonGradient,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               'Target: $target',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12),
                             ),
                           ),
                         ],
@@ -2371,24 +2524,19 @@ class _ScorerScreenState extends State<ScorerScreen> {
 
                     const Text(
                       'SELECT OPENING CREASE LINEUP FOR INNINGS 2',
-                      style: TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                      style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                     ),
                     const SizedBox(height: 10),
 
                     // Striker
-                    Text('Opening Striker (${chasingTeam.name}):', style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text('Opening Striker (${chasingTeam.name}):', style: const TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 11, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
                       value: selectedStrikerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF0F172A),
+                      dropdownColor: NeoGlassTheme.bgSurface,
                       style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Striker'),
                       items: chasingPlayers.map((p) {
                         final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
                         return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
@@ -2403,14 +2551,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     DropdownButtonFormField<String>(
                       value: selectedNonStrikerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF0F172A),
+                      dropdownColor: NeoGlassTheme.bgSurface,
                       style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Non-Striker'),
                       items: chasingPlayers.map((p) {
                         final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
                         return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
@@ -2425,19 +2568,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ],
 
                     // Bowler
-                    Text('Opening Bowler (${defendingTeam.name}):', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text('Opening Bowler (${defendingTeam.name}):', style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
                       value: selectedBowlerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF0F172A),
+                      dropdownColor: NeoGlassTheme.bgSurface,
                       style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Bowler'),
                       items: defendingPlayers.map((p) {
                         final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
                         return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
@@ -2446,7 +2584,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    ElevatedButton.icon(
+                    NeoGlassButton(
                       onPressed: (!isSameBatter && selectedStrikerId != null && selectedNonStrikerId != null && selectedBowlerId != null)
                           ? () {
                               Navigator.pop(modalCtx);
@@ -2459,14 +2597,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               setState(() => selectedInningsNum = 2);
                             }
                           : null,
-                      icon: const Icon(Icons.play_arrow, size: 18),
-                      label: const Text('Start Innings 2 & Begin Scoring', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF009270),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+                      gradient: NeoGlassTheme.neonGradient,
+                      icon: Icons.play_arrow,
+                      child: const Text('Start Innings 2 & Begin Scoring', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                     ),
                   ],
                 ),

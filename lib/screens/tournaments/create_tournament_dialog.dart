@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/app_animations.dart';
 import 'tournament_hub_screen.dart';
 
@@ -168,119 +169,122 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     final screenWidth = MediaQuery.of(context).size.width;
     final dialogPadding = screenWidth < 400 ? 12.0 : 18.0;
 
-    return Dialog(
-      backgroundColor: const Color(0xFF1E293B),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    return NeoGlassDialog(
+      glowColor: NeoGlassTheme.neonEmerald,
       insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+      padding: EdgeInsets.all(dialogPadding),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
-        child: Padding(
-          padding: EdgeInsets.all(dialogPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with Step Indicator
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF009270).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.4)),
-                    ),
-                    child: const Icon(Icons.emoji_events, color: Color(0xFF34D399), size: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header with Step Indicator
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4)),
+                    boxShadow: [
+                      NeoGlassTheme.neoLightHighlight,
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                currentStep == 1 ? 'Organize Tournament' : 'Team Roster Setup',
-                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF009270),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const PulsingLiveDot(color: Color(0xFF34D399), size: 5),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Step $currentStep/2',
-                                    style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          currentStep == 1
-                              ? 'Format & overs are editable • Configure venue & scorer PIN'
-                              : 'Teams & players are fully editable • Add/remove teams',
-                          style: const TextStyle(color: Colors.white60, fontSize: 10.5),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white54, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Animated Transition between Step 1 and Step 2
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.04, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: currentStep == 1
-                      ? KeyedSubtree(
-                          key: const ValueKey(1),
-                          child: _buildStep1TournamentDetails(),
-                        )
-                      : KeyedSubtree(
-                          key: const ValueKey(2),
-                          child: _buildStep2TeamPlayerDetails(),
-                        ),
+                  child: const Icon(Icons.emoji_events, color: NeoGlassTheme.neonEmerald, size: 20),
                 ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              currentStep == 1 ? 'Organize Tournament' : 'Team Roster Setup',
+                              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              gradient: NeoGlassTheme.neonGradient,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4), blurRadius: 6),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const PulsingLiveDot(color: Colors.black, size: 5),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Step $currentStep/2',
+                                  style: const TextStyle(color: Colors.black, fontSize: 9.5, fontWeight: FontWeight.w900),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        currentStep == 1
+                            ? 'Format & overs are editable • Configure venue & scorer PIN'
+                            : 'Teams & players are fully editable • Add/remove teams',
+                        style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Animated Transition between Step 1 and Step 2
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.04, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: currentStep == 1
+                    ? KeyedSubtree(
+                        key: const ValueKey(1),
+                        child: _buildStep1TournamentDetails(),
+                      )
+                    : KeyedSubtree(
+                        key: const ValueKey(2),
+                        child: _buildStep2TeamPlayerDetails(),
+                      ),
               ),
+            ),
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-              // Bottom Action Buttons
-              _buildBottomActions(),
-            ],
-          ),
+            // Bottom Action Buttons
+            _buildBottomActions(),
+          ],
         ),
       ),
     );
@@ -297,15 +301,11 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           TextField(
             controller: nameController,
             style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
+            decoration: NeoGlassTheme.inputDecoration(
               labelText: 'Tournament Name *',
               hintText: 'e.g. Bengal Premier League',
-              hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
-              filled: true,
-              fillColor: const Color(0xFF0F172A),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              prefixIcon: Icons.emoji_events_outlined,
+              iconColor: NeoGlassTheme.neonEmerald,
             ),
           ),
           const SizedBox(height: 10),
@@ -333,7 +333,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           ),
 
           // Quick Format Preset Chips
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -377,21 +377,24 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF064E3B).withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.8)),
+              color: const Color(0x1800F5A0),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4)),
+              boxShadow: [
+                NeoGlassTheme.neoDarkShadow,
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.lock, size: 13, color: Color(0xFF34D399)),
-                    SizedBox(width: 6),
+                  children: [
+                    const Icon(Icons.lock, size: 13, color: NeoGlassTheme.neonEmerald),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'SCORER ACCESS (ROOM ID & PIN)',
-                        style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                        style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.6),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -428,7 +431,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             title: const Text('Create Linked Player Auction Draft', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
             subtitle: const Text('Provision auction floor & team bidding consoles for this tournament', style: TextStyle(color: Colors.white54, fontSize: 10)),
             value: autoCreateAuction,
-            activeColor: const Color(0xFF34D399),
+            activeColor: NeoGlassTheme.neonEmerald,
             onChanged: (val) => setState(() => autoCreateAuction = val),
           ),
         ],
@@ -439,7 +442,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildFormatChip(String label, int overs) {
     final isSelected = selectedOvers == overs;
     return Padding(
-      padding: const EdgeInsets.only(right: 4),
+      padding: const EdgeInsets.only(right: 6),
       child: InkWell(
         onTap: () {
           setState(() {
@@ -447,17 +450,29 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             oversController.text = '$overs';
           });
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF009270) : const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white24),
+            color: isSelected ? NeoGlassTheme.neonEmerald.withValues(alpha: 0.22) : const Color(0x18FFFFFF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? NeoGlassTheme.neonEmerald : NeoGlassTheme.glassBorder,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.35), blurRadius: 8),
+                  ]
+                : null,
           ),
           child: Text(
             label,
-            style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontSize: 10.5,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
           ),
         ),
       ),
@@ -467,16 +482,12 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildShortCodeField() {
     return TextField(
       controller: shortController,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5),
-      decoration: InputDecoration(
+      style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+      decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Short Code *',
         hintText: 'e.g. BPL',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        prefixIcon: Icons.tag,
+        iconColor: NeoGlassTheme.neonCyan,
       ),
       onChanged: (val) {
         if (val.trim().isNotEmpty && roomController.text.trim().isEmpty) {
@@ -497,16 +508,13 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
       controller: oversController,
       keyboardType: TextInputType.number,
       style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
-      decoration: InputDecoration(
+      decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Match Overs (Format) *',
         hintText: '20',
-        suffixText: 'Ov',
-        suffixStyle: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        suffixIcon: const Padding(
+          padding: EdgeInsets.all(12),
+          child: Text('Ov', style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
       ),
       onChanged: (val) {
         final parsed = int.tryParse(val.trim());
@@ -521,15 +529,11 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     return TextField(
       controller: locationController,
       style: const TextStyle(color: Colors.white, fontSize: 12.5),
-      decoration: InputDecoration(
+      decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Venue / Stadium *',
         hintText: 'e.g. Eden Gardens, Kolkata',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        prefixIcon: Icons.location_on_outlined,
+        iconColor: NeoGlassTheme.neonViolet,
       ),
     );
   }
@@ -538,9 +542,13 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildEditableTeamsCountField() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white24),
+        color: const Color(0x33000000),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: NeoGlassTheme.glassBorder),
+        boxShadow: [
+          NeoGlassTheme.neoDarkShadow,
+          NeoGlassTheme.neoLightHighlight,
+        ],
       ),
       child: Row(
         children: [
@@ -563,7 +571,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
               controller: teamsCountController,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 13, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
@@ -581,7 +589,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Color(0xFF34D399), size: 18),
+            icon: const Icon(Icons.add_circle_outline, color: NeoGlassTheme.neonEmerald, size: 18),
             onPressed: () {
               if (selectedTeamCount < 24) {
                 setState(() {
@@ -603,15 +611,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     return TextField(
       controller: roomController,
       style: const TextStyle(color: Colors.white, fontSize: 12),
-      decoration: InputDecoration(
+      decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Room ID',
         hintText: 'e.g. TOURN-BPL-2026',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -620,15 +622,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     return TextField(
       controller: passController,
       style: const TextStyle(color: Colors.white, fontSize: 12),
-      decoration: InputDecoration(
+      decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Host PIN',
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
         hintText: '1234',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-        filled: true,
-        fillColor: const Color(0xFF0F172A),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -963,13 +959,21 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? tColor.withValues(alpha: 0.25)
-                            : const Color(0xFF0F172A),
+                            ? tColor.withValues(alpha: 0.28)
+                            : const Color(0x18FFFFFF),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? tColor : Colors.white24,
+                          color: isSelected ? tColor : NeoGlassTheme.glassBorder,
                           width: isSelected ? 1.6 : 1.0,
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(color: tColor.withValues(alpha: 0.45), blurRadius: 8),
+                                NeoGlassTheme.neoLightHighlight,
+                              ]
+                            : [
+                                NeoGlassTheme.neoDarkShadow,
+                              ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -980,6 +984,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             decoration: BoxDecoration(
                               color: tColor,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(color: tColor.withValues(alpha: 0.5), blurRadius: 4),
+                              ],
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -1001,16 +1008,16 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                             decoration: BoxDecoration(
                               color: pCount >= 11
-                                  ? const Color(0xFF064E3B)
-                                  : (pCount > 0 ? Colors.amber.withValues(alpha: 0.2) : Colors.white10),
+                                  ? const Color(0x3300F5A0)
+                                  : (pCount > 0 ? const Color(0x33FBBF24) : Colors.white10),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               pCount >= 11 ? '✓ 11' : '$pCount',
                               style: TextStyle(
                                 color: pCount >= 11
-                                    ? const Color(0xFF34D399)
-                                    : (pCount > 0 ? Colors.amberAccent : Colors.white60),
+                                    ? NeoGlassTheme.neonEmerald
+                                    : (pCount > 0 ? NeoGlassTheme.neonAmber : Colors.white60),
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1022,12 +1029,25 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   ),
                 );
               }),
-              ActionChip(
-                onPressed: _addNewTeam,
-                avatar: const Icon(Icons.add, size: 14, color: Color(0xFF34D399)),
-                label: const Text('Add Team', style: TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold)),
-                backgroundColor: const Color(0xFF0F172A),
-                side: const BorderSide(color: Color(0xFF059669)),
+              InkWell(
+                onTap: _addNewTeam,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add, size: 14, color: NeoGlassTheme.neonEmerald),
+                      SizedBox(width: 4),
+                      Text('+ Add Team', style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -1038,16 +1058,14 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                activeColor.withValues(alpha: 0.18),
-                const Color(0xFF0F172A),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: activeColor.withValues(alpha: 0.45), width: 1.2),
+            color: const Color(0xE60B1120),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: activeColor.withValues(alpha: 0.5), width: 1.2),
+            boxShadow: [
+              NeoGlassTheme.neoDarkShadow,
+              NeoGlassTheme.neoLightHighlight,
+              BoxShadow(color: activeColor.withValues(alpha: 0.25), blurRadius: 10),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1085,16 +1103,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     child: TextField(
                       controller: teamNameCtrl,
                       style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
+                      decoration: NeoGlassTheme.inputDecoration(
                         labelText: 'Team ${selectedTeamIndex + 1} Name *',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                         hintText: 'e.g. Kolkata Tigers',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-                        filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -1105,16 +1116,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     child: TextField(
                       controller: teamShortCtrl,
                       style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
+                      decoration: NeoGlassTheme.inputDecoration(
                         labelText: 'Code *',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                         hintText: 'KT',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
-                        filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                       ),
                     ),
                   ),
@@ -1122,7 +1126,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     const SizedBox(width: 4),
                     IconButton(
                       tooltip: 'Delete Team',
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                      icon: const Icon(Icons.delete_outline, color: NeoGlassTheme.neonRose, size: 20),
                       onPressed: () => _removeTeam(selectedTeamIndex),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -1174,14 +1178,14 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               Text(
                                 'Squad: ${pList.length}/11',
                                 style: TextStyle(
-                                  color: pList.length >= 11 ? const Color(0xFF34D399) : Colors.white70,
+                                  color: pList.length >= 11 ? NeoGlassTheme.neonEmerald : Colors.white70,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               if (pList.length >= 11) ...[
                                 const SizedBox(width: 4),
-                                const Icon(Icons.check_circle, size: 12, color: Color(0xFF34D399)),
+                                const Icon(Icons.check_circle, size: 12, color: NeoGlassTheme.neonEmerald),
                               ],
                             ],
                           ),
@@ -1192,7 +1196,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               value: (pList.length / 11.0).clamp(0.0, 1.0),
                               backgroundColor: Colors.white12,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                pList.length >= 11 ? const Color(0xFF34D399) : activeColor,
+                                pList.length >= 11 ? NeoGlassTheme.neonEmerald : activeColor,
                               ),
                               minHeight: 4,
                             ),
@@ -1201,26 +1205,37 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       ),
                     ),
                     const SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: () => _showPasteRosterDialog(selectedTeamIndex),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white24),
+                    InkWell(
+                      onTap: () => _showPasteRosterDialog(selectedTeamIndex),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        decoration: BoxDecoration(
+                          color: const Color(0x18FFFFFF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: NeoGlassTheme.glassBorder),
+                        ),
+                        child: const Text('Paste', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold)),
                       ),
-                      child: const Text('Paste', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(width: 5),
-                    ElevatedButton.icon(
-                      onPressed: () => _addPlayerToTeam(selectedTeamIndex),
-                      icon: const Icon(Icons.add, size: 12, color: Colors.black),
-                      label: const Text('Add', style: TextStyle(color: Colors.black, fontSize: 10.5, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF34D399),
+                    InkWell(
+                      onTap: () => _addPlayerToTeam(selectedTeamIndex),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        decoration: BoxDecoration(
+                          gradient: NeoGlassTheme.neonGradient,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.add, size: 12, color: Colors.black),
+                            SizedBox(width: 2),
+                            Text('Add', style: TextStyle(color: Colors.black, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -1440,19 +1455,17 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  OutlinedButton.icon(
+                  NeoGlassButton(
                     onPressed: () => _executeTournamentCreation(skipPlayers: true),
-                    icon: const Icon(Icons.flash_on, size: 13, color: Colors.amberAccent),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.amberAccent),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    ),
-                    label: const Text(
-                      '⚡ Quick Create (Skip Players)',
-                      style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                    icon: Icons.flash_on,
+                    gradient: NeoGlassTheme.amberGoldGradient,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    child: const Text(
+                      '⚡ Quick Create',
+                      style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  ElevatedButton.icon(
+                  NeoGlassButton(
                     onPressed: () {
                       if (nameController.text.trim().isEmpty || shortController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1465,12 +1478,12 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       }
                       setState(() => currentStep = 2);
                     },
-                    icon: const Icon(Icons.arrow_forward, size: 14),
-                    label: const Text('Next: Teams & Players', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF009270),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    icon: Icons.arrow_forward,
+                    gradient: NeoGlassTheme.neonGradient,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    child: const Text(
+                      'Next: Teams & Players',
+                      style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1482,13 +1495,13 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white12),
+              color: const Color(0x22FBBF24),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: NeoGlassTheme.neonAmber.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: const [
-                Icon(Icons.info_outline, size: 13, color: Colors.amberAccent),
+                Icon(Icons.info_outline, size: 13, color: NeoGlassTheme.neonAmber),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -1514,23 +1527,25 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  OutlinedButton.icon(
+                  NeoGlassButton(
                     onPressed: () => _executeTournamentCreation(skipPlayers: true),
-                    icon: const Icon(Icons.skip_next, size: 14, color: Colors.amberAccent),
-                    label: const Text('Skip for Now', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.amberAccent),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    icon: Icons.skip_next,
+                    isSecondary: true,
+                    color: const Color(0x33FBBF24),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    child: const Text(
+                      'Skip for Now',
+                      style: TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  ElevatedButton.icon(
+                  NeoGlassButton(
                     onPressed: () => _executeTournamentCreation(skipPlayers: false),
-                    icon: const Icon(Icons.check, size: 14),
-                    label: const Text('Save & Create', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF009270),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    icon: Icons.check,
+                    gradient: NeoGlassTheme.neonGradient,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    child: const Text(
+                      'Save & Create',
+                      style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

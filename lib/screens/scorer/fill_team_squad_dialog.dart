@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
+import '../../widgets/add_existing_player_dialog.dart';
 
 class FillTeamSquadDialog extends StatefulWidget {
   final MatchModel match;
@@ -128,104 +130,107 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
     final teamA = widget.db.getTeam(widget.match.teamAId) ?? MockDatabase.emptyTeam;
     final teamB = widget.db.getTeam(widget.match.teamBId) ?? MockDatabase.emptyTeam;
 
-    return Dialog(
-      backgroundColor: const Color(0xFF1E293B),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    return NeoGlassDialog(
+      glowColor: NeoGlassTheme.neonEmerald,
+      padding: const EdgeInsets.all(18),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF009270).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.phonelink_lock, color: Color(0xFF34D399), size: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Required: Player Names & Mobile Numbers',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  child: const Icon(Icons.phonelink_lock, color: NeoGlassTheme.neonEmerald, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Required: Player Names & Mobile',
+                        style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Both teams must register player names with mobile numbers before scoring.',
+                        style: TextStyle(color: Colors.white60, fontSize: 10.5),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Tabs for Team A and Team B
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: NeoGlassTheme.neonEmerald,
+                indicatorWeight: 3,
+                labelColor: NeoGlassTheme.neonEmerald,
+                unselectedLabelColor: Colors.white60,
+                tabs: [
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamA.logoUrl)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            teamA.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
                         ),
-                        Text(
-                          'Both teams must register all player names with mobile numbers before scoring starts.',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
-                        ),
+                        const SizedBox(width: 4),
+                        Text('(${teamAPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white54),
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamB.logoUrl)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            teamB.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text('(${teamBPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-
-              // Tabs for Team A and Team B
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorColor: const Color(0xFF009270),
-                  indicatorWeight: 3,
-                  labelColor: const Color(0xFF34D399),
-                  unselectedLabelColor: Colors.white60,
-                  tabs: [
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamA.logoUrl)),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              teamA.name,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text('(${teamAPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircleAvatar(radius: 8, backgroundImage: NetworkImage(teamB.logoUrl)),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              teamB.name,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text('(${teamBPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            ),
               const SizedBox(height: 10),
 
               // Error banner if any
@@ -266,23 +271,38 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
 
               const SizedBox(height: 12),
 
-              // Action Buttons
+              // Action Buttons (Overflow-proof responsive layout)
               Row(
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  Expanded(
+                    flex: 3,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    ),
                   ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: _validateAndSaveSquads,
-                    icon: const Icon(Icons.check_circle, size: 16),
-                    label: const Text('Save & Unlock Live Scoring', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF009270),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 7,
+                    child: ElevatedButton.icon(
+                      onPressed: _validateAndSaveSquads,
+                      icon: const Icon(Icons.check_circle, size: 16),
+                      label: const Text(
+                        'Save & Unlock Live Scoring',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00F5A0),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ),
                 ],
@@ -290,16 +310,17 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildTeamEditor(Team team, List<Map<String, dynamic>> playerList, String teamLetter, String mockPrefix) {
     final teamIndex = teamLetter == 'A' ? 0 : 1;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Top Action Bar for this team (Responsive, Overflow-Proof)
+        // Top Action Bar for this team (2-line responsive layout, 100% overflow proof)
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
@@ -308,45 +329,95 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () => _autoFillSampleSquad(playerList, teamIndex, mockPrefix),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
-                    SizedBox(width: 4),
-                    Text('Auto 11', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AddExistingPlayerDialog(
+                      teamId: team.id,
+                      tournamentId: widget.match.tournamentId,
+                      onPlayerAdded: (newP) {
+                        setState(() {
+                          if (!playerList.any((r) => (r['nameController'] as TextEditingController).text == newP.fullName)) {
+                            playerList.add({
+                              'nameController': TextEditingController(text: newP.fullName),
+                              'mobileController': TextEditingController(text: newP.mobileNumber),
+                              'role': newP.roleString.toLowerCase(),
+                            });
+                          }
+                        });
+                      },
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00D9F5).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF00D9F5)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.person_search, size: 12, color: Color(0xFF00D9F5)),
+                      SizedBox(width: 4),
+                      Text('Find Mobile', style: TextStyle(color: Color(0xFF00D9F5), fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 6),
-            InkWell(
-              onTap: () => _addEmptyRow(playerList),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF009270).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF059669)),
+            Expanded(
+              child: InkWell(
+                onTap: () => _autoFillSampleSquad(playerList, teamIndex, mockPrefix),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
+                      SizedBox(width: 4),
+                      Text('Auto 11', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.add, size: 12, color: Color(0xFF34D399)),
-                    SizedBox(width: 4),
-                    Text('+ Player', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
-                  ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: InkWell(
+                onTap: () => _addEmptyRow(playerList),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF009270).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF059669)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.add, size: 12, color: Color(0xFF34D399)),
+                      SizedBox(width: 4),
+                      Text('+ Player', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
               ),
             ),

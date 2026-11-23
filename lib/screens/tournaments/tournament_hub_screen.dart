@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/role_switcher_chip.dart';
 import '../../widgets/app_animations.dart';
 import '../scorer/scorer_screen.dart';
@@ -53,10 +54,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     final tournaments = db.tournaments;
     if (tournaments.isEmpty) {
       return Scaffold(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: NeoGlassTheme.bgCanvas,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF009270),
-          title: const Text('Tournament Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          backgroundColor: NeoGlassTheme.bgSurface,
+          elevation: 0,
+          shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
+          title: const Text('Tournament Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
           actions: const [
             RoleSwitcherChip(compact: true),
             SizedBox(width: 8),
@@ -109,10 +112,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     final canScore = isCreator || isUnlocked || db.canManageTournaments || db.canScoreMatches;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: NeoGlassTheme.bgCanvas,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
-        elevation: 1,
+        backgroundColor: NeoGlassTheme.bgSurface,
+        elevation: 0,
+        shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -170,12 +174,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
 
                   // 3. 4 CricHeroes Sub-Tabs Bar
                   Container(
-                    color: const Color(0xFF0F172A),
+                    color: NeoGlassTheme.bgSurface,
                     child: TabBar(
                       controller: _tabController,
-                      indicatorColor: const Color(0xFF009270),
+                      indicatorColor: NeoGlassTheme.neonEmerald,
                       indicatorWeight: 3,
-                      labelColor: const Color(0xFF34D399),
+                      labelColor: NeoGlassTheme.neonEmerald,
                       unselectedLabelColor: Colors.white60,
                       labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       tabs: const [

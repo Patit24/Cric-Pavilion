@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
-import '../../widgets/role_switcher_chip.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/app_animations.dart';
 import 'create_auction_dialog.dart';
 import 'add_player_dialog.dart';
@@ -134,7 +134,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         elevation: 0,
         shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
         title: const Text('Franchise Auctions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        actions: const [RoleSwitcherChip(compact: true), SizedBox(width: 8)],
+        actions: const [SizedBox(width: 8)],
       ),
       body: Center(
         child: Padding(
@@ -220,8 +220,6 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
-          const RoleSwitcherChip(compact: true),
-          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Host New Auction',
             icon: const Icon(Icons.add_circle, color: Colors.amber, size: 22),
@@ -517,7 +515,6 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               );
             },
           ),
-          const RoleSwitcherChip(compact: true),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
             tooltip: 'Auction Menu',
@@ -546,6 +543,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 _showHostFranchiseApprovalsDialog(context, db, auction, safe8Teams);
               } else if (val == 'team') {
                 _showAddTeamDialog(context, db, auction);
+              } else if (val == 'enter_room') {
+                _showEnterAuctionRoomDialog(context, db, auction, safe8Teams);
+              } else if (val == 'exit_spectator') {
+                db.exitAuctionRoom();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Returned to Spectator Broadcast.')),
+                );
               }
             },
             itemBuilder: (ctx) => [
@@ -652,25 +656,31 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   ),
                 ),
               ],
+              const PopupMenuDivider(height: 8),
+              if (!isUnlocked)
+                const PopupMenuItem(
+                  value: 'enter_room',
+                  child: Row(
+                    children: [
+                      Icon(Icons.vpn_key, color: Colors.amber, size: 16),
+                      SizedBox(width: 8),
+                      Text('Enter with Franchise PIN', style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                )
+              else
+                const PopupMenuItem(
+                  value: 'exit_spectator',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.redAccent, size: 16),
+                      SizedBox(width: 8),
+                      Text('Exit to Spectator', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
             ],
           ),
-          if (!isUnlocked)
-            TextButton.icon(
-              onPressed: () => _showEnterAuctionRoomDialog(context, db, auction, safe8Teams),
-              icon: const Icon(Icons.vpn_key, size: 13, color: Colors.amber),
-              label: const Text('Enter', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
-            )
-          else
-            IconButton(
-              tooltip: 'Exit to Spectator',
-              icon: const Icon(Icons.logout, size: 18, color: Colors.redAccent),
-              onPressed: () {
-                db.exitAuctionRoom();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Returned to Spectator Broadcast.')),
-                );
-              },
-            ),
           const SizedBox(width: 4),
         ],
       ),
@@ -1245,13 +1255,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             // CURRENT LOT STAGE CARD (REVEALED ON ALL BOARDS)
             // =========================================================
             if (currentLot != null && currentPlayer != null)
-              Container(
+              NeoGlassCard(
+                glowColor: NeoGlassTheme.neonCyan,
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF1E293B)),
-                ),
                 child: Column(
                   children: [
                     // Player Header Row
@@ -1285,13 +1291,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF064E3B),
+                                      color: const Color(0x3300F5A0),
                                       borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: const Color(0xFF059669)),
+                                      border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
                                     ),
                                     child: Text(
                                       currentPlayer.roleString.toUpperCase(),
-                                      style: const TextStyle(color: Color(0xFF34D399), fontSize: 9, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 9, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                   // Category chip (shown only if distinct from role)
@@ -1300,24 +1306,24 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                                       decoration: BoxDecoration(
-                                        color: Colors.amber.shade900.withValues(alpha: 0.4),
+                                        color: NeoGlassTheme.neonAmber.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: Colors.amber.shade600),
+                                        border: Border.all(color: NeoGlassTheme.neonAmber.withValues(alpha: 0.5)),
                                       ),
                                       child: Text(
                                         currentLot.category.toUpperCase(),
-                                        style: TextStyle(color: Colors.amber.shade400, fontSize: 9, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 9, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   if (currentPlayer.isOverseas)
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF1E3A8A),
+                                        color: NeoGlassTheme.neonCyan.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: const Color(0xFF3B82F6)),
+                                        border: Border.all(color: NeoGlassTheme.neonCyan.withValues(alpha: 0.5)),
                                       ),
-                                      child: const Text('OVERSEAS', style: TextStyle(color: Color(0xFF93C5FD), fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                      child: const Text('OVERSEAS', style: TextStyle(color: NeoGlassTheme.neonCyan, fontSize: 8.5, fontWeight: FontWeight.bold)),
                                     ),
                                 ],
                               ),
@@ -1336,14 +1342,18 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       ],
                     ),
 
-                    const Divider(color: Color(0xFF1E293B), height: 24),
+                    const Divider(color: Color(0x22FFFFFF), height: 24),
 
                     // Price & High Bid Display
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: const Color(0x33000000),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: NeoGlassTheme.glassBorder),
+                        boxShadow: [
+                          NeoGlassTheme.neoDarkShadow,
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1359,7 +1369,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                       onTap: () => _showManualStartingPriceDialog(context, db, auction, currentLot),
                                       child: const Padding(
                                         padding: EdgeInsets.only(left: 6),
-                                        child: Icon(Icons.edit, size: 12, color: Colors.amber),
+                                        child: Icon(Icons.edit, size: 12, color: NeoGlassTheme.neonAmber),
                                       ),
                                     ),
                                 ],
@@ -1374,11 +1384,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text('CURRENT HIGH BID', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900)),
+                              const Text('CURRENT HIGH BID', style: TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 10, fontWeight: FontWeight.w900)),
                               const SizedBox(height: 2),
                               Text(
                                 currencyFormat.format(currentLot.currentBid ?? (currentLot.startingPrice ?? currentLot.basePrice)),
-                                style: const TextStyle(color: Colors.amber, fontSize: 22, fontWeight: FontWeight.w900),
+                                style: const TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 22, fontWeight: FontWeight.w900),
                               ),
                             ],
                           ),
@@ -1415,14 +1425,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
-                            ? Colors.redAccent.withValues(alpha: 0.2)
-                            : const Color(0xFF1E293B),
+                            ? const Color(0x33F43F5E)
+                            : const Color(0x33000000),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
-                              ? Colors.redAccent
-                              : const Color(0xFF334155),
+                              ? NeoGlassTheme.neonRose
+                              : NeoGlassTheme.glassBorder,
                         ),
+                        boxShadow: [
+                          NeoGlassTheme.neoDarkShadow,
+                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1987,24 +2000,20 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   // HOST AUCTIONEER COCKPIT (GAVEL, WARNINGS, PAUSE, MANUAL PRICE)
   // =========================================================================
   Widget _buildHostFloorCockpit(BuildContext context, MockDatabase db, Auction auction, AuctionLot currentLot) {
-    return Container(
+    return NeoGlassCard(
+      glowColor: NeoGlassTheme.neonAmber,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.45)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              const Icon(Icons.shield, color: Colors.amber, size: 14),
+              const Icon(Icons.shield, color: NeoGlassTheme.neonAmber, size: 14),
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
                   'AUCTIONEER COCKPIT',
-                  style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  style: TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -2014,16 +2023,16 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
+                    color: NeoGlassTheme.neonAmber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                    border: Border.all(color: NeoGlassTheme.neonAmber.withValues(alpha: 0.4)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.edit, size: 10, color: Colors.amber),
+                      Icon(Icons.edit, size: 10, color: NeoGlassTheme.neonAmber),
                       SizedBox(width: 4),
-                      Text('Edit Price', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('Edit Price', style: TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -2039,7 +2048,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 child: _buildGavelActionPill(
                   label: 'Once',
                   subtitle: 'Gavel 1',
-                  color: Colors.amber,
+                  color: NeoGlassTheme.neonAmber,
                   isActive: auction.floorStatus == FloorStatus.goingOnce,
                   onTap: () => db.setFloorStatus(auction.id, FloorStatus.goingOnce),
                 ),
@@ -2059,7 +2068,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 child: _buildGavelActionPill(
                   label: 'Final',
                   subtitle: 'Warning',
-                  color: const Color(0xFFEF4444),
+                  color: NeoGlassTheme.neonRose,
                   isActive: auction.floorStatus == FloorStatus.fairWarning,
                   onTap: () => db.setFloorStatus(auction.id, FloorStatus.fairWarning),
                 ),
@@ -2067,9 +2076,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               const SizedBox(width: 6),
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0x33000000),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: NeoGlassTheme.glassBorder),
                 ),
                 child: IconButton(
                   tooltip: auction.floorStatus == FloorStatus.paused ? 'Resume Floor' : 'Pause Floor',
@@ -2094,29 +2103,22 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
+                child: NeoGlassButton(
                   onPressed: () => db.setFloorStatus(auction.id, FloorStatus.sold),
-                  icon: const Icon(Icons.gavel, size: 16),
-                  label: const Text('HAMMER SOLD', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF059669),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                  icon: Icons.gavel,
+                  gradient: NeoGlassTheme.neonGradient,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: const Text('HAMMER SOLD', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12)),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: OutlinedButton(
+                child: NeoGlassButton(
                   onPressed: () => db.setFloorStatus(auction.id, FloorStatus.unsold),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red.shade400,
-                    side: BorderSide(color: Colors.red.shade400),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('UNSOLD (PASS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  isSecondary: true,
+                  color: const Color(0x33F43F5E),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: const Text('UNSOLD (PASS)', style: TextStyle(color: NeoGlassTheme.neonRose, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
             ],
@@ -2191,20 +2193,29 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.25) : const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isActive ? color : color.withValues(alpha: 0.4), width: isActive ? 1.5 : 1.0),
+          color: isActive ? color.withValues(alpha: 0.28) : const Color(0x18FFFFFF),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isActive ? color : NeoGlassTheme.glassBorder,
+            width: isActive ? 1.5 : 1.0,
+          ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8),
+                  NeoGlassTheme.neoLightHighlight,
+                ]
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w900)),
             const SizedBox(height: 1),
-            Text(subtitle, style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 8.5)),
+            Text(subtitle, style: TextStyle(color: color.withValues(alpha: 0.75), fontSize: 8.5)),
           ],
         ),
       ),
@@ -2228,13 +2239,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     final isLeadingBidder = auction.highBidderTeamId == myTeam.id;
     final canBid = !isPaused && !isSquadFull && !isBudgetExhausted;
 
-    return Container(
+    return NeoGlassCard(
+      glowColor: myTeam.primaryColor,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: myTeam.primaryColor.withValues(alpha: 0.5)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

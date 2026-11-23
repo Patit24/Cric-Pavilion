@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class CreaseHudWidget extends StatelessWidget {
   final Innings innings;
@@ -44,28 +45,38 @@ class CreaseHudWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // BATTERS TABLE CONTAINER
-        Container(
+        // BATTERS TABLE CONTAINER (Neo-Glass Card with Tactile Shadows)
+        NeoGlassCard(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF032219), // Deep cricket green-black
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF064E3B)),
-          ),
+          borderRadius: 18,
+          borderColor: NeoGlassTheme.glassBorder,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'BATTERS AT CREASE',
-                    style: TextStyle(
-                      color: Color(0xFF34D399),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: NeoGlassTheme.neonEmerald,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'BATTERS AT CREASE',
+                        style: TextStyle(
+                          color: NeoGlassTheme.neonEmerald,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -76,19 +87,19 @@ class CreaseHudWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           child: Container(
                             margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF064E3B),
+                              color: const Color(0x3300F5A0),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.5)),
+                              border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.edit, size: 11, color: Color(0xFF34D399)),
+                                Icon(Icons.edit, size: 11, color: NeoGlassTheme.neonEmerald),
                                 SizedBox(width: 4),
                                 Text(
                                   'Change Openers',
-                                  style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold),
+                                  style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -102,7 +113,7 @@ class CreaseHudWidget extends StatelessWidget {
                             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             child: Row(
                               children: [
-                                Icon(Icons.swap_horiz, size: 13, color: Colors.amber),
+                                Icon(Icons.swap_horiz, size: 14, color: Colors.amber),
                                 SizedBox(width: 4),
                                 Text(
                                   'Swap Ends',
@@ -110,7 +121,6 @@ class CreaseHudWidget extends StatelessWidget {
                                     color: Colors.amber,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ],
@@ -126,60 +136,55 @@ class CreaseHudWidget extends StatelessWidget {
               // Table Headers
               const Row(
                 children: [
-                  Expanded(flex: 5, child: Text('Batter', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 8, child: Text('Batter', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                   Expanded(flex: 2, child: Text('R (B)', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                   Expanded(flex: 1, child: Text('4s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                   Expanded(flex: 1, child: Text('6s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                   Expanded(flex: 2, child: Text('SR', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                 ],
               ),
-              const Divider(color: Color(0xFF064E3B), height: 12),
+              const Divider(color: Colors.white10, height: 12),
 
               // STRIKER ROW
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF064E3B).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: const LinearGradient(
+                    colors: [Color(0x3300F5A0), Color(0x1100D9F5)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 5,
+                      flex: 8,
                       child: Row(
                         children: [
-                          const Text('★ ', style: TextStyle(color: Colors.amber, fontSize: 12)),
+                          Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.amber.withValues(alpha: 0.6)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('★', style: TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w900)),
+                                SizedBox(width: 2),
+                                Text('STRIKE', style: TextStyle(color: Colors.amber, fontSize: 8, fontWeight: FontWeight.w900)),
+                              ],
+                            ),
+                          ),
                           Expanded(
                             child: Text(
                               _playerName(striker, 'Striker'),
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('STRIKE', style: TextStyle(color: Colors.amber, fontSize: 8, fontWeight: FontWeight.w900)),
-                          ),
-                          if (onChangeStriker != null && strikerCard.balls == 0) ...[
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: onChangeStriker,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: Colors.white12,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text('Change', style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -197,7 +202,7 @@ class CreaseHudWidget extends StatelessWidget {
                     ),
                     Expanded(flex: 1, child: Text('${strikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11))),
                     Expanded(flex: 1, child: Text('${strikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11))),
-                    Expanded(flex: 2, child: Text(strikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text(strikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
               ),
@@ -205,14 +210,14 @@ class CreaseHudWidget extends StatelessWidget {
 
               // NON-STRIKER ROW
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 5,
+                      flex: 8,
                       child: Row(
                         children: [
-                          const Text('• ', style: TextStyle(color: Colors.white30, fontSize: 12)),
+                          const Text('• ', style: TextStyle(color: Colors.white38, fontSize: 13, fontWeight: FontWeight.bold)),
                           Expanded(
                             child: Text(
                               _playerName(nonStriker, 'Non-Striker'),
@@ -220,21 +225,6 @@ class CreaseHudWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (onChangeNonStriker != null && nonStrikerCard.balls == 0) ...[
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: onChangeNonStriker,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: Colors.white12,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text('Change', style: TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -262,38 +252,53 @@ class CreaseHudWidget extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // ACTIVE BOWLER CONTAINER
-        Container(
+        // ACTIVE BOWLER CONTAINER (Neo-Glass Tactile Card)
+        NeoGlassCard(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: bowler == null ? const Color(0xFF451A03) : const Color(0xFF032219),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: bowler == null ? Colors.amber : const Color(0xFF064E3B)),
-          ),
+          borderRadius: 18,
+          borderColor: bowler == null ? Colors.amber.withValues(alpha: 0.6) : NeoGlassTheme.glassBorder,
+          glowColor: bowler == null ? Colors.amber : null,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'ACTIVE BOWLER',
-                    style: TextStyle(
-                      color: Color(0xFF34D399),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          color: NeoGlassTheme.neonCyan,
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'ACTIVE BOWLER',
+                        style: TextStyle(
+                          color: NeoGlassTheme.neonCyan,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                   if (onChangeBowler != null)
                     InkWell(
                       onTap: onChangeBowler,
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                         decoration: BoxDecoration(
-                          color: bowler == null ? Colors.amber : const Color(0xFF064E3B),
+                          gradient: bowler == null ? NeoGlassTheme.amberGoldGradient : null,
+                          color: bowler == null ? null : const Color(0xFF1E293B),
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: bowler == null ? Colors.transparent : Colors.white24,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -322,7 +327,7 @@ class CreaseHudWidget extends StatelessWidget {
                 // Bowler Table Headers
                 const Row(
                   children: [
-                    Expanded(flex: 5, child: Text('Bowler', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 8, child: Text('Bowler', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                     Expanded(flex: 2, child: Text('O', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                     Expanded(flex: 1, child: Text('M', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                     Expanded(flex: 1, child: Text('R', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
@@ -330,24 +335,24 @@ class CreaseHudWidget extends StatelessWidget {
                     Expanded(flex: 2, child: Text('ECON', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
                   ],
                 ),
-                const Divider(color: Color(0xFF064E3B), height: 10),
+                const Divider(color: Colors.white10, height: 10),
 
                 // Bowler Row
                 Row(
                   children: [
                     Expanded(
-                      flex: 5,
+                      flex: 8,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             _playerName(bowler, 'Bowler'),
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             bowler!.bowlingStyle,
-                            style: const TextStyle(color: Colors.white54, fontSize: 9),
+                            style: const TextStyle(color: Colors.white54, fontSize: 9.5),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -356,7 +361,7 @@ class CreaseHudWidget extends StatelessWidget {
                     Expanded(flex: 2, child: Text(bowlerCard.oversStr, textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
                     Expanded(flex: 1, child: Text('${bowlerCard.maidens}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white60, fontSize: 11))),
                     Expanded(flex: 1, child: Text('${bowlerCard.runsConceded}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('${bowlerCard.wickets}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.w900))),
+                    Expanded(flex: 1, child: Text('${bowlerCard.wickets}', textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 12, fontWeight: FontWeight.w900))),
                     Expanded(flex: 2, child: Text(bowlerCard.economy.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
                   ],
                 ),
@@ -366,7 +371,7 @@ class CreaseHudWidget extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '⚠️ Over Complete — Please pick next bowler to resume scoring',
-                      style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

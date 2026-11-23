@@ -311,8 +311,153 @@ class Team {
   }
 }
 
+class PlayerTeamHistory {
+  final String teamId;
+  final String teamName;
+  final String? tournamentId;
+  final String? tournamentName;
+  final int year;
+  final DateTime joinedAt;
+  final DateTime? leftAt;
+
+  PlayerTeamHistory({
+    required this.teamId,
+    required this.teamName,
+    this.tournamentId,
+    this.tournamentName,
+    required this.year,
+    required this.joinedAt,
+    this.leftAt,
+  });
+}
+
+class PlayerCareerStats {
+  final String playerId;
+  final int matches;
+  final int innings;
+  final int runs;
+  final int balls;
+  final int fours;
+  final int sixes;
+  final int highestScore;
+  final bool isHighestScoreNotOut;
+  final int fifties;
+  final int hundreds;
+  final int notOuts;
+  final double battingAverage;
+  final double battingStrikeRate;
+
+  final int oversBowledLegalBalls;
+  final String oversFormatted; // e.g. "14.2"
+  final int maidens;
+  final int runsConceded;
+  final int wickets;
+  final double bowlingAverage;
+  final double economyRate;
+  final double bowlingStrikeRate;
+  final String bestBowlingInnings; // e.g. "4/18"
+
+  final int catches;
+  final int runOuts;
+  final int stumpings;
+
+  PlayerCareerStats({
+    required this.playerId,
+    this.matches = 0,
+    this.innings = 0,
+    this.runs = 0,
+    this.balls = 0,
+    this.fours = 0,
+    this.sixes = 0,
+    this.highestScore = 0,
+    this.isHighestScoreNotOut = false,
+    this.fifties = 0,
+    this.hundreds = 0,
+    this.notOuts = 0,
+    this.battingAverage = 0.0,
+    this.battingStrikeRate = 0.0,
+    this.oversBowledLegalBalls = 0,
+    this.oversFormatted = '0.0',
+    this.maidens = 0,
+    this.runsConceded = 0,
+    this.wickets = 0,
+    this.bowlingAverage = 0.0,
+    this.economyRate = 0.0,
+    this.bowlingStrikeRate = 0.0,
+    this.bestBowlingInnings = '0/0',
+    this.catches = 0,
+    this.runOuts = 0,
+    this.stumpings = 0,
+  });
+}
+
+class PlayerMatchLog {
+  final String matchId;
+  final String matchName;
+  final String? tournamentName;
+  final DateTime date;
+  final String opponentTeamName;
+  final String playerTeamName;
+  final int runsScored;
+  final int ballsFaced;
+  final int fours;
+  final int sixes;
+  final String dismissalInfo;
+  final String oversBowled;
+  final int runsConceded;
+  final int wicketsTaken;
+  final int catches;
+  final int runOuts;
+  final int stumpings;
+  final String matchResult;
+  final bool isWin;
+
+  PlayerMatchLog({
+    required this.matchId,
+    required this.matchName,
+    this.tournamentName,
+    required this.date,
+    required this.opponentTeamName,
+    required this.playerTeamName,
+    this.runsScored = 0,
+    this.ballsFaced = 0,
+    this.fours = 0,
+    this.sixes = 0,
+    this.dismissalInfo = 'not out',
+    this.oversBowled = '0.0',
+    this.runsConceded = 0,
+    this.wicketsTaken = 0,
+    this.catches = 0,
+    this.runOuts = 0,
+    this.stumpings = 0,
+    required this.matchResult,
+    this.isWin = false,
+  });
+}
+
+class PlayerLookupResult {
+  final bool isFound;
+  final Player? player;
+  final String normalizedMobile;
+  final String? errorMessage;
+  final bool isAlreadyInTeam;
+  final bool hasTournamentConflict;
+  final String? conflictingTeamName;
+
+  PlayerLookupResult({
+    required this.isFound,
+    this.player,
+    required this.normalizedMobile,
+    this.errorMessage,
+    this.isAlreadyInTeam = false,
+    this.hasTournamentConflict = false,
+    this.conflictingTeamName,
+  });
+}
+
 class Player {
   final String id;
+  final String permanentPlayerCode; // e.g. "PLY-2026-0001"
   final String tournamentId;
   final String fullName;
   final String displayName;
@@ -339,9 +484,14 @@ class Player {
   int runs;
   int wickets;
   int matches;
+  final DateTime? registeredAt;
+  final String? registeredByOrganizerId;
+  bool isMobileVerified;
+  List<PlayerTeamHistory> teamHistory;
 
   Player({
     required this.id,
+    String? permanentPlayerCode,
     this.tournamentId = 'tourn_bpl_2026',
     required this.fullName,
     required this.displayName,
@@ -366,7 +516,12 @@ class Player {
     this.runs = 0,
     this.wickets = 0,
     this.matches = 0,
-  });
+    this.registeredAt,
+    this.registeredByOrganizerId,
+    this.isMobileVerified = false,
+    List<PlayerTeamHistory>? teamHistory,
+  })  : permanentPlayerCode = permanentPlayerCode ?? (id.startsWith('pl_') ? 'PLY-2026-${id.hashCode.abs().toString().padLeft(4, '0').substring(0, 4)}' : id),
+        teamHistory = teamHistory ?? [];
 
   String get roleString {
     switch (role) {
@@ -409,6 +564,12 @@ class MatchModel {
   String? captainBId;
   String? keeperAId;
   String? keeperBId;
+  String? playerOfTheMatchId;
+  String? playerOfTheMatchName;
+  bool isLocked;
+
+  bool get isStandalone =>
+      tournamentId.isEmpty || tournamentId == 'standalone' || tournamentId == 'direct';
 
   MatchModel({
     required this.id,
@@ -432,6 +593,9 @@ class MatchModel {
     this.captainBId,
     this.keeperAId,
     this.keeperBId,
+    this.playerOfTheMatchId,
+    this.playerOfTheMatchName,
+    this.isLocked = false,
   })  : playingXIA = playingXIA ?? [],
         playingXIB = playingXIB ?? [];
 }
@@ -561,6 +725,9 @@ class BattingScorecard {
     this.dismissalText = 'not out',
     this.isOut = false,
   });
+
+  bool get isNotOut => !isOut;
+  String get dismissalInfo => dismissalText;
 }
 
 class BowlingScorecard {
@@ -576,6 +743,8 @@ class BowlingScorecard {
   int wickets;
   int dots;
   double economy;
+
+  String get overs => oversStr;
 
   BowlingScorecard({
     required this.id,
@@ -593,11 +762,135 @@ class BowlingScorecard {
   });
 }
 
+enum AuctionJoiningMode {
+  automatic,
+  hostApproval;
+
+  String get label {
+    switch (this) {
+      case AuctionJoiningMode.automatic:
+        return 'Automatic (Instant Entry)';
+      case AuctionJoiningMode.hostApproval:
+        return 'Host Approval Required';
+    }
+  }
+}
+
+class PendingTeamRegistration {
+  final String id;
+  final String auctionId;
+  final String tournamentId;
+  final String userId;
+  final String ownerName;
+  final String ownerEmail;
+  final String ownerMobile;
+  final String teamName;
+  final String teamShortName;
+  final String logoUrl;
+  final Color primaryColor;
+  final DateTime registeredAt;
+  bool isApproved;
+  bool isRejected;
+
+  PendingTeamRegistration({
+    required this.id,
+    required this.auctionId,
+    required this.tournamentId,
+    required this.userId,
+    required this.ownerName,
+    required this.ownerEmail,
+    required this.ownerMobile,
+    required this.teamName,
+    required this.teamShortName,
+    required this.logoUrl,
+    required this.primaryColor,
+    required this.registeredAt,
+    this.isApproved = false,
+    this.isRejected = false,
+  });
+}
+
+class UserAccount {
+  final String id;
+  final String fullName;
+  final String email;
+  String mobileNumber;
+  final String passwordHash;
+  final DateTime createdAt;
+  final Map<String, AppUserRole> tournamentRoles;
+  final List<String> ownedTeamIds;
+  final List<String> conductorAuctionIds;
+  final List<String> scorerMatchIds;
+  bool isMobileVerified;
+  String? linkedPlayerId;
+  bool isGoogleAuthEnabled;
+  String? googleAuthSecret;
+  List<String> googleAuthRecoveryCodes;
+  DateTime? googleAuthEnabledAt;
+  bool isGoogleOAuthUser;
+
+  UserAccount({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.mobileNumber,
+    required this.passwordHash,
+    required this.createdAt,
+    Map<String, AppUserRole>? tournamentRoles,
+    List<String>? ownedTeamIds,
+    List<String>? conductorAuctionIds,
+    List<String>? scorerMatchIds,
+    this.isMobileVerified = false,
+    this.linkedPlayerId,
+    this.isGoogleAuthEnabled = false,
+    this.googleAuthSecret,
+    List<String>? googleAuthRecoveryCodes,
+    this.googleAuthEnabledAt,
+    this.isGoogleOAuthUser = false,
+  })  : tournamentRoles = tournamentRoles ?? {},
+        ownedTeamIds = ownedTeamIds ?? [],
+        conductorAuctionIds = conductorAuctionIds ?? [],
+        scorerMatchIds = scorerMatchIds ?? [],
+        googleAuthRecoveryCodes = googleAuthRecoveryCodes ?? [];
+
+  bool isHostOf(String tournamentId) =>
+      tournamentRoles[tournamentId] == AppUserRole.tournamentAdmin ||
+      tournamentRoles[tournamentId] == AppUserRole.superAdmin;
+
+  bool isConductorOf(String auctionId) => conductorAuctionIds.contains(auctionId);
+  bool isScorerOf(String matchId) => scorerMatchIds.contains(matchId);
+
+  /// Returns true if the user has a verified 10-digit mobile number saved in the database
+  bool get hasVerifiedMobile => isMobileVerified && mobileNumber.trim().isNotEmpty;
+}
+
+class JoinAuctionValidationResult {
+  final bool isValid;
+  final String? errorMessage;
+  final Auction? auction;
+  final Tournament? tournament;
+
+  JoinAuctionValidationResult({
+    required this.isValid,
+    this.errorMessage,
+    this.auction,
+    this.tournament,
+  });
+}
+
 class Auction {
   final String id;
   final String tournamentId;
   final String title;
   String get name => title;
+  final String auctionCode;
+  String auctionPin;
+  bool isJoiningEnabled;
+  AuctionJoiningMode joiningMode;
+  final List<PendingTeamRegistration> pendingRegistrations;
+  final String hostUserId;
+  final bool isPursePublic;
+  final List<String> committeeUserIds;
   int gavelWarningCount;
   AuctionStatus status;
   FloorStatus floorStatus;
@@ -642,6 +935,14 @@ class Auction {
     required this.id,
     required this.tournamentId,
     required this.title,
+    String? auctionCode,
+    this.auctionPin = '583921',
+    this.isJoiningEnabled = true,
+    this.joiningMode = AuctionJoiningMode.automatic,
+    List<PendingTeamRegistration>? pendingRegistrations,
+    this.hostUserId = 'user_admin_01',
+    this.isPursePublic = true,
+    List<String>? committeeUserIds,
     this.status = AuctionStatus.live,
     this.floorStatus = FloorStatus.open,
     this.gavelWarningCount = 0,
@@ -675,7 +976,10 @@ class Auction {
     this.whatsappAccessToken = 'CRIC_WHATSAPP_TOKEN_SECURE',
     this.whatsappTemplateName = 'cricket_auction_player_sold_v1',
     this.whatsappOrganizingCommittee = 'CricPavilion Organizing Committee',
-  })  : joinedTeamIds = joinedTeamIds ?? {},
+  })  : auctionCode = auctionCode ?? 'AUC-${id.replaceAll("auc_", "").replaceAll("-", "").toUpperCase().padRight(4, "0").substring(0, 4)}-${id.hashCode.abs() % 9000 + 1000}',
+        pendingRegistrations = pendingRegistrations ?? [],
+        committeeUserIds = committeeUserIds ?? [],
+        joinedTeamIds = joinedTeamIds ?? {},
         assignedOperatorIds = assignedOperatorIds ?? ['operator_01'],
         bidIncrements = bidIncrements ?? [10000, 25000, 50000, 100000, 250000];
 

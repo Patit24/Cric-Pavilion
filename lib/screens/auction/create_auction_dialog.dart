@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class CreateAuctionDialog extends StatefulWidget {
   final MockDatabase db;
@@ -168,17 +169,15 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF1E293B),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    return NeoGlassDialog(
+      glowColor: NeoGlassTheme.neonAmber,
       insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+      padding: const EdgeInsets.all(16),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640, maxHeight: 720),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
               // Header
               Row(
                 children: [
@@ -618,24 +617,18 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
                   ),
-                  ElevatedButton.icon(
+                  NeoGlassButton(
                     onPressed: _validateAndCreateAuction,
-                    icon: const Icon(Icons.rocket_launch, size: 15),
-                    label: const Text('Create & Launch Auction', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                    icon: Icons.rocket_launch,
+                    gradient: NeoGlassTheme.amberGoldGradient,
+                    child: const Text('Create & Launch Auction', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
                   ),
                 ],
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPurseField() {

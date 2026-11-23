@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/cricket_rules_engine.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class WicketDialog extends StatefulWidget {
   final Player striker;
@@ -70,37 +71,46 @@ class _WicketDialogState extends State<WicketDialog> {
 
     final isAllOutAfterThis = widget.currentWickets + 1 >= 10 || availableDugout.isEmpty;
 
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: const Color(0xFF1E293B),
+    return NeoGlassDialog(
+      glowColor: NeoGlassTheme.neonRose,
+      padding: const EdgeInsets.all(20),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.82,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             // Header
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withValues(alpha: 0.2),
+                    color: NeoGlassTheme.neonRose.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: NeoGlassTheme.neonRose.withValues(alpha: 0.5)),
                   ),
-                  child: const Icon(Icons.sports_cricket, color: Colors.redAccent, size: 20),
+                  child: const Icon(Icons.sports_cricket, color: NeoGlassTheme.neonRose, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('WICKET DISMISSAL', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.redAccent, letterSpacing: 0.8)),
-                    Text(step == 1 ? 'Step 1: How Out?' : 'Step 2: Incoming Batter', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                    const Text(
+                      'WICKET DISMISSAL',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: NeoGlassTheme.neonRose,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    Text(
+                      step == 1 ? 'Step 1: How Out?' : 'Step 2: Incoming Batter',
+                      style: const TextStyle(fontSize: 11, color: Colors.white70),
+                    ),
                   ],
                 ),
               ],
@@ -109,7 +119,7 @@ class _WicketDialogState extends State<WicketDialog> {
 
             if (step == 1) ...[
               // Out Player Choice
-              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -125,7 +135,7 @@ class _WicketDialogState extends State<WicketDialog> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       selected: dismissedBatterId == widget.striker.id,
-                      selectedColor: const Color(0xFF34D399),
+                      selectedColor: NeoGlassTheme.neonEmerald,
                       backgroundColor: const Color(0xFF0F172A),
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.striker.id);
@@ -145,7 +155,7 @@ class _WicketDialogState extends State<WicketDialog> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       selected: dismissedBatterId == widget.nonStriker.id,
-                      selectedColor: const Color(0xFF34D399),
+                      selectedColor: NeoGlassTheme.neonEmerald,
                       backgroundColor: const Color(0xFF0F172A),
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.nonStriker.id);
@@ -157,7 +167,7 @@ class _WicketDialogState extends State<WicketDialog> {
               const SizedBox(height: 12),
 
               // Dismissal Mode
-              const Text('Dismissal Type:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+              const Text('Dismissal Type:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -170,11 +180,11 @@ class _WicketDialogState extends State<WicketDialog> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.redAccent : Colors.white70,
+                        color: isSelected ? Colors.white : Colors.white70,
                       ),
                     ),
                     selected: isSelected,
-                    selectedColor: Colors.redAccent.withValues(alpha: 0.25),
+                    selectedColor: NeoGlassTheme.neonRose,
                     backgroundColor: const Color(0xFF0F172A),
                     onSelected: (val) {
                       setState(() => selectedType = type);
@@ -186,7 +196,7 @@ class _WicketDialogState extends State<WicketDialog> {
 
               // Fielder dropdown for caught/run-out/stumped
               if (selectedType == DismissalType.caught || selectedType == DismissalType.runOut || selectedType == DismissalType.stumped) ...[
-                const Text('Fielder Involved:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+                const Text('Fielder Involved:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   value: selectedFielderId,
@@ -210,7 +220,7 @@ class _WicketDialogState extends State<WicketDialog> {
               ],
 
               // Next Button
-              ElevatedButton(
+              NeoGlassButton(
                 onPressed: () {
                   if (isAllOutAfterThis) {
                     Navigator.pop(context);
@@ -229,22 +239,17 @@ class _WicketDialogState extends State<WicketDialog> {
                     });
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF009270),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                gradient: NeoGlassTheme.neonGradient,
                 child: Text(
                   isAllOutAfterThis ? 'Confirm Wicket (All Out)' : 'Next: Select Incoming Batter →',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
             ] else ...[
               // Step 2: Select incoming batter
               Text(
                 'Select Incoming Batter (${availableDugout.length} in dugout):',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70),
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70),
               ),
               const SizedBox(height: 10),
 
@@ -264,15 +269,24 @@ class _WicketDialogState extends State<WicketDialog> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF064E3B) : const Color(0xFF0F172A),
+                          color: isSelected ? const Color(0x3310B981) : const Color(0x330F172A),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white12),
+                          border: Border.all(
+                            color: isSelected ? NeoGlassTheme.neonEmerald : Colors.white12,
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                          boxShadow: [
+                            NeoGlassTheme.neoDarkShadow,
+                            if (isSelected)
+                              NeoGlassTheme.neoGlowShadow(NeoGlassTheme.neonEmerald, opacity: 0.2),
+                          ],
                         ),
                         child: Row(
                           children: [
                             CircleAvatar(
                               radius: 16,
                               backgroundImage: NetworkImage(b.photoUrl),
+                              backgroundColor: const Color(0xFF1E293B),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -286,14 +300,14 @@ class _WicketDialogState extends State<WicketDialog> {
                                   ),
                                   Text(
                                     '${b.roleString} • ${b.battingStyle}',
-                                    style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                    style: const TextStyle(fontSize: 10, color: Colors.white60),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                             if (isSelected)
-                              const Icon(Icons.check_circle, color: Color(0xFF34D399), size: 18),
+                              const Icon(Icons.check_circle, color: NeoGlassTheme.neonEmerald, size: 20),
                           ],
                         ),
                       ),
@@ -310,7 +324,7 @@ class _WicketDialogState extends State<WicketDialog> {
                     child: const Text('← Back', style: TextStyle(color: Colors.white70)),
                   ),
                   const Spacer(),
-                  ElevatedButton(
+                  NeoGlassButton(
                     onPressed: nextBatterId == null
                         ? null
                         : () {
@@ -322,13 +336,13 @@ class _WicketDialogState extends State<WicketDialog> {
                               nextBatterId: nextBatterId,
                             );
                           },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent.shade700,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                     ),
-                    child: const Text('Confirm Out & Bat 🏏', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Confirm Out & Bat 🏏',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -336,7 +350,6 @@ class _WicketDialogState extends State<WicketDialog> {
           ],
         ),
       ),
-    ),
-  );
+    );
   }
 }

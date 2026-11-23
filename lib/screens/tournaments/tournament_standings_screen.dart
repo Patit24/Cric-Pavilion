@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/role_switcher_chip.dart';
 import 'create_tournament_dialog.dart';
 
@@ -23,17 +24,18 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
     final isUnlocked = db.authenticatedTournamentIds.contains(activeTourn.id);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111827),
+      backgroundColor: NeoGlassTheme.bgCanvas,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF009270),
+        backgroundColor: NeoGlassTheme.bgSurface,
         elevation: 0,
-        title: const Text('Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+        shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
+        title: const Text('Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
         actions: [
           const RoleSwitcherChip(compact: true),
           const SizedBox(width: 4),
           IconButton(
             tooltip: 'Create Tournament',
-            icon: const Icon(Icons.add_circle, color: Colors.white, size: 22),
+            icon: const Icon(Icons.add_circle, color: NeoGlassTheme.neonEmerald, size: 22),
             onPressed: () {
               showDialog(
                 context: context,

@@ -64,7 +64,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isMobile = constraints.maxWidth < 750;
+            final isMobile = constraints.maxWidth < 900 || constraints.maxHeight < 600;
             if (isMobile) {
               return _buildMobileBroadcastView(
                 context,
@@ -494,57 +494,66 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFFD97706), Color(0xFFF59E0B)]),
-                      borderRadius: BorderRadius.circular(10),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFD97706), Color(0xFFF59E0B)]),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.tv, color: Colors.black, size: 20),
                     ),
-                    child: const Icon(Icons.tv, color: Colors.black, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            auction.title.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  auction.title.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE11D48).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFE11D48)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircleAvatar(radius: 3, backgroundColor: Color(0xFFE11D48)),
+                                    SizedBox(width: 4),
+                                    Text('LIVE BROADCAST', style: TextStyle(color: Color(0xFFE11D48), fontSize: 9, fontWeight: FontWeight.w900)),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE11D48).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE11D48)),
-                            ),
-                            child: const Row(
-                              children: [
-                                CircleAvatar(radius: 3, backgroundColor: Color(0xFFE11D48)),
-                                SizedBox(width: 4),
-                                Text('LIVE BROADCAST', style: TextStyle(color: Color(0xFFE11D48), fontSize: 9, fontWeight: FontWeight.w900)),
-                              ],
-                            ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Ceremony Projector View • Lot ${auction.completedLots + 1} of ${auction.totalLots}',
+                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Ceremony Projector View • Lot ${auction.completedLots + 1} of ${auction.totalLots}',
-                        style: const TextStyle(color: Colors.white54, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
               Row(
                 children: [

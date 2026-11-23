@@ -2,8 +2,41 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import 'cricket_rules_engine.dart';
+import 'totp_service.dart';
+import 'database_persistence_service.dart';
 
 class MockDatabase extends ChangeNotifier {
+  bool _persistScheduled = false;
+
+  void _scheduleAutoPersist() {
+    if (_persistScheduled) return;
+    _persistScheduled = true;
+    Future.microtask(() async {
+      _persistScheduled = false;
+      await DatabasePersistenceService.saveDatabase(this);
+    });
+  }
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    _scheduleAutoPersist();
+  }
+
+  /// Explicitly persists current database state to permanent storage immediately
+  Future<void> persistState() async {
+    await DatabasePersistenceService.saveDatabase(this);
+  }
+
+  /// Hydrates database from permanent storage if saved data exists
+  Future<void> initPersistence() async {
+    final loaded = await DatabasePersistenceService.loadDatabase(this);
+    if (!loaded) {
+      await DatabasePersistenceService.saveDatabase(this);
+    }
+    super.notifyListeners();
+  }
+
   late List<Tournament> tournaments;
   static final Tournament _emptyTournament = Tournament(
     id: 'empty_tourn',
@@ -116,6 +149,11 @@ class MockDatabase extends ChangeNotifier {
     whatsappNotifications = [];
     scoringRooms = [];
     auctionRooms = [];
+    users = [];
+    currentUser = null;
+    _activeOverrideRole = null;
+    _failedPinAttempts.clear();
+    _pinLockoutUntil.clear();
     createdTournamentIds.clear();
     authenticatedTournamentIds.clear();
     createdAuctionIds.clear();
@@ -139,21 +177,390 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Role-Based Access Control State
-  AppUserRole currentRole = AppUserRole.superAdmin;
+  // =========================================================================
+  // UNIFIED AUTHENTICATION & MULTI-ROLE USER STATE (PUBLIC-FIRST ARCHITECTURE)
+  // =========================================================================
+  List<UserAccount> users = [];
+  UserAccount? currentUser;
+  AppUserRole? _activeOverrideRole;
   final List<AuditLog> auditLogs = [];
 
+  bool get isAuthenticated => currentUser != null;
+
+  /// Returns the Player profile associated with the currently authenticated user.
+  Player? get currentPlayer {
+    if (currentUser == null) return null;
+
+    // 1. Direct linkedPlayerId match
+    if (currentUser!.linkedPlayerId != null && currentUser!.linkedPlayerId!.isNotEmpty) {
+      final p = players.where((p) => p.id == currentUser!.linkedPlayerId).firstOrNull;
+      if (p != null) return p;
+    }
+
+    // 2. Match by normalized mobile number
+    if (currentUser!.mobileNumber.isNotEmpty) {
+      final norm = normalizeMobile(currentUser!.mobileNumber);
+      if (norm.isNotEmpty) {
+        final byMobile = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
+        if (byMobile != null) {
+          currentUser!.linkedPlayerId = byMobile.id;
+          return byMobile;
+        }
+      }
+    }
+
+    // 3. Match by full name
+    final cleanName = currentUser!.fullName.trim().toLowerCase();
+    if (cleanName.isNotEmpty) {
+      final byName = players.where((p) => p.fullName.trim().toLowerCase() == cleanName).firstOrNull;
+      if (byName != null) {
+        currentUser!.linkedPlayerId = byName.id;
+        return byName;
+      }
+    }
+
+    // 4. Auto-provision permanent player profile for the authenticated user
+    final newP = registerPermanentPlayer(
+      fullName: currentUser!.fullName,
+      mobileNumber: currentUser!.mobileNumber.isNotEmpty ? currentUser!.mobileNumber : '9830219900',
+      role: PlayerRole.allRounder,
+    );
+    currentUser!.linkedPlayerId = newP.id;
+    return newP;
+  }
+
+  AppUserRole get currentRole {
+    if (_activeOverrideRole != null) return _activeOverrideRole!;
+    if (currentUser == null) return AppUserRole.viewer; // Public-first default!
+    if (currentUser!.tournamentRoles.values.contains(AppUserRole.superAdmin)) {
+      return AppUserRole.superAdmin;
+    }
+    if (currentUser!.tournamentRoles.values.contains(AppUserRole.tournamentAdmin)) {
+      return AppUserRole.tournamentAdmin;
+    }
+    if (currentUser!.conductorAuctionIds.isNotEmpty) {
+      return AppUserRole.auctioneer;
+    }
+    if (currentUser!.ownedTeamIds.isNotEmpty) {
+      return AppUserRole.teamOwner;
+    }
+    if (currentUser!.scorerMatchIds.isNotEmpty) {
+      return AppUserRole.scorer;
+    }
+    return AppUserRole.viewer;
+  }
+
+  bool registerUser({
+    required String fullName,
+    required String email,
+    required String mobileNumber,
+    required String password,
+  }) {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanMobile = mobileNumber.trim();
+    if (users.any((u) => u.email.toLowerCase() == cleanEmail)) {
+      return false;
+    }
+
+    final newUser = UserAccount(
+      id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
+      fullName: fullName.trim(),
+      email: cleanEmail,
+      mobileNumber: cleanMobile,
+      passwordHash: password,
+      createdAt: DateTime.now(),
+    );
+    // Auto-link to existing player if valid mobile matches
+    final normMobile = normalizeMobile(cleanMobile);
+    if (normMobile.isNotEmpty) {
+      final byMobile = players.where((p) => normalizeMobile(p.mobileNumber) == normMobile).firstOrNull;
+      if (byMobile != null) {
+        newUser.linkedPlayerId = byMobile.id;
+      }
+    }
+
+    users.add(newUser);
+    currentUser = newUser;
+    _activeOverrideRole = null;
+
+    logAudit(
+      category: 'auth',
+      action: 'USER_REGISTERED',
+      details: 'New account registered: ${newUser.fullName} ($cleanEmail)',
+      performedBy: newUser.fullName,
+    );
+    notifyListeners();
+    return true;
+  }
+
+  /// Map of pending 6-digit OTPs by 10-digit normalized mobile number
+  final Map<String, String> _pendingMobileOtps = {};
+  final Map<String, DateTime> _otpExpiresAt = {};
+
+  /// Find user by email or mobile number
+  UserAccount? findUser(String emailOrMobile) {
+    final query = emailOrMobile.trim().toLowerCase();
+    final cleanMobile = normalizeMobile(emailOrMobile);
+    return users.where((u) =>
+      u.email.toLowerCase() == query ||
+      (cleanMobile.isNotEmpty && normalizeMobile(u.mobileNumber) == cleanMobile)
+    ).firstOrNull;
+  }
+
+  /// Checks whether a user with this email or mobile has already saved and verified their mobile number
+  bool hasSavedAndVerifiedMobile(String emailOrMobile) {
+    final user = findUser(emailOrMobile);
+    if (user == null) return false;
+    return user.hasVerifiedMobile;
+  }
+
+  /// Generates and stores a 6-digit OTP for the given mobile number (expires in 5 minutes)
+  String sendMobileOtp(String mobileNumber) {
+    final norm = normalizeMobile(mobileNumber);
+    final rand = Random();
+    final otp = (rand.nextInt(900000) + 100000).toString();
+    _pendingMobileOtps[norm] = otp;
+    _otpExpiresAt[norm] = DateTime.now().add(const Duration(minutes: 5));
+
+    logAudit(
+      category: 'auth',
+      action: 'OTP_SENT',
+      details: 'Sent 6-digit verification OTP $otp to +91 $norm',
+      performedBy: currentUser?.fullName ?? 'System',
+    );
+    notifyListeners();
+    return otp;
+  }
+
+  /// Returns the pending OTP for testing/verification
+  String? getPendingOtp(String mobileNumber) {
+    final norm = normalizeMobile(mobileNumber);
+    return _pendingMobileOtps[norm];
+  }
+
+  /// Checks if credentials are valid without completing login
+  bool checkCredentials(String emailOrMobile, String password) {
+    final user = findUser(emailOrMobile);
+    return user != null && user.passwordHash == password;
+  }
+
+  /// Checks if Google Authenticator 2FA is enabled and active for user
+  bool is2faRequired(String emailOrMobile) {
+    final user = findUser(emailOrMobile);
+    return user != null && user.isGoogleAuthEnabled && (user.googleAuthSecret != null && user.googleAuthSecret!.isNotEmpty);
+  }
+
+  bool loginUser({
+    required String emailOrMobile,
+    required String password,
+    bool bypass2faCheck = false,
+  }) {
+    final user = findUser(emailOrMobile);
+
+    if (user == null || user.passwordHash != password) {
+      return false;
+    }
+
+    if (!bypass2faCheck && user.isGoogleAuthEnabled && (user.googleAuthSecret?.isNotEmpty ?? false)) {
+      // 2-Factor Authentication required: Must verify with Google Authenticator code
+      return false;
+    }
+
+    _finalizeUserLogin(user, loginMethod: 'Email/Password');
+    return true;
+  }
+
+  /// Verifies a 6-digit TOTP code or recovery code and logs in the user
+  bool verifyAndLoginWithGoogleAuth({
+    required String emailOrMobile,
+    required String code,
+  }) {
+    final user = findUser(emailOrMobile);
+    if (user == null || !user.isGoogleAuthEnabled || user.googleAuthSecret == null) {
+      return false;
+    }
+
+    final cleanCode = code.replaceAll(' ', '').trim();
+
+    // Check TOTP RFC 6238 code
+    bool isTotpValid = TotpService.verifyTotpCode(
+      secret: user.googleAuthSecret!,
+      code: cleanCode,
+    );
+
+    // If not TOTP code, check if it's one of the recovery codes
+    bool isRecoveryCode = false;
+    if (!isTotpValid && user.googleAuthRecoveryCodes.isNotEmpty) {
+      final idx = user.googleAuthRecoveryCodes.indexOf(cleanCode);
+      if (idx != -1) {
+        isTotpValid = true;
+        isRecoveryCode = true;
+        user.googleAuthRecoveryCodes.removeAt(idx); // Single-use recovery code
+      }
+    }
+
+    if (!isTotpValid) {
+      logAudit(
+        category: 'auth',
+        action: 'GOOGLE_AUTH_FAILED',
+        details: 'Failed 2FA verification attempt for ${user.email}',
+        performedBy: user.fullName,
+      );
+      return false;
+    }
+
+    // Complete login
+    _finalizeUserLogin(user, loginMethod: isRecoveryCode ? 'Google Auth Recovery Code' : 'Google Authenticator TOTP');
+    return true;
+  }
+
+  void _finalizeUserLogin(UserAccount user, {String loginMethod = 'Password'}) {
+    currentUser = user;
+    _activeOverrideRole = null;
+
+    if (user.linkedPlayerId == null && user.mobileNumber.isNotEmpty) {
+      final normMobile = normalizeMobile(user.mobileNumber);
+      if (normMobile.isNotEmpty) {
+        final byMobile = players.where((p) => normalizeMobile(p.mobileNumber) == normMobile).firstOrNull;
+        if (byMobile != null) {
+          user.linkedPlayerId = byMobile.id;
+        }
+      }
+    }
+
+    if (user.ownedTeamIds.isNotEmpty) {
+      authenticatedTeamId = user.ownedTeamIds.first;
+    }
+
+    logAudit(
+      category: 'auth',
+      action: 'USER_LOGGED_IN',
+      details: 'User logged in via $loginMethod: ${user.fullName} (${user.email})',
+      performedBy: user.fullName,
+    );
+    notifyListeners();
+  }
+
+  /// Generates a new Base32 secret for setup
+  String generateGoogleAuthSecret() {
+    return TotpService.generateSecret(length: 20);
+  }
+
+  /// Verifies confirmation code and enables Google Authenticator 2FA for user
+  bool enableGoogleAuthenticator({
+    required String userId,
+    required String secret,
+    required String verificationCode,
+  }) {
+    final user = users.where((u) => u.id == userId).firstOrNull;
+    if (user == null) return false;
+
+    final isValid = TotpService.verifyTotpCode(secret: secret, code: verificationCode);
+    if (!isValid) return false;
+
+    user.isGoogleAuthEnabled = true;
+    user.googleAuthSecret = secret;
+    user.googleAuthRecoveryCodes = TotpService.generateRecoveryCodes(count: 6);
+    user.googleAuthEnabledAt = DateTime.now();
+
+    logAudit(
+      category: 'auth',
+      action: 'GOOGLE_AUTH_ENABLED',
+      details: 'Google Authenticator 2FA enabled for ${user.fullName} (${user.email})',
+      performedBy: user.fullName,
+    );
+    notifyListeners();
+    return true;
+  }
+
+  /// Disables Google Authenticator 2FA
+  void disableGoogleAuthenticator(String userId) {
+    final user = users.where((u) => u.id == userId).firstOrNull;
+    if (user == null) return;
+
+    user.isGoogleAuthEnabled = false;
+    user.googleAuthSecret = null;
+    user.googleAuthRecoveryCodes.clear();
+    user.googleAuthEnabledAt = null;
+
+    logAudit(
+      category: 'auth',
+      action: 'GOOGLE_AUTH_DISABLED',
+      details: 'Google Authenticator 2FA disabled for ${user.fullName} (${user.email})',
+      performedBy: user.fullName,
+    );
+    notifyListeners();
+  }
+
+  /// One-tap / OAuth "Sign in with Google"
+  UserAccount signInWithGoogle({
+    required String email,
+    required String displayName,
+    String? photoUrl,
+  }) {
+    final cleanEmail = email.trim().toLowerCase();
+    var user = users.where((u) => u.email.toLowerCase() == cleanEmail).firstOrNull;
+
+    if (user == null) {
+      // Auto-provision user account from Google profile
+      user = UserAccount(
+        id: 'usr_g_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: displayName.trim().isNotEmpty ? displayName.trim() : 'Google User',
+        email: cleanEmail,
+        mobileNumber: '',
+        passwordHash: 'oauth_${DateTime.now().millisecondsSinceEpoch}',
+        createdAt: DateTime.now(),
+        isGoogleOAuthUser: true,
+      );
+      users.add(user);
+    } else {
+      user.isGoogleOAuthUser = true;
+    }
+
+    _finalizeUserLogin(user, loginMethod: 'Google Sign-In (OAuth)');
+    return user;
+  }
+
+  void logoutUser() {
+    final prevName = currentUser?.fullName ?? 'Anonymous';
+    currentUser = null;
+    _activeOverrideRole = null;
+    authenticatedTeamId = null;
+    authenticatedAuctioneerId = null;
+    isAuctionAdmin = false;
+    isAuctionUnlocked = false;
+
+    logAudit(
+      category: 'auth',
+      action: 'USER_LOGGED_OUT',
+      details: 'User logged out: $prevName',
+      performedBy: prevName,
+    );
+    notifyListeners();
+  }
+
+  /// Google Play User Data Compliance: Permanent user account & personal data deletion
+  void deleteUserAccount(String userId) {
+    users.removeWhere((u) => u.id == userId);
+    if (currentUser?.id == userId) {
+      logoutUser();
+    }
+    logAudit(
+      category: 'auth',
+      action: 'USER_ACCOUNT_DELETED',
+      details: 'User account and personal data permanently deleted: $userId',
+      performedBy: userId,
+    );
+    notifyListeners();
+  }
+
   void setRole(AppUserRole role, {String? teamId, String? auctioneerId, String? operatorId, String? playerId}) {
-    currentRole = role;
+    _activeOverrideRole = role;
     if (role == AppUserRole.superAdmin) {
       isAuctionAdmin = true;
       isAuctionUnlocked = true;
       authenticatedTeamId = null;
-    } else if (role == AppUserRole.tournamentAdmin) {
-      isAuctionAdmin = true;
-      isAuctionUnlocked = true;
-      authenticatedTeamId = null;
-    } else if (role == AppUserRole.auctionAdmin) {
+    } else if (role == AppUserRole.tournamentAdmin || role == AppUserRole.auctionAdmin) {
       isAuctionAdmin = true;
       isAuctionUnlocked = true;
       authenticatedTeamId = null;
@@ -205,11 +612,15 @@ class MockDatabase extends ChangeNotifier {
   bool get isPlayerPersona => currentRole == AppUserRole.player;
   bool get isViewer => currentRole == AppUserRole.viewer;
 
-  /// Strict RBAC rule: ONLY the assigned Auctioneer (or Super Admin) can spin & reveal next player!
+  /// Strict RBAC rule: ONLY the assigned Auctioneer (or Super Admin / Host) can spin & reveal next player!
   bool canSpinPlayer(String auctionId) {
     if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null) {
+      if (currentUser!.isHostOf(auc.tournamentId)) return true;
+      if (currentUser!.isConductorOf(auctionId)) return true;
+    }
     if (currentRole == AppUserRole.auctioneer) {
-      final auc = getAuction(auctionId);
       if (authenticatedAuctioneerId != null &&
           authenticatedAuctioneerId!.isNotEmpty &&
           auc.assignedAuctioneerId.isNotEmpty &&
@@ -222,37 +633,76 @@ class MockDatabase extends ChangeNotifier {
   }
 
   bool canStartBidding(String auctionId) {
-    return currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctioneer;
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null) {
+      if (currentUser!.isHostOf(auc.tournamentId) || currentUser!.isConductorOf(auctionId)) {
+        return true;
+      }
+    }
+    return currentRole == AppUserRole.auctioneer;
   }
 
   bool canPlaceBid(String auctionId, String teamId) {
     if (currentRole == AppUserRole.superAdmin) return true;
+    if (currentUser != null && currentUser!.ownedTeamIds.contains(teamId)) {
+      return true;
+    }
     if (currentRole == AppUserRole.teamOwner) {
       return authenticatedTeamId == teamId;
     }
     return false;
   }
 
+  bool canScoreMatch(String matchId) {
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final match = getMatch(matchId);
+    if (match == null) return false;
+    if (currentUser != null) {
+      if (currentUser!.isHostOf(match.tournamentId)) return true;
+      if (currentUser!.isScorerOf(matchId)) return true;
+    }
+    if (isScoringUnlockedForMatch(matchId)) return true;
+    return currentRole == AppUserRole.scorer;
+  }
+
   bool canManageTimer(String auctionId) {
-    return currentRole == AppUserRole.superAdmin ||
-        currentRole == AppUserRole.auctioneer ||
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null && (currentUser!.isHostOf(auc.tournamentId) || currentUser!.isConductorOf(auctionId))) {
+      return true;
+    }
+    return currentRole == AppUserRole.auctioneer ||
         currentRole == AppUserRole.auctionOperator ||
         currentRole == AppUserRole.auctionAdmin;
   }
 
   bool canConfirmOutcome(String auctionId) {
-    return currentRole == AppUserRole.superAdmin || currentRole == AppUserRole.auctioneer;
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null && (currentUser!.isHostOf(auc.tournamentId) || currentUser!.isConductorOf(auctionId))) {
+      return true;
+    }
+    return currentRole == AppUserRole.auctioneer;
   }
 
   bool canConfigureAuction(String auctionId) {
-    return currentRole == AppUserRole.superAdmin ||
-        currentRole == AppUserRole.tournamentAdmin ||
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null && currentUser!.isHostOf(auc.tournamentId)) {
+      return true;
+    }
+    return currentRole == AppUserRole.tournamentAdmin ||
         currentRole == AppUserRole.auctionAdmin;
   }
 
   bool canManagePlayers(String auctionId) {
-    return currentRole == AppUserRole.superAdmin ||
-        currentRole == AppUserRole.tournamentAdmin ||
+    if (currentRole == AppUserRole.superAdmin) return true;
+    final auc = getAuction(auctionId);
+    if (currentUser != null && currentUser!.isHostOf(auc.tournamentId)) {
+      return true;
+    }
+    return currentRole == AppUserRole.tournamentAdmin ||
         currentRole == AppUserRole.auctionAdmin;
   }
 
@@ -286,14 +736,87 @@ class MockDatabase extends ChangeNotifier {
 
   MockDatabase({bool loadDemoSeed = false}) {
     if (loadDemoSeed) {
+      _activeOverrideRole = AppUserRole.superAdmin;
+      isAuctionAdmin = false;
+      isAuctionUnlocked = false;
       _initializeSeedData();
       isDemoDataLoaded = true;
     } else {
+      _activeOverrideRole = null;
       clearAllDemoData();
     }
   }
 
   void _initializeSeedData() {
+    users = [
+      UserAccount(
+        id: 'user_admin_01',
+        fullName: 'Rahul Sharma (Tournament Host)',
+        email: 'admin@cricpavilion.com',
+        mobileNumber: '9876543210',
+        passwordHash: 'admin123',
+        isMobileVerified: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 30)),
+        tournamentRoles: {
+          'tourn_bpl_2026': AppUserRole.tournamentAdmin,
+          'tourn_psl_2026': AppUserRole.tournamentAdmin,
+        },
+      ),
+      UserAccount(
+        id: 'user_auctioneer_01',
+        fullName: 'Amit Verma (Gavel Master)',
+        email: 'auctioneer@cricpavilion.com',
+        mobileNumber: '9876543211',
+        passwordHash: 'gavel123',
+        isMobileVerified: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 20)),
+        conductorAuctionIds: ['auc_bpl_2026', 'auc_psl_2026'],
+      ),
+      UserAccount(
+        id: 'user_owner_01',
+        fullName: 'Sourav Ganguly (Franchise Owner)',
+        email: 'owner1@cricpavilion.com',
+        mobileNumber: '9876543212',
+        passwordHash: 'owner123',
+        isMobileVerified: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 10)),
+        ownedTeamIds: ['team_barasat'],
+        tournamentRoles: {'tourn_bpl_2026': AppUserRole.teamOwner},
+      ),
+      UserAccount(
+        id: 'user_scorer_01',
+        fullName: 'Sunil Gavaskar (Match Scorer)',
+        email: 'scorer@cricpavilion.com',
+        mobileNumber: '9876543213',
+        passwordHash: 'scorer123',
+        isMobileVerified: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+        scorerMatchIds: ['match_1', 'match_2'],
+      ),
+      UserAccount(
+        id: 'user_gauth_01',
+        fullName: 'Vikram Malhotra (2FA Protected)',
+        email: 'gauth@cricpavilion.com',
+        mobileNumber: '9876543214',
+        passwordHash: 'gauth123',
+        isMobileVerified: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 3)),
+        isGoogleAuthEnabled: true,
+        googleAuthSecret: 'JBSWY3DPEHPK3PXP',
+        googleAuthRecoveryCodes: ['1234-5678', '8765-4321', '9988-7766'],
+        googleAuthEnabledAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      UserAccount(
+        id: 'user_first_time_01',
+        fullName: 'New Player (First-Time User)',
+        email: 'newuser@cricpavilion.com',
+        mobileNumber: '',
+        passwordHash: 'new123',
+        isMobileVerified: false,
+        createdAt: DateTime.now(),
+      ),
+    ];
+
     tournaments = [
       Tournament(
         id: 'tourn_bpl_2026',
@@ -1440,6 +1963,10 @@ class MockDatabase extends ChangeNotifier {
         id: 'auc_bpl_2026',
         tournamentId: 'tourn_bpl_2026',
         title: 'BPL 2026 Franchise Mega Auction',
+        auctionCode: 'BPL2026-7842',
+        auctionPin: '583921',
+        isJoiningEnabled: true,
+        joiningMode: AuctionJoiningMode.automatic,
         status: AuctionStatus.live,
         currentLotId: 'lot_6',
         currentBid: 450000,
@@ -1465,6 +1992,10 @@ class MockDatabase extends ChangeNotifier {
         id: 'auc_psl_2026',
         tournamentId: 'tourn_psl_2026',
         title: 'PSL 2026 Player Draft & Auction',
+        auctionCode: 'PSL2026-3490',
+        auctionPin: '123456',
+        isJoiningEnabled: true,
+        joiningMode: AuctionJoiningMode.hostApproval,
         status: AuctionStatus.live,
         currentLotId: 'lot_psl_1',
         currentBid: 1000000,
@@ -1481,6 +2012,10 @@ class MockDatabase extends ChangeNotifier {
         id: 'auc_ipl_2026',
         tournamentId: 'tourn_ipl_2026',
         title: 'IPL 2026 Mini Auction',
+        auctionCode: 'IPL2026-9021',
+        auctionPin: '654321',
+        isJoiningEnabled: true,
+        joiningMode: AuctionJoiningMode.automatic,
         status: AuctionStatus.preview,
         currentLotId: 'lot_ipl_1',
         currentBid: 2000000,
@@ -3689,18 +4224,625 @@ class MockDatabase extends ChangeNotifier {
     return !hasIncompleteA && !hasIncompleteB;
   }
 
+  /// Normalizes mobile numbers to standard format (10 digits for Indian standard)
+  static String normalizeMobile(String raw) {
+    final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 10) return digits;
+    if (digits.length == 12 && digits.startsWith('91')) {
+      return digits.substring(2);
+    }
+    if (digits.length == 11 && digits.startsWith('0')) {
+      return digits.substring(1);
+    }
+    return digits;
+  }
+
+  /// Looks up a permanent player by their mobile number
+  PlayerLookupResult lookupPlayerByMobile(
+    String rawMobile, {
+    String? targetTeamId,
+    String? targetTournamentId,
+  }) {
+    final norm = normalizeMobile(rawMobile);
+    if (norm.isEmpty || norm.length < 10) {
+      return PlayerLookupResult(
+        isFound: false,
+        normalizedMobile: norm,
+        errorMessage: 'Please enter a valid 10-digit mobile number',
+      );
+    }
+
+    final matching = players.where((p) => normalizeMobile(p.mobileNumber) == norm).toList();
+    if (matching.isEmpty) {
+      return PlayerLookupResult(
+        isFound: false,
+        normalizedMobile: norm,
+        errorMessage: 'Player not registered with mobile number +91 $norm',
+      );
+    }
+
+    final player = matching.first;
+    bool isAlreadyInTeam = false;
+    if (targetTeamId != null && targetTeamId.isNotEmpty) {
+      if (player.teamId == targetTeamId) {
+        isAlreadyInTeam = true;
+      }
+    }
+
+    bool hasTournamentConflict = false;
+    String? conflictingTeamName;
+    if (targetTournamentId != null &&
+        targetTournamentId.isNotEmpty &&
+        targetTournamentId != 'standalone' &&
+        targetTournamentId != 'direct') {
+      final currentTeam = player.teamId != null ? getTeam(player.teamId!) : null;
+      if (currentTeam != null &&
+          currentTeam.tournamentId == targetTournamentId &&
+          currentTeam.id != targetTeamId) {
+        hasTournamentConflict = true;
+        conflictingTeamName = currentTeam.name;
+      } else if (player.tournamentId == targetTournamentId &&
+          player.teamId != null &&
+          player.teamId != targetTeamId) {
+        final conflictTeam = getTeam(player.teamId!);
+        hasTournamentConflict = true;
+        conflictingTeamName = conflictTeam?.name ?? 'Another Team';
+      }
+    }
+
+    return PlayerLookupResult(
+      isFound: true,
+      player: player,
+      normalizedMobile: norm,
+      isAlreadyInTeam: isAlreadyInTeam,
+      hasTournamentConflict: hasTournamentConflict,
+      conflictingTeamName: conflictingTeamName,
+    );
+  }
+
+  /// Registers a permanent player identity with unique code and continuous history
+  Player registerPermanentPlayer({
+    required String fullName,
+    required String mobileNumber,
+    PlayerRole role = PlayerRole.batsman,
+    String battingStyle = 'Right Hand Bat',
+    String bowlingStyle = 'Right Arm Medium',
+    String? teamId,
+    String? tournamentId,
+    String? organizerId,
+    String? photoUrl,
+  }) {
+    final normMobile = normalizeMobile(mobileNumber);
+    final cleanName = fullName.trim().isNotEmpty ? fullName.trim() : 'Player';
+
+    // Check if player with this mobile already exists
+    final existing = players.where((p) => normalizeMobile(p.mobileNumber) == normMobile).firstOrNull;
+    if (existing != null) {
+      if (teamId != null && existing.teamId != teamId) {
+        existing.teamId = teamId;
+        final team = getTeam(teamId);
+        existing.teamHistory.add(PlayerTeamHistory(
+          teamId: teamId,
+          teamName: team?.name ?? 'Team',
+          tournamentId: tournamentId,
+          tournamentName: getTournament(tournamentId ?? '')?.name,
+          year: DateTime.now().year,
+          joinedAt: DateTime.now(),
+        ));
+      }
+      notifyListeners();
+      return existing;
+    }
+
+    final nextCodeNum = players.length + 1;
+    final code = 'PLY-${DateTime.now().year}-${nextCodeNum.toString().padLeft(4, '0')}';
+    final newPlayerId = 'pl_${DateTime.now().millisecondsSinceEpoch}_$nextCodeNum';
+
+    final newPlayer = Player(
+      id: newPlayerId,
+      permanentPlayerCode: code,
+      tournamentId: tournamentId ?? 'tourn_bpl_2026',
+      fullName: cleanName,
+      displayName: cleanName,
+      mobileNumber: normMobile,
+      role: role,
+      battingStyle: battingStyle,
+      bowlingStyle: bowlingStyle,
+      basePrice: 500,
+      photoUrl: photoUrl ?? 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+      teamId: teamId,
+      registeredAt: DateTime.now(),
+      registeredByOrganizerId: organizerId ?? currentUser?.id,
+      isMobileVerified: true,
+    );
+
+    if (teamId != null) {
+      final team = getTeam(teamId);
+      newPlayer.teamHistory.add(PlayerTeamHistory(
+        teamId: teamId,
+        teamName: team?.name ?? 'Team',
+        tournamentId: tournamentId,
+        tournamentName: getTournament(tournamentId ?? '')?.name,
+        year: DateTime.now().year,
+        joinedAt: DateTime.now(),
+      ));
+      if (team != null) {
+        team.squadCount = players.where((p) => p.teamId == teamId).length + 1;
+      }
+    }
+
+    players.add(newPlayer);
+    logAudit(
+      category: 'player',
+      action: 'REGISTER_PERMANENT_PLAYER',
+      details: 'Registered permanent player: $cleanName ($code, mobile: $normMobile)',
+      performedBy: currentUser?.fullName ?? 'Organizer',
+    );
+    notifyListeners();
+    return newPlayer;
+  }
+
+  /// Adds an existing player to team by mobile number without duplication
+  Map<String, dynamic> addPlayerToTeamByMobile({
+    required String teamId,
+    required String mobileNumber,
+    String? tournamentId,
+  }) {
+    final lookup = lookupPlayerByMobile(
+      mobileNumber,
+      targetTeamId: teamId,
+      targetTournamentId: tournamentId,
+    );
+
+    if (!lookup.isFound || lookup.player == null) {
+      return {
+        'success': false,
+        'isFound': false,
+        'message': 'Player not registered. Please register as a new player.',
+      };
+    }
+
+    if (lookup.isAlreadyInTeam) {
+      return {
+        'success': false,
+        'isFound': true,
+        'player': lookup.player,
+        'message': '${lookup.player!.fullName} is already in this team squad.',
+      };
+    }
+
+    if (lookup.hasTournamentConflict) {
+      return {
+        'success': false,
+        'isFound': true,
+        'player': lookup.player,
+        'message': '${lookup.player!.fullName} is already registered with ${lookup.conflictingTeamName} in this tournament.',
+      };
+    }
+
+    final player = lookup.player!;
+    player.teamId = teamId;
+    final team = getTeam(teamId);
+    player.teamHistory.add(PlayerTeamHistory(
+      teamId: teamId,
+      teamName: team?.name ?? 'Team',
+      tournamentId: tournamentId,
+      tournamentName: getTournament(tournamentId ?? '')?.name,
+      year: DateTime.now().year,
+      joinedAt: DateTime.now(),
+    ));
+
+    if (team != null) {
+      team.squadCount = players.where((p) => p.teamId == teamId).length;
+    }
+
+    logAudit(
+      category: 'team',
+      action: 'ADD_PLAYER_TO_TEAM',
+      details: 'Added ${player.fullName} (${player.permanentPlayerCode}) to ${team?.name ?? teamId}',
+      performedBy: currentUser?.fullName ?? 'Organizer',
+    );
+    notifyListeners();
+    return {
+      'success': true,
+      'isFound': true,
+      'player': player,
+      'message': 'Added ${player.fullName} to ${team?.name ?? "team"} successfully.',
+    };
+  }
+
+  /// Verifies current user mobile number via OTP, saves in database, and links player profile
+  bool verifyUserMobileOtp({
+    required String mobileNumber,
+    required String otp,
+    bool bypassCodeCheck = false,
+  }) {
+    final norm = normalizeMobile(mobileNumber);
+    if (norm.length != 10) return false;
+    final cleanOtp = otp.trim();
+    if (cleanOtp.length != 6) return false;
+
+    // Check if OTP matches generated pending OTP, demo '123456', or verified by Firebase SMS
+    final pending = _pendingMobileOtps[norm];
+    final isValid = bypassCodeCheck || cleanOtp == '123456' || (pending != null && pending == cleanOtp);
+    if (!isValid) return false;
+
+    _pendingMobileOtps.remove(norm);
+    _otpExpiresAt.remove(norm);
+
+    if (currentUser != null) {
+      currentUser!.mobileNumber = norm;
+      currentUser!.isMobileVerified = true;
+
+      // Update in users collection so permanently saved in database
+      final u = users.where((usr) => usr.id == currentUser!.id).firstOrNull;
+      if (u != null) {
+        u.mobileNumber = norm;
+        u.isMobileVerified = true;
+      }
+
+      // Automatically link to existing permanent player profile if available
+      var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
+      if (existingPlayer != null) {
+        currentUser!.linkedPlayerId = existingPlayer.id;
+        existingPlayer.isMobileVerified = true;
+      } else {
+        // Auto-create permanent player profile for the verified mobile user
+        final newPlayer = registerPermanentPlayer(
+          fullName: currentUser!.fullName,
+          mobileNumber: norm,
+          role: PlayerRole.allRounder,
+        );
+        currentUser!.linkedPlayerId = newPlayer.id;
+      }
+
+      logAudit(
+        category: 'auth',
+        action: 'MOBILE_VERIFIED',
+        details: 'Mobile permanently saved and verified for user ${currentUser!.fullName}: +91 $norm',
+        performedBy: currentUser!.fullName,
+      );
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// Creates a direct two-team match without requiring a tournament
+  MatchModel createDirectMatch({
+    required String matchName,
+    required String teamAName,
+    required String teamBName,
+    required int overs,
+    required String venue,
+    String? tossWonBy,
+    String? tossDecision,
+    List<String>? squadAIds,
+    List<String>? squadBIds,
+    List<String>? playingXIA,
+    List<String>? playingXIB,
+    String? captainAId,
+    String? captainBId,
+    String? keeperAId,
+    String? keeperBId,
+  }) {
+    final matchId = 'match_direct_${DateTime.now().millisecondsSinceEpoch}';
+
+    final teamAId = 'team_direct_${matchId}_a';
+    final teamA = Team(
+      id: teamAId,
+      tournamentId: 'standalone',
+      name: teamAName.trim().isNotEmpty ? teamAName.trim() : 'Team A',
+      shortName: teamAName.trim().length > 3 ? teamAName.trim().substring(0, 3).toUpperCase() : 'TMA',
+      primaryColor: const Color(0xFF00F5A0),
+      logoUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=128',
+      purseRemaining: 10000000,
+      maxPurse: 10000000,
+      squadCount: playingXIA?.length ?? 11,
+    );
+    teams.add(teamA);
+
+    final teamBId = 'team_direct_${matchId}_b';
+    final teamB = Team(
+      id: teamBId,
+      tournamentId: 'standalone',
+      name: teamBName.trim().isNotEmpty ? teamBName.trim() : 'Team B',
+      shortName: teamBName.trim().length > 3 ? teamBName.trim().substring(0, 3).toUpperCase() : 'TMB',
+      primaryColor: const Color(0xFF00D9F5),
+      logoUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=128',
+      purseRemaining: 10000000,
+      maxPurse: 10000000,
+      squadCount: playingXIB?.length ?? 11,
+    );
+    teams.add(teamB);
+
+    String battingFirstId = teamAId;
+    if (tossWonBy == teamBId) {
+      battingFirstId = (tossDecision == 'bat') ? teamBId : teamAId;
+    } else {
+      battingFirstId = (tossDecision == 'bowl') ? teamBId : teamAId;
+    }
+    final bowlingFirstId = battingFirstId == teamAId ? teamBId : teamAId;
+
+    final newMatch = MatchModel(
+      id: matchId,
+      tournamentId: 'standalone',
+      stage: matchName.trim().isNotEmpty ? matchName.trim() : 'Direct Match',
+      teamAId: teamAId,
+      teamBId: teamBId,
+      venue: venue.trim().isNotEmpty ? venue.trim() : 'Stadium Ground',
+      dateTime: DateTime.now(),
+      overs: overs,
+      status: MatchStatus.live,
+      tossWonBy: tossWonBy ?? teamAId,
+      tossDecision: tossDecision ?? 'bat',
+      battingFirstId: battingFirstId,
+      currentInningsNumber: 1,
+      playingXIA: playingXIA ?? [],
+      playingXIB: playingXIB ?? [],
+      captainAId: captainAId,
+      captainBId: captainBId,
+      keeperAId: keeperAId,
+      keeperBId: keeperBId,
+    );
+    matches.insert(0, newMatch);
+
+    final inn1Id = 'inn_${matchId}_1';
+    final inn1 = Innings(
+      id: inn1Id,
+      matchId: matchId,
+      inningsNumber: 1,
+      battingTeamId: battingFirstId,
+      bowlingTeamId: bowlingFirstId,
+      currentStrikerId: (battingFirstId == teamAId ? playingXIA : playingXIB)?.firstOrNull,
+      currentNonStrikerId: (battingFirstId == teamAId ? playingXIA : playingXIB)?.skip(1).firstOrNull,
+      currentBowlerId: (bowlingFirstId == teamAId ? playingXIA : playingXIB)?.lastOrNull,
+    );
+    inningsList.add(inn1);
+
+    final inn2Id = 'inn_${matchId}_2';
+    final inn2 = Innings(
+      id: inn2Id,
+      matchId: matchId,
+      inningsNumber: 2,
+      battingTeamId: bowlingFirstId,
+      bowlingTeamId: battingFirstId,
+    );
+    inningsList.add(inn2);
+
+    logAudit(
+      category: 'match',
+      action: 'CREATE_DIRECT_MATCH',
+      details: 'Created direct match: $matchName between ${teamA.name} and ${teamB.name}',
+      performedBy: currentUser?.fullName ?? 'Organizer',
+    );
+    notifyListeners();
+    return newMatch;
+  }
+
+  /// Calculates career statistics exclusively from match scorecards and delivery records
+  PlayerCareerStats getPlayerCareerStats(
+    String playerId, {
+    int? year,
+    String? tournamentId,
+    String? teamId,
+  }) {
+    var bCards = battingScorecards.where((b) => b.playerId == playerId).toList();
+    var bwCards = bowlingScorecards.where((bw) => bw.playerId == playerId).toList();
+
+    if (tournamentId != null && tournamentId.isNotEmpty && tournamentId != 'all') {
+      final tournMatchIds = matches.where((m) => m.tournamentId == tournamentId).map((m) => m.id).toSet();
+      bCards = bCards.where((b) => tournMatchIds.contains(b.matchId)).toList();
+      bwCards = bwCards.where((bw) => tournMatchIds.contains(bw.matchId)).toList();
+    }
+
+    if (year != null) {
+      final yearMatchIds = matches.where((m) => m.dateTime.year == year).map((m) => m.id).toSet();
+      bCards = bCards.where((b) => yearMatchIds.contains(b.matchId)).toList();
+      bwCards = bwCards.where((bw) => yearMatchIds.contains(bw.matchId)).toList();
+    }
+
+    final matchIds = <String>{};
+    for (final b in bCards) {
+      matchIds.add(b.matchId);
+    }
+    for (final bw in bwCards) {
+      matchIds.add(bw.matchId);
+    }
+
+    for (final m in matches) {
+      if (m.playingXIA.contains(playerId) || m.playingXIB.contains(playerId)) {
+        if (tournamentId == null || tournamentId == 'all' || m.tournamentId == tournamentId) {
+          if (year == null || m.dateTime.year == year) {
+            matchIds.add(m.id);
+          }
+        }
+      }
+    }
+
+    int matchesCount = matchIds.length;
+    int inningsBatted = bCards.length;
+    int runs = 0;
+    int balls = 0;
+    int fours = 0;
+    int sixes = 0;
+    int highestScore = 0;
+    bool isHsNotOut = false;
+    int fifties = 0;
+    int hundreds = 0;
+    int notOuts = 0;
+
+    for (final b in bCards) {
+      runs += b.runs;
+      balls += b.balls;
+      fours += b.fours;
+      sixes += b.sixes;
+      if (b.runs >= 100) {
+        hundreds++;
+      } else if (b.runs >= 50) {
+        fifties++;
+      }
+      if (b.isNotOut) {
+        notOuts++;
+      }
+      if (b.runs > highestScore) {
+        highestScore = b.runs;
+        isHsNotOut = b.isNotOut;
+      }
+    }
+
+    final dismissals = inningsBatted - notOuts;
+    final battingAverage = dismissals > 0 ? (runs / dismissals) : runs.toDouble();
+    final battingStrikeRate = balls > 0 ? ((runs / balls) * 100.0) : 0.0;
+
+    int legalBallsBowled = 0;
+    int maidens = 0;
+    int runsConceded = 0;
+    int wickets = 0;
+    int bestWickets = 0;
+    int bestRuns = 999;
+
+    for (final bw in bwCards) {
+      legalBallsBowled += bw.legalBalls;
+      maidens += bw.maidens;
+      runsConceded += bw.runsConceded;
+      wickets += bw.wickets;
+      if (bw.wickets > bestWickets || (bw.wickets == bestWickets && bw.runsConceded < bestRuns)) {
+        bestWickets = bw.wickets;
+        bestRuns = bw.runsConceded;
+      }
+    }
+
+    final oversFull = legalBallsBowled ~/ 6;
+    final oversRem = legalBallsBowled % 6;
+    final oversFormatted = '$oversFull.$oversRem';
+    final bowlingAverage = wickets > 0 ? (runsConceded / wickets) : 0.0;
+    final oversDecimal = legalBallsBowled / 6.0;
+    final economyRate = oversDecimal > 0 ? (runsConceded / oversDecimal) : 0.0;
+    final bowlingStrikeRate = wickets > 0 ? (legalBallsBowled / wickets.toDouble()) : 0.0;
+    final bestBowlingInnings = bestWickets > 0 ? '$bestWickets/$bestRuns' : '0/0';
+
+    int catches = 0;
+    int runOuts = 0;
+    int stumpings = 0;
+
+    for (final d in deliveries) {
+      if (d.fielderId == playerId) {
+        if (d.dismissalType == DismissalType.caught) catches++;
+        if (d.dismissalType == DismissalType.runOut) runOuts++;
+        if (d.dismissalType == DismissalType.stumped) stumpings++;
+      }
+    }
+
+    final p = players.where((x) => x.id == playerId).firstOrNull;
+    if (matchesCount == 0 && p != null) {
+      matchesCount = p.matches;
+      runs = p.runs;
+      wickets = p.wickets;
+    }
+
+    return PlayerCareerStats(
+      playerId: playerId,
+      matches: matchesCount,
+      innings: inningsBatted,
+      runs: runs,
+      balls: balls,
+      fours: fours,
+      sixes: sixes,
+      highestScore: highestScore,
+      isHighestScoreNotOut: isHsNotOut,
+      fifties: fifties,
+      hundreds: hundreds,
+      notOuts: notOuts,
+      battingAverage: battingAverage,
+      battingStrikeRate: battingStrikeRate,
+      oversBowledLegalBalls: legalBallsBowled,
+      oversFormatted: oversFormatted,
+      maidens: maidens,
+      runsConceded: runsConceded,
+      wickets: wickets,
+      bowlingAverage: bowlingAverage,
+      economyRate: economyRate,
+      bowlingStrikeRate: bowlingStrikeRate,
+      bestBowlingInnings: bestBowlingInnings,
+      catches: catches,
+      runOuts: runOuts,
+      stumpings: stumpings,
+    );
+  }
+
+  /// Returns list of match logs for a player's career profile
+  List<PlayerMatchLog> getPlayerMatchLogs(String playerId) {
+    final logs = <PlayerMatchLog>[];
+    for (final m in matches) {
+      final bCard = battingScorecards.where((b) => b.matchId == m.id && b.playerId == playerId).firstOrNull;
+      final bwCard = bowlingScorecards.where((bw) => bw.matchId == m.id && bw.playerId == playerId).firstOrNull;
+      final inPlayingXI = m.playingXIA.contains(playerId) || m.playingXIB.contains(playerId);
+
+      if (bCard != null || bwCard != null || inPlayingXI) {
+        final isTeamA = m.playingXIA.contains(playerId) || (bCard != null && m.teamAId == getPlayer(playerId)?.teamId);
+        final playerTeam = getTeam(isTeamA ? m.teamAId : m.teamBId);
+        final oppTeam = getTeam(isTeamA ? m.teamBId : m.teamAId);
+        final isWinner = m.winnerId != null && m.winnerId == (isTeamA ? m.teamAId : m.teamBId);
+
+        int catches = 0;
+        int runOuts = 0;
+        int stumpings = 0;
+        for (final d in deliveries.where((d) => d.matchId == m.id)) {
+          if (d.fielderId == playerId) {
+            if (d.dismissalType == DismissalType.caught) catches++;
+            if (d.dismissalType == DismissalType.runOut) runOuts++;
+            if (d.dismissalType == DismissalType.stumped) stumpings++;
+          }
+        }
+
+        logs.add(PlayerMatchLog(
+          matchId: m.id,
+          matchName: m.stage,
+          tournamentName: m.isStandalone ? 'Direct Match' : getTournament(m.tournamentId)?.name,
+          date: m.dateTime,
+          opponentTeamName: oppTeam?.name ?? 'Opponent',
+          playerTeamName: playerTeam?.name ?? 'My Team',
+          runsScored: bCard?.runs ?? 0,
+          ballsFaced: bCard?.balls ?? 0,
+          fours: bCard?.fours ?? 0,
+          sixes: bCard?.sixes ?? 0,
+          dismissalInfo: bCard == null ? 'Did not bat' : (bCard.isNotOut ? 'not out' : bCard.dismissalInfo),
+          oversBowled: bwCard?.overs ?? '0.0',
+          runsConceded: bwCard?.runsConceded ?? 0,
+          wicketsTaken: bwCard?.wickets ?? 0,
+          catches: catches,
+          runOuts: runOuts,
+          stumpings: stumpings,
+          matchResult: m.status == MatchStatus.completed ? (m.winMargin ?? 'Completed') : m.status.name.toUpperCase(),
+          isWin: isWinner,
+        ));
+      }
+    }
+    logs.sort((a, b) => b.date.compareTo(a.date));
+    return logs;
+  }
+
+  /// Permanent completed matches list
+  List<MatchModel> get completedMatches =>
+      matches.where((m) => m.status == MatchStatus.completed).toList();
+
   /// Returns players for a specific team
   List<Player> getTeamPlayers(String teamId) {
     return players.where((p) => p.teamId == teamId).toList();
   }
 
-  /// Saves or updates all players for a team with mobile numbers
+  /// Saves or updates all players for a team preserving permanent player identities
   void saveTeamSquadWithMobileNumbers({
     required String teamId,
     required List<Map<String, String>> playerEntries,
   }) {
-    players.removeWhere((p) => p.teamId == teamId);
     final team = getTeam(teamId);
+
+    // Disassociate previous squad players for this team without deleting their permanent identity
+    for (final p in players.where((p) => p.teamId == teamId)) {
+      p.teamId = null;
+    }
 
     for (int i = 0; i < playerEntries.length; i++) {
       final entry = playerEntries[i];
@@ -3717,23 +4859,64 @@ class MockDatabase extends ChangeNotifier {
         role = PlayerRole.wicketKeeper;
       }
 
-      final newP = Player(
-        id: 'pl_${teamId}_${DateTime.now().millisecondsSinceEpoch}_$i',
-        fullName: name,
-        displayName: name,
-        mobileNumber: mobile,
-        role: role,
-        battingStyle: 'Right Hand Bat',
-        bowlingStyle: 'Right Arm Medium',
-        basePrice: 500,
-        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
-        teamId: teamId,
-      );
-      players.add(newP);
+      final normMobile = normalizeMobile(mobile);
+      // Check if player with this mobile or name already exists in the permanent database
+      Player? existing;
+      if (normMobile.isNotEmpty) {
+        existing = players.where((p) => normalizeMobile(p.mobileNumber) == normMobile).firstOrNull;
+      }
+      if (existing == null && name.isNotEmpty) {
+        existing = players.where((p) => p.fullName.toLowerCase() == name.toLowerCase()).firstOrNull;
+      }
+
+      if (existing != null) {
+        final updatedPlayer = Player(
+          id: existing.id,
+          permanentPlayerCode: existing.permanentPlayerCode,
+          tournamentId: team?.tournamentId ?? existing.tournamentId,
+          fullName: name,
+          displayName: name,
+          mobileNumber: normMobile.isNotEmpty ? normMobile : (mobile.isEmpty ? '' : existing.mobileNumber),
+          role: role,
+          battingStyle: existing.battingStyle,
+          bowlingStyle: existing.bowlingStyle,
+          basePrice: existing.basePrice,
+          photoUrl: existing.photoUrl,
+          teamId: teamId,
+          runs: existing.runs,
+          wickets: existing.wickets,
+          matches: existing.matches,
+          teamHistory: existing.teamHistory,
+          isMobileVerified: existing.isMobileVerified,
+          registeredAt: existing.registeredAt,
+          registeredByOrganizerId: existing.registeredByOrganizerId,
+        );
+        final idx = players.indexWhere((p) => p.id == existing!.id);
+        if (idx != -1) {
+          players[idx] = updatedPlayer;
+        }
+        if (!updatedPlayer.teamHistory.any((th) => th.teamId == teamId)) {
+          updatedPlayer.teamHistory.add(PlayerTeamHistory(
+            teamId: teamId,
+            teamName: team?.name ?? 'Team',
+            tournamentId: team?.tournamentId,
+            year: DateTime.now().year,
+            joinedAt: DateTime.now(),
+          ));
+        }
+      } else {
+        registerPermanentPlayer(
+          fullName: name,
+          mobileNumber: normMobile,
+          role: role,
+          teamId: teamId,
+          tournamentId: team?.tournamentId,
+        );
+      }
     }
 
     if (team != null) {
-      team.squadCount = playerEntries.length;
+      team.squadCount = players.where((p) => p.teamId == teamId).length;
     }
 
     notifyListeners();
@@ -4016,6 +5199,332 @@ class MockDatabase extends ChangeNotifier {
     auc.floorStatus = FloorStatus.open;
     auc.joinedTeamIds.clear();
     notifyListeners();
+  }
+
+  // =========================================================================
+  // AUCTION ID & PIN JOINING SYSTEM (MULTI-USER PARTICIPATION)
+  // =========================================================================
+  final Map<String, int> _failedPinAttempts = {};
+  final Map<String, DateTime> _pinLockoutUntil = {};
+
+  JoinAuctionValidationResult validateAuctionJoinCredentials({
+    required String auctionIdOrCode,
+    required String auctionPin,
+  }) {
+    final query = auctionIdOrCode.trim().toUpperCase();
+    final pin = auctionPin.trim();
+
+    final now = DateTime.now();
+    if (_pinLockoutUntil.containsKey(query)) {
+      final lockout = _pinLockoutUntil[query]!;
+      if (now.isBefore(lockout)) {
+        final remainingSec = lockout.difference(now).inSeconds;
+        return JoinAuctionValidationResult(
+          isValid: false,
+          errorMessage: 'Too many incorrect PIN attempts. Security lockout active. Please try again in $remainingSec seconds.',
+        );
+      } else {
+        _pinLockoutUntil.remove(query);
+        _failedPinAttempts.remove(query);
+      }
+    }
+
+    final auction = auctions.where((a) =>
+      a.id.toUpperCase() == query ||
+      a.auctionCode.toUpperCase() == query ||
+      a.title.toUpperCase() == query
+    ).firstOrNull;
+
+    if (auction == null) {
+      final attempts = (_failedPinAttempts[query] ?? 0) + 1;
+      _failedPinAttempts[query] = attempts;
+      if (attempts >= 5) {
+        _pinLockoutUntil[query] = now.add(const Duration(seconds: 60));
+      }
+      return JoinAuctionValidationResult(
+        isValid: false,
+        errorMessage: 'Auction with ID or Code "$auctionIdOrCode" was not found. Please verify with your tournament organizer.',
+      );
+    }
+
+    if (!auction.isJoiningEnabled) {
+      return JoinAuctionValidationResult(
+        isValid: false,
+        errorMessage: 'Joining for "${auction.title}" is currently closed or paused by the host.',
+        auction: auction,
+      );
+    }
+
+    if (auction.status == AuctionStatus.completed) {
+      return JoinAuctionValidationResult(
+        isValid: false,
+        errorMessage: 'This auction has already completed.',
+        auction: auction,
+      );
+    }
+
+    // Check PIN
+    if (auction.auctionPin.trim() != pin) {
+      final attempts = (_failedPinAttempts[query] ?? 0) + 1;
+      _failedPinAttempts[query] = attempts;
+      if (attempts >= 5) {
+        _pinLockoutUntil[query] = now.add(const Duration(seconds: 60));
+        return JoinAuctionValidationResult(
+          isValid: false,
+          errorMessage: 'Incorrect PIN entered 5 times. Security lockout active for 60 seconds.',
+          auction: auction,
+        );
+      }
+      return JoinAuctionValidationResult(
+        isValid: false,
+        errorMessage: 'Incorrect Auction PIN. (Attempt $attempts of 5). Please contact the host.',
+        auction: auction,
+      );
+    }
+
+    // Reset attempts on successful PIN
+    _failedPinAttempts.remove(query);
+    _pinLockoutUntil.remove(query);
+
+    final tourn = getTournament(auction.tournamentId);
+    return JoinAuctionValidationResult(
+      isValid: true,
+      auction: auction,
+      tournament: tourn,
+    );
+  }
+
+  Map<String, dynamic> submitTeamOwnerRegistration({
+    required String auctionId,
+    required String teamName,
+    required String teamShortName,
+    required String logoUrl,
+    required Color primaryColor,
+  }) {
+    if (currentUser == null) {
+      return {'success': false, 'error': 'You must be logged in to register a team.'};
+    }
+
+    final auction = getAuction(auctionId);
+    final cleanTeamName = teamName.trim();
+    if (teams.any((t) => t.tournamentId == auction.tournamentId && t.name.toLowerCase() == cleanTeamName.toLowerCase())) {
+      return {'success': false, 'error': 'A team named "$cleanTeamName" already exists in this tournament.'};
+    }
+
+    if (auction.joiningMode == AuctionJoiningMode.automatic) {
+      final teamId = 'team_${auction.id}_${DateTime.now().millisecondsSinceEpoch}';
+      final newTeam = Team(
+        id: teamId,
+        tournamentId: auction.tournamentId,
+        name: cleanTeamName,
+        shortName: teamShortName.trim().toUpperCase(),
+        ownerName: currentUser!.fullName,
+        ownerMobileNumber: currentUser!.mobileNumber,
+        primaryColor: primaryColor,
+        logoUrl: logoUrl.isNotEmpty ? logoUrl : 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+        purseRemaining: auction.maxPursePerTeam,
+        maxPurse: auction.maxPursePerTeam,
+        squadCount: 0,
+        minSquadRequirement: auction.minSquadSize,
+        maxSquadLimit: auction.maxSquadSize,
+      );
+
+      teams.add(newTeam);
+      auction.joinedTeamIds.add(teamId);
+      currentUser!.ownedTeamIds.add(teamId);
+      currentUser!.tournamentRoles[auction.tournamentId] = AppUserRole.teamOwner;
+      authenticatedTeamId = teamId;
+
+      logAudit(
+        category: 'auction',
+        action: 'TEAM_JOINED_AUTO',
+        details: 'Team "$cleanTeamName" automatically joined auction "${auction.title}" by owner ${currentUser!.fullName}.',
+        performedBy: currentUser!.fullName,
+        auctionId: auction.id,
+        tournamentId: auction.tournamentId,
+      );
+
+      notifyListeners();
+      return {'success': true, 'mode': 'automatic', 'team': newTeam};
+    } else {
+      // Host Approval Mode
+      final regId = 'reg_${DateTime.now().millisecondsSinceEpoch}';
+      final pending = PendingTeamRegistration(
+        id: regId,
+        auctionId: auction.id,
+        tournamentId: auction.tournamentId,
+        userId: currentUser!.id,
+        ownerName: currentUser!.fullName,
+        ownerEmail: currentUser!.email,
+        ownerMobile: currentUser!.mobileNumber,
+        teamName: cleanTeamName,
+        teamShortName: teamShortName.trim().toUpperCase(),
+        logoUrl: logoUrl.isNotEmpty ? logoUrl : 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=120',
+        primaryColor: primaryColor,
+        registeredAt: DateTime.now(),
+      );
+
+      auction.pendingRegistrations.add(pending);
+
+      logAudit(
+        category: 'auction',
+        action: 'TEAM_JOIN_SUBMITTED',
+        details: 'Team "$cleanTeamName" submitted for host approval in "${auction.title}" by ${currentUser!.fullName}.',
+        performedBy: currentUser!.fullName,
+        auctionId: auction.id,
+        tournamentId: auction.tournamentId,
+      );
+
+      notifyListeners();
+      return {'success': true, 'mode': 'hostApproval', 'registration': pending};
+    }
+  }
+
+  void approveTeamRegistration(String auctionId, String registrationId) {
+    final auction = getAuction(auctionId);
+    final reg = auction.pendingRegistrations.where((r) => r.id == registrationId).firstOrNull;
+    if (reg == null || reg.isApproved || reg.isRejected) return;
+
+    reg.isApproved = true;
+    final teamId = 'team_${auction.id}_${reg.id}';
+    final newTeam = Team(
+      id: teamId,
+      tournamentId: auction.tournamentId,
+      name: reg.teamName,
+      shortName: reg.teamShortName,
+      ownerName: reg.ownerName,
+      ownerMobileNumber: reg.ownerMobile,
+      primaryColor: reg.primaryColor,
+      logoUrl: reg.logoUrl,
+      purseRemaining: auction.maxPursePerTeam,
+      maxPurse: auction.maxPursePerTeam,
+      squadCount: 0,
+      minSquadRequirement: auction.minSquadSize,
+      maxSquadLimit: auction.maxSquadSize,
+    );
+
+    teams.add(newTeam);
+    auction.joinedTeamIds.add(teamId);
+
+    final user = users.where((u) => u.id == reg.userId).firstOrNull;
+    if (user != null) {
+      user.ownedTeamIds.add(teamId);
+      user.tournamentRoles[auction.tournamentId] = AppUserRole.teamOwner;
+    }
+
+    logAudit(
+      category: 'auction',
+      action: 'TEAM_APPROVED',
+      details: 'Host approved team "${reg.teamName}" for auction "${auction.title}".',
+      performedBy: currentUser?.fullName ?? 'Host',
+      auctionId: auction.id,
+      tournamentId: auction.tournamentId,
+    );
+
+    notifyListeners();
+  }
+
+  void rejectTeamRegistration(String auctionId, String registrationId) {
+    final auction = getAuction(auctionId);
+    final reg = auction.pendingRegistrations.where((r) => r.id == registrationId).firstOrNull;
+    if (reg == null) return;
+    reg.isRejected = true;
+
+    logAudit(
+      category: 'auction',
+      action: 'TEAM_REJECTED',
+      details: 'Host rejected team registration "${reg.teamName}".',
+      performedBy: currentUser?.fullName ?? 'Host',
+      auctionId: auction.id,
+      tournamentId: auction.tournamentId,
+    );
+
+    notifyListeners();
+  }
+
+  String regenerateAuctionPin(String auctionId) {
+    final auction = getAuction(auctionId);
+    final newPin = (Random().nextInt(900000) + 100000).toString();
+    auction.auctionPin = newPin;
+
+    logAudit(
+      category: 'auction',
+      action: 'PIN_REGENERATED',
+      details: 'Auction PIN regenerated for "${auction.title}".',
+      performedBy: currentUser?.fullName ?? 'Host',
+      auctionId: auction.id,
+      tournamentId: auction.tournamentId,
+    );
+
+    notifyListeners();
+    return newPin;
+  }
+
+  void toggleAuctionJoining(String auctionId, bool isEnabled) {
+    final auction = getAuction(auctionId);
+    auction.isJoiningEnabled = isEnabled;
+    notifyListeners();
+  }
+
+  /// Direct Player Registration by Organizer (no player login or approval required!)
+  Player addPlayerDirectly({
+    required String tournamentId,
+    required String fullName,
+    String? displayName,
+    String mobileNumber = '',
+    PlayerRole role = PlayerRole.batsman,
+    String battingStyle = 'Right Hand Bat',
+    String bowlingStyle = 'Right Arm Medium',
+    String category = 'Batsman',
+    int basePrice = 25000,
+    String photoUrl = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256',
+    String? auctionId,
+  }) {
+    final pId = 'pl_direct_${DateTime.now().millisecondsSinceEpoch}';
+    final newP = Player(
+      id: pId,
+      tournamentId: tournamentId,
+      fullName: fullName.trim(),
+      displayName: (displayName != null && displayName.trim().isNotEmpty) ? displayName.trim() : fullName.trim(),
+      mobileNumber: mobileNumber.trim(),
+      role: role,
+      battingStyle: battingStyle,
+      bowlingStyle: bowlingStyle,
+      category: category,
+      basePrice: basePrice,
+      photoUrl: photoUrl,
+      registrationStatus: PlayerRegistrationStatus.approved,
+      auctionStatus: PlayerAuctionStatus.available,
+    );
+    players.add(newP);
+
+    if (auctionId != null && auctionId.isNotEmpty) {
+      final auc = getAuction(auctionId);
+      final lotNum = auctionLots.where((l) => l.auctionId == auctionId).length + 1;
+      final newLot = AuctionLot(
+        id: 'lot_${auc.id}_$lotNum',
+        auctionId: auc.id,
+        lotNumber: lotNum,
+        playerId: newP.id,
+        category: category,
+        basePrice: basePrice,
+        status: LotStatus.pending,
+      );
+      auctionLots.add(newLot);
+      auc.totalLots = auctionLots.where((l) => l.auctionId == auctionId).length;
+    }
+
+    logAudit(
+      category: 'player',
+      action: 'PLAYER_DIRECT_ADDED',
+      details: 'Player "${newP.fullName}" directly added by organizer without requiring player approval.',
+      performedBy: currentUser?.fullName ?? 'Host',
+      tournamentId: tournamentId,
+      auctionId: auctionId ?? '',
+    );
+
+    notifyListeners();
+    return newP;
   }
 
   // ==========================================

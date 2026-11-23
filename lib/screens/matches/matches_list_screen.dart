@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/role_switcher_chip.dart';
 import '../../widgets/app_animations.dart';
 import 'match_detail_screen.dart';
@@ -18,15 +19,40 @@ class MatchesListScreen extends StatefulWidget {
 
 class _MatchesListScreenState extends State<MatchesListScreen> {
   String filter = 'all'; // 'all', 'live', 'completed', 'scheduled'
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final db = context.watch<MockDatabase>();
+    final query = _searchController.text.trim().toLowerCase();
 
     final filteredMatches = db.matches.where((m) {
-      if (filter == 'live') return m.status == MatchStatus.live;
-      if (filter == 'completed') return m.status == MatchStatus.completed;
-      if (filter == 'scheduled') return m.status == MatchStatus.scheduled || m.status == MatchStatus.toss;
+      if (filter == 'live' && m.status != MatchStatus.live) return false;
+      if (filter == 'completed' && m.status != MatchStatus.completed) return false;
+      if (filter == 'scheduled' && m.status != MatchStatus.scheduled && m.status != MatchStatus.toss) return false;
+
+      if (query.isNotEmpty) {
+        final teamA = db.getTeam(m.teamAId)?.name.toLowerCase() ?? '';
+        final teamB = db.getTeam(m.teamBId)?.name.toLowerCase() ?? '';
+        final tourn = db.getTournament(m.tournamentId);
+        final tournName = tourn?.name.toLowerCase() ?? '';
+        final tournShort = tourn?.shortName.toLowerCase() ?? '';
+        final venue = m.venue.toLowerCase();
+        final stage = m.stage.toLowerCase();
+
+        return tournName.contains(query) ||
+            tournShort.contains(query) ||
+            teamA.contains(query) ||
+            teamB.contains(query) ||
+            venue.contains(query) ||
+            stage.contains(query);
+      }
       return true;
     }).toList();
 
@@ -44,30 +70,83 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
       ),
       body: Column(
         children: [
+          // Tournament Search Bar
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0B1120),
+              border: Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Search by tournament (e.g. BPL), team, venue...',
+                hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF00F5A0), size: 18),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white54, size: 16),
+                        onPressed: () => setState(() => _searchController.clear()),
+                      )
+                    : null,
+                filled: true,
+                fillColor: const Color(0xFF1E293B),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
           // Filter Pills (Scrollable, Overflow-Proof)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            color: const Color(0xFF0B1120),
+            decoration: const BoxDecoration(
+              color: NeoGlassTheme.bgSurface,
+              border: Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
+            ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: ['all', 'live', 'completed', 'scheduled'].map((f) {
                   final isSelected = filter == f;
+                  final label = f == 'all' ? 'All (${db.matches.length})' : f.toUpperCase();
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(
-                        f == 'all' ? 'All (${db.matches.length})' : f.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.black : Colors.white70,
+                    child: InkWell(
+                      onTap: () => setState(() => filter = f),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: isSelected ? NeoGlassTheme.neonGradient : null,
+                          color: isSelected ? null : const Color(0x18FFFFFF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? Colors.transparent : NeoGlassTheme.glassBorder,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.35),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                            color: isSelected ? Colors.black : Colors.white70,
+                          ),
                         ),
                       ),
-                      selected: isSelected,
-                      selectedColor: const Color(0xFF34D399),
-                      backgroundColor: const Color(0xFF1E293B),
-                      onSelected: (val) => setState(() => filter = f),
                     ),
                   );
                 }).toList(),
@@ -159,15 +238,9 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                           );
                         },
                         borderRadius: BorderRadius.circular(20),
-                        child: Container(
+                        child: NeoGlassCard(
+                          glowColor: isLive ? NeoGlassTheme.neonRose : null,
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isLive ? Colors.red.shade400 : const Color(0xFF334155),
-                            ),
-                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
