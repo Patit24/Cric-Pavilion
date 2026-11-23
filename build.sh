@@ -1,28 +1,30 @@
 #!/bin/bash
 set -e
 
-echo "=== CricPavilion Flutter Web Build for Vercel ==="
+echo "=== CricPavilion Web Build for Vercel ==="
 
-# 1. Download Flutter stable if not already present
-if [ ! -d "$HOME/flutter" ] && [ ! -d "flutter" ]; then
+# 1. If Flutter is installed, build fresh release
+if command -v flutter >/dev/null 2>&1; then
+  echo "Flutter SDK detected on host."
+  flutter --version
+  flutter config --no-analytics
+  flutter pub get
+  flutter build web --release
+elif [ -d "$HOME/flutter/bin" ]; then
+  export PATH="$PATH:$HOME/flutter/bin"
+  flutter --version
+  flutter config --no-analytics
+  flutter pub get
+  flutter build web --release
+elif [ -f "build/web/index.html" ] && [ -f "build/web/main.dart.js" ]; then
+  echo "Pre-compiled production web assets found in build/web!"
+  echo "Using optimized pre-built release for instant deployment."
+else
   echo "Cloning Flutter SDK (stable channel)..."
   git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
-fi
-
-if [ -d "$HOME/flutter/bin" ]; then
   export PATH="$PATH:$HOME/flutter/bin"
-elif [ -d "flutter/bin" ]; then
-  export PATH="$PATH:`pwd`/flutter/bin"
+  flutter pub get
+  flutter build web --release
 fi
 
-echo "=== Flutter Environment ==="
-flutter --version
-flutter config --no-analytics
-
-echo "=== Fetching Dependencies ==="
-flutter pub get
-
-echo "=== Building Web App for Release ==="
-flutter build web --release
-
-echo "=== Flutter Web Build Complete! Files in build/web ==="
+echo "=== Ready in build/web! Deployment starting ==="
