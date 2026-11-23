@@ -170,6 +170,31 @@ class MockDatabase extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Permanently removes all demo tournaments, demo auctions, fake demo matches,
+  /// seeded demo users, and demo players from memory and device storage.
+  void purgeAllDemoData() {
+    tournaments.removeWhere((t) => t.id == 'tourn_bpl_2026' || t.id == 'tourn_psl_2026' || t.id.startsWith('empty_'));
+    teams.removeWhere((t) => t.id.startsWith('team_bpl_') || t.id == 'empty_team');
+    players.removeWhere((p) => p.id.startsWith('pl_bpl_') || p.permanentPlayerCode == 'PLY-BPL-0001');
+    matches.removeWhere((m) => m.id.startsWith('match_bpl_') || m.id == 'match_001' || m.id == 'empty_match');
+    inningsList.removeWhere((i) => i.id.startsWith('inn_bpl_') || i.id.startsWith('inn_001') || i.matchId == 'match_001');
+    deliveries.removeWhere((d) => d.id.startsWith('del_bpl_') || d.matchId == 'match_001');
+    battingScorecards.removeWhere((b) => b.id.startsWith('bat_bpl_') || b.matchId == 'match_001');
+    bowlingScorecards.removeWhere((bw) => bw.id.startsWith('bowl_bpl_') || bw.matchId == 'match_001');
+    auctions.removeWhere((a) => a.id == 'auc_bpl_2026' || a.id == 'empty_auc');
+    auctionLots.removeWhere((l) => l.auctionId == 'auc_bpl_2026' || l.id.startsWith('lot_bpl_'));
+    auctionBids.clear();
+    tournamentStandings.clear();
+    users.removeWhere((u) => u.email.endsWith('@cricpavilion.com') || u.id.startsWith('user_admin_') || u.id.startsWith('user_auctioneer_') || u.id.startsWith('user_owner_') || u.id.startsWith('user_scorer_') || u.id.startsWith('user_player_') || u.id.startsWith('user_gauth_'));
+    if (currentUser?.email.endsWith('@cricpavilion.com') == true) {
+      currentUser = null;
+      _activeOverrideRole = null;
+    }
+    isDemoDataLoaded = false;
+    persistState();
+    notifyListeners();
+  }
+
   /// Reloads sample demo tournament (BPL 2026) for testing and inspection
   void reloadDemoData() {
     _initializeSeedData();
@@ -222,7 +247,7 @@ class MockDatabase extends ChangeNotifier {
     // 4. Auto-provision permanent player profile for the authenticated user
     final newP = registerPermanentPlayer(
       fullName: currentUser!.fullName,
-      mobileNumber: currentUser!.mobileNumber.isNotEmpty ? currentUser!.mobileNumber : '9830219900',
+      mobileNumber: currentUser!.mobileNumber,
       role: PlayerRole.allRounder,
     );
     currentUser!.linkedPlayerId = newP.id;
@@ -3952,6 +3977,7 @@ class MockDatabase extends ChangeNotifier {
 
     final newPlayer = Player(
       id: newPlayerId,
+      tournamentId: auc.tournamentId,
       fullName: fullName,
       displayName: fullName,
       mobileNumber: mobileNumber.trim(),
@@ -4341,7 +4367,7 @@ class MockDatabase extends ChangeNotifier {
     final newPlayer = Player(
       id: newPlayerId,
       permanentPlayerCode: code,
-      tournamentId: tournamentId ?? 'tourn_bpl_2026',
+      tournamentId: tournamentId ?? '',
       fullName: cleanName,
       displayName: cleanName,
       mobileNumber: normMobile,
@@ -5942,14 +5968,6 @@ class MockDatabase extends ChangeNotifier {
       }
     }
 
-    // 3. Baseline for demo tournament if no catches were registered yet
-    if (catchesMap.isEmpty && tournamentId == 'tourn_bpl_2026') {
-      catchesMap['pl_3'] = 3; // Wriddhiman Saha
-      stumpingsMap['pl_3'] = 1;
-      catchesMap['pl_2'] = 2; // Manoj Tiwary
-      catchesMap['pl_5'] = 1; // Suman Biswas
-    }
-
     final allFielderIds = {...catchesMap.keys, ...stumpingsMap.keys, ...runOutsMap.keys};
     final List<TournamentLeaderboardFielder> result = [];
 
@@ -6087,18 +6105,13 @@ class MockDatabase extends ChangeNotifier {
   }
 
   List<TournamentStanding> getTournamentStandings(String tournamentId) {
-    if (tournamentStandings.isNotEmpty && (tournamentId == 'tourn_bpl_2026' || tournamentId.isEmpty)) {
-      final list = List<TournamentStanding>.from(tournamentStandings);
-      list.sort((a, b) {
-        final cmp = b.points.compareTo(a.points);
-        if (cmp != 0) return cmp;
-        return b.netRunRate.compareTo(a.netRunRate);
-      });
-      return list;
-    }
-
     final tournTeams = teams.where((t) => t.tournamentId == tournamentId).toList();
-    if (tournTeams.isEmpty) return [];
+    if (tournTeams.isEmpty) {
+      if (tournamentId.isEmpty && tournamentStandings.isNotEmpty) {
+        return List<TournamentStanding>.from(tournamentStandings);
+      }
+      return [];
+    }
 
     final tournMatches = matches.where((m) => m.tournamentId == tournamentId).toList();
 

@@ -405,16 +405,6 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
     }
   }
 
-  void _fillQuickCredentials(String email, String pass) {
-    setState(() {
-      _loginEmailController.text = email;
-      _loginPasswordController.text = pass;
-      _is2faStep = false;
-      _isMobileOtpStep = false;
-      _errorMessage = null;
-    });
-  }
-
   Widget _buildGoogleLogoBadge({double size = 20}) {
     return Container(
       width: size,
@@ -570,7 +560,10 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                         ),
                       ),
                     ],
-                    if (_errorMessage!.toLowerCase().contains('billing')) ...[
+                    if (_errorMessage!.toLowerCase().contains('billing') ||
+                        _errorMessage!.toLowerCase().contains('region') ||
+                        _errorMessage!.toLowerCase().contains('operation-not-allowed') ||
+                        _errorMessage!.toLowerCase().contains('sms')) ...[
                       const SizedBox(height: 8),
                       InkWell(
                         onTap: () {
@@ -991,47 +984,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
               ),
             ),
           ),
-          const SizedBox(height: 8),
-
-          // Quick 1-Tap Google Account Chips
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              _buildQuickGoogleAccountChip(db, 'patitroy29@gmail.com', 'Patit Paban Roy'),
-              _buildQuickGoogleAccountChip(db, 'google.cricketer@gmail.com', 'Cricket Player'),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickGoogleAccountChip(MockDatabase db, String email, String name) {
-    return InkWell(
-      onTap: _isLoading ? null : () => _handleGoogleSignIn(db, directEmail: email, directName: name),
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4285F4).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFF4285F4).withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, size: 10, color: Color(0xFF60A5FA)),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                email,
-                style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 10, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1190,59 +1143,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
               style: const TextStyle(fontWeight: FontWeight.w900),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Quick Demo Accounts Chips
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'QUICK DEMO ACCOUNTS (1-TAP TEST):',
-                  style: TextStyle(color: Colors.white54, fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    _buildCredentialChip('👑 Tournament Host (Saved)', 'admin@cricpavilion.com', 'admin123', const Color(0xFFD97706)),
-                    _buildCredentialChip('🔨 Auctioneer (Saved)', 'auctioneer@cricpavilion.com', 'gavel123', const Color(0xFFEA580C)),
-                    _buildCredentialChip('💼 Team Owner (Saved)', 'owner1@cricpavilion.com', 'owner123', const Color(0xFF0284C7)),
-                    _buildCredentialChip('🏏 Match Scorer (Saved)', 'scorer@cricpavilion.com', 'scorer123', const Color(0xFF059669)),
-                    _buildCredentialChip('🔐 Google 2FA Account', 'gauth@cricpavilion.com', 'gauth123', const Color(0xFF06B6D4)),
-                    _buildCredentialChip('🆕 First-Time User', 'newuser@cricpavilion.com', 'new123', const Color(0xFF10B981)),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCredentialChip(String label, String email, String pass, Color color) {
-    return InkWell(
-      onTap: () => _fillQuickCredentials(email, pass),
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
-        ),
       ),
     );
   }

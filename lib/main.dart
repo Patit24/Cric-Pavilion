@@ -27,8 +27,9 @@ void main() async {
     debugPrint('Firebase initialization notice: $e');
   }
 
-  final db = MockDatabase(loadDemoSeed: true);
+  final db = MockDatabase(loadDemoSeed: false);
   await db.initPersistence();
+  db.purgeAllDemoData();
 
   runApp(
     MultiProvider(

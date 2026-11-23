@@ -125,5 +125,23 @@ void main() {
       expect(db2.currentPlayer?.id, equals(player.id));
       expect(db2.currentPlayer?.permanentPlayerCode, startsWith('PLY-'));
     });
+
+    test('3. purgeAllDemoData permanently purges any legacy demo records', () async {
+      final db = MockDatabase(loadDemoSeed: true);
+      expect(db.tournaments.isNotEmpty, isTrue);
+      expect(db.matches.isNotEmpty, isTrue);
+      expect(db.users.isNotEmpty, isTrue);
+
+      // Purge all demo data
+      db.purgeAllDemoData();
+
+      // Verify 100% clean state
+      expect(db.tournaments.where((t) => t.id.contains('bpl')).isEmpty, isTrue);
+      expect(db.matches.where((m) => m.id.contains('bpl')).isEmpty, isTrue);
+      expect(db.teams.where((t) => t.id.contains('bpl')).isEmpty, isTrue);
+      expect(db.players.where((p) => p.id.contains('bpl')).isEmpty, isTrue);
+      expect(db.users.where((u) => u.email.endsWith('@cricpavilion.com')).isEmpty, isTrue);
+      expect(db.currentUser, isNull);
+    });
   });
 }

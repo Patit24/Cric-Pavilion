@@ -155,9 +155,7 @@ void main() {
 
       expect(find.text('Google Sign In'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
-      expect(find.text('patitroy29@gmail.com'), findsOneWidget);
       expect(find.text('RECOMMENDED'), findsOneWidget);
-      expect(find.text('🔐 Google 2FA Account'), findsOneWidget);
     });
 
     testWidgets('First-time Google Sign-In prompts for Mobile OTP, then saves in database', (tester) async {
@@ -174,7 +172,7 @@ void main() {
       expect(db.isAuthenticated, isFalse);
 
       // 1. Sign in with Google as first-time user
-      await tester.tap(find.text('patitroy29@gmail.com'));
+      await tester.tap(find.text('Continue with Google'));
       await tester.pumpAndSettle();
 
       // User is authenticated, but mobile is not verified yet -> transitions to Mobile OTP step!
@@ -255,9 +253,9 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Tap on Google 2FA demo chip
-      await tester.ensureVisible(find.text('🔐 Google 2FA Account'));
-      await tester.tap(find.text('🔐 Google 2FA Account'));
+      // Enter credentials for 2FA user
+      await tester.enterText(find.byType(TextField).at(0), 'gauth@cricpavilion.com');
+      await tester.enterText(find.byType(TextField).at(1), 'gauth123');
       await tester.pumpAndSettle();
 
       // Tap Sign In button (NeoGlassButton)
@@ -282,9 +280,9 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Tap on Google 2FA demo chip
-      await tester.ensureVisible(find.text('🔐 Google 2FA Account'));
-      await tester.tap(find.text('🔐 Google 2FA Account'));
+      // Enter credentials for 2FA user
+      await tester.enterText(find.byType(TextField).at(0), 'gauth@cricpavilion.com');
+      await tester.enterText(find.byType(TextField).at(1), 'gauth123');
       await tester.pumpAndSettle();
 
       // Tap Sign In

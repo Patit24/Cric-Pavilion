@@ -279,12 +279,20 @@ class GoogleAuthService {
       debugPrint('Real Phone SMS send error: $e');
       final errStr = e.toString().toLowerCase();
       final isBillingIssue = errStr.contains('billing-not-enabled') || errStr.contains('billing');
+      final isRegionIssue = errStr.contains('operation-not-allowed') || errStr.contains('region');
+
+      String errorMessage;
+      if (isRegionIssue) {
+        errorMessage = 'Firebase SMS Region Policy: India (+91) must be enabled in Firebase Console > Authentication > Settings > SMS region policy. Or register this number under "Phone numbers for testing". For immediate verification, use test code 123456.';
+      } else if (isBillingIssue) {
+        errorMessage = 'Firebase Spark Plan: Real carrier SMS requires the Blaze plan in Firebase Console, or register this number under "Phone numbers for testing". For testing, use test code 123456.';
+      } else {
+        errorMessage = e.toString();
+      }
 
       return PhoneAuthResult(
         success: false,
-        errorMessage: isBillingIssue
-            ? 'Firebase Cloud Billing is not enabled for project cricpavilion-750c5 (Spark Plan). Real carrier SMS requires the Blaze plan in Firebase Console. You can enter code 123456 or tap below to verify instantly.'
-            : e.toString(),
+        errorMessage: errorMessage,
       );
     }
   }

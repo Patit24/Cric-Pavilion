@@ -275,7 +275,7 @@ class Team {
 
   Team({
     required this.id,
-    this.tournamentId = 'tourn_bpl_2026',
+    this.tournamentId = '',
     required this.name,
     required this.shortName,
     this.uniqueTeamCode = '',
@@ -492,7 +492,7 @@ class Player {
   Player({
     required this.id,
     String? permanentPlayerCode,
-    this.tournamentId = 'tourn_bpl_2026',
+    this.tournamentId = '',
     required this.fullName,
     required this.displayName,
     this.mobileNumber = '',

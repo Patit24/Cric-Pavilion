@@ -272,7 +272,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
             controller: _idController,
             style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
             decoration: NeoGlassTheme.inputDecoration(
-              hintText: 'e.g. BPL2026-7842 or auc_bpl_2026',
+              hintText: 'e.g. ROOM-7842 or AUCTION-01',
               prefixIcon: Icons.fingerprint,
             ),
           ),
@@ -309,84 +309,6 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
             child: Text(
               _isValidating ? 'Verifying Credentials...' : 'Verify & Continue →',
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Quick Demo Code helper
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0x330F172A),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ACTIVE TOURNAMENT CODES FOR INSTANT TESTING:',
-                  style: TextStyle(color: Colors.white54, fontSize: 9.5, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _idController.text = 'BPL2026-7842';
-                            _pinController.text = '583921';
-                            _errorMessage = null;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('BPL 2026 Mega Auction', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                              Text('ID: BPL2026-7842 • PIN: 583921', style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _idController.text = 'PSL2026-3490';
-                            _pinController.text = '123456';
-                            _errorMessage = null;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: NeoGlassTheme.neonCyan.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: NeoGlassTheme.neonCyan.withValues(alpha: 0.4)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('PSL 2026 Draft', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                              Text('ID: PSL2026-3490 • PIN: 123456', style: TextStyle(color: NeoGlassTheme.neonCyan, fontSize: 10)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ),
           ),
         ],

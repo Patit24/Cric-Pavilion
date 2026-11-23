@@ -758,11 +758,6 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Demo Room: ${currentRoom?.id ?? "ROOM-BPL-01"}  •  Passcode: 1234',
-                      style: const TextStyle(color: Colors.white38, fontSize: 10),
-                    ),
                   ],
                 ),
               ),
@@ -1356,12 +1351,6 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Demo: Room: ${currentRoom?.id ?? "ROOM-BPL-01"}  •  PIN: 1234',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white38, fontSize: 9),
-                ),
               ],
             ),
           ),
@@ -1818,36 +1807,6 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // Demo autofill chip
-                  InkWell(
-                    onTap: () {
-                      setDialogState(() {
-                        roomController.text = existingRoom?.id ?? 'ROOM-BPL-01';
-                        passController.text = existingRoom?.passcode ?? '1234';
-                        errorMessage = null;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.touch_app, size: 12, color: Colors.amber),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Auto-fill Demo: ${existingRoom?.id ?? "ROOM-BPL-01"} / 1234',
-                              style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   if (errorMessage != null) ...[
                     const SizedBox(height: 10),
                     Text(
