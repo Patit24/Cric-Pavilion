@@ -366,12 +366,26 @@ class CreaseHudWidget extends StatelessWidget {
                   ],
                 ),
               ] else ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Center(
-                    child: Text(
-                      '⚠️ Over Complete — Please pick next bowler to resume scoring',
-                      style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                InkWell(
+                  onTap: onChangeBowler,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.touch_app, size: 16, color: Colors.amberAccent),
+                        SizedBox(width: 8),
+                        Text(
+                          'Over Complete — Tap here to Select Next Bowler',
+                          style: TextStyle(color: Colors.amberAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                 ),

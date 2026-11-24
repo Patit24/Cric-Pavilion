@@ -33,9 +33,12 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   String? _keeperAId;
   String? _keeperBId;
 
-  // Step 4: Toss
+  // Step 4: Toss & Crease
   int _tossWinnerIndex = 0; // 0 for Team A, 1 for Team B
   String _tossDecision = 'bat'; // 'bat' or 'bowl'
+  String? _directStrikerId;
+  String? _directNonStrikerId;
+  String? _directBowlerId;
 
   @override
   void initState() {
@@ -44,33 +47,218 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   }
 
   void _populateDefaultDirectSquads() {
-    // Pick existing registered players or seed quick roster
-    final allRegistered = widget.db.players;
-    if (allRegistered.length >= 4) {
-      _teamAPlayers = allRegistered.take(allRegistered.length ~/ 2).toList();
-      _teamBPlayers = allRegistered.skip(allRegistered.length ~/ 2).toList();
-    } else {
-      // Create quick initial players
-      for (int i = 1; i <= 2; i++) {
-        _teamAPlayers.add(widget.db.registerPermanentPlayer(
-          fullName: 'Player A$i',
-          mobileNumber: '983020100$i',
-          role: i == 1 ? PlayerRole.batsman : PlayerRole.bowler,
-        ));
-        _teamBPlayers.add(widget.db.registerPermanentPlayer(
-          fullName: 'Player B$i',
-          mobileNumber: '983020200$i',
-          role: i == 1 ? PlayerRole.batsman : PlayerRole.bowler,
-        ));
-      }
-    }
-    _captainAId = _teamAPlayers.firstOrNull?.id;
-    _keeperAId = _teamAPlayers.skip(1).firstOrNull?.id;
-    _captainBId = _teamBPlayers.firstOrNull?.id;
-    _keeperBId = _teamBPlayers.skip(1).firstOrNull?.id;
+    _teamAPlayers = [];
+    _teamBPlayers = [];
+    _captainAId = null;
+    _keeperAId = null;
+    _captainBId = null;
+    _keeperBId = null;
+    _directStrikerId = null;
+    _directNonStrikerId = null;
+    _directBowlerId = null;
   }
 
   void _addPlayerToTeam(bool isTeamA) {
+    final nameCtrl = TextEditingController();
+    final mobileCtrl = TextEditingController();
+    PlayerRole role = PlayerRole.allRounder;
+    String? localError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.person_add, color: Color(0xFF00F5A0), size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Add Player to ${isTeamA ? _teamANameController.text : _teamBNameController.text}',
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (localError != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                    ),
+                    child: Text(localError!, style: const TextStyle(color: Colors.redAccent, fontSize: 11)),
+                  ),
+                ],
+                const Text('Player Full Name *', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: nameCtrl,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    hintText: 'e.g. Virat Sharma',
+                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('Role', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<PlayerRole>(
+                      value: role,
+                      dropdownColor: const Color(0xFF1E293B),
+                      isExpanded: true,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      items: const [
+                        DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
+                        DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
+                        DropdownMenuItem(value: PlayerRole.allRounder, child: Text('All-Rounder')),
+                        DropdownMenuItem(value: PlayerRole.wicketKeeper, child: Text('Wicketkeeper')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => role = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('Mobile Number (Optional)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: mobileCtrl,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF0F172A),
+                    hintText: '10 digits or leave blank',
+                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _showAddByLookupDialog(isTeamA);
+                    },
+                    icon: const Icon(Icons.search, size: 14, color: Color(0xFF00D9F5)),
+                    label: const Text('Lookup Existing Registered Player', style: TextStyle(color: Color(0xFF00D9F5), fontSize: 11)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                if (name.isEmpty) {
+                  setDialogState(() => localError = 'Please enter player name');
+                  return;
+                }
+                final rawMob = mobileCtrl.text.trim();
+                String normMob = MockDatabase.normalizeMobile(rawMob);
+                if (rawMob.isNotEmpty && normMob.length < 10) {
+                  setDialogState(() => localError = 'Enter a valid 10-digit number or leave blank');
+                  return;
+                }
+                if (normMob.isEmpty) {
+                  normMob = '983${DateTime.now().millisecondsSinceEpoch % 10000000}'.padRight(10, '0');
+                }
+
+                // Check if already registered or register
+                Player player;
+                final existing = widget.db.players.where((x) => x.mobileNumber == normMob).firstOrNull;
+                if (existing != null) {
+                  player = existing;
+                } else {
+                  player = widget.db.registerPermanentPlayer(
+                    fullName: name,
+                    mobileNumber: normMob,
+                    role: role,
+                  );
+                }
+
+                setState(() {
+                  final targetList = isTeamA ? _teamAPlayers : _teamBPlayers;
+                  if (!targetList.any((p) => p.id == player.id)) {
+                    targetList.add(player);
+                    if (isTeamA) {
+                      _captainAId ??= player.id;
+                    } else {
+                      _captainBId ??= player.id;
+                    }
+                  }
+                });
+
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Added ${player.fullName} to squad'),
+                    backgroundColor: const Color(0xFF009270),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F5A0),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Add to Squad', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddByLookupDialog(bool isTeamA) {
     showDialog(
       context: context,
       builder: (ctx) => AddExistingPlayerDialog(
@@ -91,6 +279,187 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             }
           });
         },
+      ),
+    );
+  }
+
+  void _editPlayer(Player p, bool isTeamA) {
+    final nameController = TextEditingController(text: p.fullName);
+    PlayerRole selectedRole = p.role;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.edit, color: Color(0xFF00F5A0), size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Text('Edit Player', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Player Full Name *', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  hintText: 'Enter player name',
+                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text('Role', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<PlayerRole>(
+                    value: selectedRole,
+                    dropdownColor: const Color(0xFF1E293B),
+                    isExpanded: true,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    items: const [
+                      DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
+                      DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
+                      DropdownMenuItem(value: PlayerRole.allRounder, child: Text('All-Rounder')),
+                      DropdownMenuItem(value: PlayerRole.wicketKeeper, child: Text('Wicketkeeper')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedRole = val);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newName = nameController.text.trim();
+                if (newName.isNotEmpty) {
+                  widget.db.updatePlayer(
+                    playerId: p.id,
+                    fullName: newName,
+                    mobileNumber: p.mobileNumber,
+                    role: selectedRole,
+                  );
+                  setState(() {
+                    final targetList = isTeamA ? _teamAPlayers : _teamBPlayers;
+                    final idx = targetList.indexWhere((x) => x.id == p.id);
+                    if (idx != -1) {
+                      targetList[idx] = Player(
+                        id: p.id,
+                        permanentPlayerCode: p.permanentPlayerCode,
+                        tournamentId: p.tournamentId,
+                        fullName: newName,
+                        displayName: newName,
+                        mobileNumber: p.mobileNumber,
+                        age: p.age,
+                        dateOfBirth: p.dateOfBirth,
+                        city: p.city,
+                        role: selectedRole,
+                        battingStyle: p.battingStyle,
+                        bowlingStyle: p.bowlingStyle,
+                        experienceYears: p.experienceYears,
+                        category: selectedRole == PlayerRole.batsman
+                            ? 'Batsman'
+                            : selectedRole == PlayerRole.bowler
+                                ? 'Bowler'
+                                : selectedRole == PlayerRole.allRounder
+                                    ? 'All-Rounder'
+                                    : 'Wicketkeeper',
+                        basePrice: p.basePrice,
+                        photoUrl: p.photoUrl,
+                        teamId: p.teamId,
+                        runs: p.runs,
+                        wickets: p.wickets,
+                        matches: p.matches,
+                      );
+                    }
+                  });
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Player updated to "$newName"'),
+                      backgroundColor: const Color(0xFF009270),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F5A0),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _deletePlayer(Player p, bool isTeamA) {
+    setState(() {
+      if (isTeamA) {
+        _teamAPlayers.removeWhere((x) => x.id == p.id);
+        if (_captainAId == p.id) {
+          _captainAId = _teamAPlayers.firstOrNull?.id;
+        }
+        if (_keeperAId == p.id) {
+          _keeperAId = _teamAPlayers.skip(1).firstOrNull?.id;
+        }
+      } else {
+        _teamBPlayers.removeWhere((x) => x.id == p.id);
+        if (_captainBId == p.id) {
+          _captainBId = _teamBPlayers.firstOrNull?.id;
+        }
+        if (_keeperBId == p.id) {
+          _keeperBId = _teamBPlayers.skip(1).firstOrNull?.id;
+        }
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Removed ${p.fullName} from squad'),
+        backgroundColor: Colors.redAccent.shade700,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -117,6 +486,9 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
       captainBId: _captainBId,
       keeperAId: _keeperAId,
       keeperBId: _keeperBId,
+      strikerId: _directStrikerId,
+      nonStrikerId: _directNonStrikerId,
+      bowlerId: _directBowlerId,
     );
 
     Navigator.of(context).pop();
@@ -186,7 +558,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   const SizedBox(width: 6),
                   _buildStepPill(1, '2. Lineups'),
                   const SizedBox(width: 6),
-                  _buildStepPill(2, '3. Toss & Play'),
+                  _buildStepPill(2, '3. Toss & Crease'),
                 ],
               ),
               const SizedBox(height: 14),
@@ -220,6 +592,15 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                         if (_currentStep < 2) {
                           setState(() => _currentStep++);
                         } else {
+                          final isTeamABatting = (_tossWinnerIndex == 0 && _tossDecision == 'bat') ||
+                              (_tossWinnerIndex == 1 && _tossDecision == 'bowl');
+                          final battingPlayers = isTeamABatting ? _teamAPlayers : _teamBPlayers;
+                          if (battingPlayers.length > 1 && _directStrikerId == _directNonStrikerId) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Striker and Non-Striker must be two different players.')),
+                            );
+                            return;
+                          }
                           _launchDirectMatch();
                         }
                       },
@@ -230,7 +611,11 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       child: Text(
-                        _currentStep < 2 ? 'Next: Lineups →' : 'Start Live Scoring ⚡',
+                        _currentStep == 0
+                            ? 'Next: Lineups →'
+                            : _currentStep == 1
+                                ? 'Next: Toss & Crease →'
+                                : 'Start Live Scoring ⚡',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
@@ -390,8 +775,6 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             _buildTeamSquadSelector(
               teamTitle: _teamANameController.text,
               players: _teamAPlayers,
-              captainId: _captainAId,
-              keeperId: _keeperAId,
               isTeamA: true,
               themeColor: const Color(0xFF00F5A0),
             ),
@@ -400,8 +783,6 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             _buildTeamSquadSelector(
               teamTitle: _teamBNameController.text,
               players: _teamBPlayers,
-              captainId: _captainBId,
-              keeperId: _keeperBId,
               isTeamA: false,
               themeColor: const Color(0xFF00D9F5),
             ),
@@ -409,6 +790,29 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
         );
 
       case 2:
+        final bool isTeamABatting = (_tossWinnerIndex == 0 && _tossDecision == 'bat') ||
+            (_tossWinnerIndex == 1 && _tossDecision == 'bowl');
+        final battingTeamName = isTeamABatting ? _teamANameController.text : _teamBNameController.text;
+        final bowlingTeamName = isTeamABatting ? _teamBNameController.text : _teamANameController.text;
+        final battingPlayers = isTeamABatting ? _teamAPlayers : _teamBPlayers;
+        final bowlingPlayers = isTeamABatting ? _teamBPlayers : _teamAPlayers;
+
+        if (_directStrikerId == null || !battingPlayers.any((p) => p.id == _directStrikerId)) {
+          _directStrikerId = battingPlayers.firstOrNull?.id;
+        }
+        if (_directNonStrikerId == null || !battingPlayers.any((p) => p.id == _directNonStrikerId)) {
+          _directNonStrikerId = battingPlayers.length > 1 ? battingPlayers[1].id : battingPlayers.firstOrNull?.id;
+        }
+        if (_directBowlerId == null || !bowlingPlayers.any((p) => p.id == _directBowlerId)) {
+          _directBowlerId = bowlingPlayers.where((p) => p.role == PlayerRole.bowler).firstOrNull?.id ??
+              (bowlingPlayers.isNotEmpty ? bowlingPlayers.first.id : (battingPlayers.isNotEmpty ? battingPlayers.first.id : null));
+        }
+
+        final isSameBatter = _directStrikerId != null &&
+            _directNonStrikerId != null &&
+            _directStrikerId == _directNonStrikerId &&
+            battingPlayers.length > 1;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -428,7 +832,12 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                     children: [
                       Expanded(
                         child: InkWell(
-                          onTap: () => setState(() => _tossWinnerIndex = 0),
+                          onTap: () => setState(() {
+                            _tossWinnerIndex = 0;
+                            _directStrikerId = null;
+                            _directNonStrikerId = null;
+                            _directBowlerId = null;
+                          }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
@@ -451,7 +860,12 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: InkWell(
-                          onTap: () => setState(() => _tossWinnerIndex = 1),
+                          onTap: () => setState(() {
+                            _tossWinnerIndex = 1;
+                            _directStrikerId = null;
+                            _directNonStrikerId = null;
+                            _directBowlerId = null;
+                          }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
@@ -480,7 +894,12 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                     children: [
                       Expanded(
                         child: InkWell(
-                          onTap: () => setState(() => _tossDecision = 'bat'),
+                          onTap: () => setState(() {
+                            _tossDecision = 'bat';
+                            _directStrikerId = null;
+                            _directNonStrikerId = null;
+                            _directBowlerId = null;
+                          }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
@@ -503,7 +922,12 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: InkWell(
-                          onTap: () => setState(() => _tossDecision = 'bowl'),
+                          onTap: () => setState(() {
+                            _tossDecision = 'bowl';
+                            _directStrikerId = null;
+                            _directNonStrikerId = null;
+                            _directBowlerId = null;
+                          }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
@@ -529,6 +953,116 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               ),
             ),
             const SizedBox(height: 14),
+
+            // Opening Crease Lineup (Innings 1)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0x6600F5A0), width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.sports_cricket, color: Color(0xFF00F5A0), size: 18),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Select Crease Lineup (Innings 1)',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0x3300F5A0),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Bat: $battingTeamName',
+                          style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 1. Striker Dropdown
+                  const Text('1. Opening Striker (* Facing Ball 0.1):', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: _directStrikerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                    ),
+                    items: battingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setState(() => _directStrikerId = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 2. Non-Striker Dropdown
+                  const Text('2. Opening Non-Striker (Runner at Crease):', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: _directNonStrikerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                    ),
+                    items: battingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setState(() => _directNonStrikerId = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  if (isSameBatter) ...[
+                    const Text('⚠️ Striker & Non-Striker must be different players.', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // 3. Bowler Dropdown
+                  Text('3. Opening Bowler (Over 1 for $bowlingTeamName):', style: const TextStyle(color: Color(0xFF00D9F5), fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: _directBowlerId,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                    ),
+                    items: bowlingPlayers.map((p) {
+                      final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
+                      return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setState(() => _directBowlerId = val),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -560,8 +1094,6 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   Widget _buildTeamSquadSelector({
     required String teamTitle,
     required List<Player> players,
-    required String? captainId,
-    required String? keeperId,
     required bool isTeamA,
     required Color themeColor,
   }) {
@@ -590,7 +1122,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               ElevatedButton.icon(
                 onPressed: () => _addPlayerToTeam(isTeamA),
                 icon: const Icon(Icons.person_add, size: 13),
-                label: const Text('Add by Mobile', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                label: const Text('+ Add Player', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: themeColor,
                   foregroundColor: Colors.black,
@@ -601,85 +1133,86 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             ],
           ),
           const SizedBox(height: 8),
-          ...players.map((p) {
-            final isCap = p.id == captainId;
-            final isWk = p.id == keeperId;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(6),
+          if (players.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              alignment: Alignment.center,
+              child: const Text(
+                'No players in squad. Tap "+ Add Player" to add.',
+                style: TextStyle(color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic),
               ),
-              child: Row(
-                children: [
-                  CircleAvatar(radius: 12, backgroundImage: NetworkImage(p.photoUrl)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      p.fullName,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+            )
+          else
+            ...players.map((p) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 13,
+                      backgroundImage: NetworkImage(p.photoUrl),
                     ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (isTeamA) {
-                          _captainAId = p.id;
-                        } else {
-                          _captainBId = p.id;
-                        }
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isCap ? Colors.amberAccent : Colors.transparent,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.amberAccent, width: 0.8),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            p.fullName,
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            p.roleString,
+                            style: const TextStyle(color: Colors.white54, fontSize: 10),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'C',
-                        style: TextStyle(
-                          color: isCap ? Colors.black : Colors.amberAccent,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    // Edit Player Action
+                    Tooltip(
+                      message: 'Edit player name',
+                      child: InkWell(
+                        onTap: () => _editPlayer(p, isTeamA),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.white24, width: 0.8),
+                          ),
+                          child: const Icon(Icons.edit_outlined, color: Colors.white70, size: 14),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (isTeamA) {
-                          _keeperAId = p.id;
-                        } else {
-                          _keeperBId = p.id;
-                        }
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isWk ? const Color(0xFF00D9F5) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFF00D9F5), width: 0.8),
-                      ),
-                      child: Text(
-                        'WK',
-                        style: TextStyle(
-                          color: isWk ? Colors.black : const Color(0xFF00D9F5),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(width: 6),
+                    // Delete Player Action
+                    Tooltip(
+                      message: 'Delete player from squad',
+                      child: InkWell(
+                        onTap: () => _deletePlayer(p, isTeamA),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5), width: 0.8),
+                          ),
+                          child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 14),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );

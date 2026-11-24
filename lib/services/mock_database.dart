@@ -2522,12 +2522,15 @@ class MockDatabase extends ChangeNotifier {
     bowlerCard.oversStr = CricketRulesEngine.formatOvers(bowlerCard.legalBalls);
     bowlerCard.runsConceded += totalBallRuns;
     if (totalBallRuns == 0 && isLegal) bowlerCard.dots++;
-    if (isWicket && dismissalType != DismissalType.runOut) bowlerCard.wickets++;
+    if (isWicket && dismissalType != DismissalType.runOut && dismissalType != DismissalType.retiredOut) {
+      bowlerCard.wickets++;
+    }
     if (bowlerCard.legalBalls > 0) {
       bowlerCard.economy = (bowlerCard.runsConceded / (bowlerCard.legalBalls / 6.0));
     }
 
     // Wicket handling
+    String dismissalAnalysisText = 'OUT';
     if (isWicket) {
       inn.wickets++;
       final outPlayerId = dismissedPlayerId ?? strikerId;
@@ -2544,7 +2547,42 @@ class MockDatabase extends ChangeNotifier {
         battingScorecards.add(outCard);
       }
       outCard.isOut = true;
-      outCard.dismissalText = dismissalType?.name.toUpperCase() ?? 'OUT';
+
+      final bowlerPlayer = bowlerId.isNotEmpty ? players.where((p) => p.id == bowlerId).firstOrNull : null;
+      final fielderPlayer = fielderId != null ? players.where((p) => p.id == fielderId).firstOrNull : null;
+      final bowlerName = bowlerPlayer?.fullName.isNotEmpty == true ? bowlerPlayer!.fullName : (bowlerPlayer?.displayName ?? 'Bowler');
+      final fielderName = fielderPlayer?.fullName.isNotEmpty == true ? fielderPlayer!.fullName : (fielderPlayer?.displayName ?? 'Fielder');
+
+      switch (dismissalType) {
+        case DismissalType.caught:
+          if (fielderId == bowlerId || fielderId == null || fielderName.isEmpty) {
+            dismissalAnalysisText = 'c & b $bowlerName';
+          } else {
+            dismissalAnalysisText = 'c $fielderName b $bowlerName';
+          }
+          break;
+        case DismissalType.bowled:
+          dismissalAnalysisText = 'b $bowlerName';
+          break;
+        case DismissalType.lbw:
+          dismissalAnalysisText = 'lbw b $bowlerName';
+          break;
+        case DismissalType.stumped:
+          dismissalAnalysisText = 'st $fielderName b $bowlerName';
+          break;
+        case DismissalType.runOut:
+          dismissalAnalysisText = (fielderId != null && fielderName.isNotEmpty) ? 'run out ($fielderName)' : 'run out';
+          break;
+        case DismissalType.hitWicket:
+          dismissalAnalysisText = 'hit wicket b $bowlerName';
+          break;
+        case DismissalType.retiredOut:
+          dismissalAnalysisText = 'retired out';
+          break;
+        default:
+          dismissalAnalysisText = dismissalType?.name.toUpperCase() ?? 'OUT';
+      }
+      outCard.dismissalText = dismissalAnalysisText;
 
       if (inn.wickets < 10 && nextBatterId != null) {
         if (outPlayerId == inn.currentStrikerId) {
@@ -2593,7 +2631,7 @@ class MockDatabase extends ChangeNotifier {
         dismissedPlayerId: dismissedPlayerId,
         fielderId: fielderId,
         commentaryText: isWicket
-            ? 'WICKET! Dismissed ($dismissalType).'
+            ? 'WICKET! ${players.where((p) => p.id == (dismissedPlayerId ?? strikerId)).firstOrNull?.fullName ?? "Batter"} is out ($dismissalAnalysisText).'
             : runsBatter == 4
                 ? 'FOUR! Punched firmly to the boundary.'
                 : runsBatter == 6
@@ -4177,6 +4215,8 @@ class MockDatabase extends ChangeNotifier {
         dateTime: DateTime.now().add(const Duration(hours: 1)),
         overs: overs,
         status: MatchStatus.scheduled,
+        playingXIA: players.where((p) => p.teamId == createdTeams[0].id).map((p) => p.id).toList(),
+        playingXIB: players.where((p) => p.teamId == createdTeams[1].id).map((p) => p.id).toList(),
       );
       matches.insert(0, inauguralMatch);
 
@@ -4235,8 +4275,25 @@ class MockDatabase extends ChangeNotifier {
   }
 
   /// Checks whether both competing teams in a match have players filled with valid names and mobile numbers
-  bool areTeamsReadyForScoring(String teamAId, String teamBId) {
+  bool areTeamsReadyForScoring(String teamAId, String teamBId, {MatchModel? match}) {
     if (teamAId.isEmpty || teamBId.isEmpty) return false;
+
+    // Direct / Standalone matches with selected playing XIs are always ready
+    if (match != null && (match.tournamentId == 'standalone' || match.isStandalone)) {
+      if (match.playingXIA.isNotEmpty && match.playingXIB.isNotEmpty) {
+        return true;
+      }
+    }
+
+    // Direct match team prefixes
+    if (teamAId.startsWith('team_direct_') || teamBId.startsWith('team_direct_')) {
+      final pA = players.where((p) => p.teamId == teamAId || (match?.playingXIA.contains(p.id) ?? false)).toList();
+      final pB = players.where((p) => p.teamId == teamBId || (match?.playingXIB.contains(p.id) ?? false)).toList();
+      if (pA.isNotEmpty && pB.isNotEmpty) {
+        return true;
+      }
+    }
+
     final playersA = players.where((p) => p.teamId == teamAId).toList();
     final playersB = players.where((p) => p.teamId == teamBId).toList();
 
@@ -4551,6 +4608,9 @@ class MockDatabase extends ChangeNotifier {
     String? captainBId,
     String? keeperAId,
     String? keeperBId,
+    String? strikerId,
+    String? nonStrikerId,
+    String? bowlerId,
   }) {
     final matchId = 'match_direct_${DateTime.now().millisecondsSinceEpoch}';
 
@@ -4582,8 +4642,27 @@ class MockDatabase extends ChangeNotifier {
     );
     teams.add(teamB);
 
+    // Link players to their direct match teams
+    if (playingXIA != null) {
+      for (final pid in playingXIA) {
+        final p = players.where((x) => x.id == pid).firstOrNull;
+        if (p != null) {
+          p.teamId = teamAId;
+        }
+      }
+    }
+    if (playingXIB != null) {
+      for (final pid in playingXIB) {
+        final p = players.where((x) => x.id == pid).firstOrNull;
+        if (p != null) {
+          p.teamId = teamBId;
+        }
+      }
+    }
+
+    final tossWinnerTeamId = (tossWonBy == 'team_direct_b' || tossWonBy == teamBId || tossWonBy == 'team_b') ? teamBId : teamAId;
     String battingFirstId = teamAId;
-    if (tossWonBy == teamBId) {
+    if (tossWinnerTeamId == teamBId) {
       battingFirstId = (tossDecision == 'bat') ? teamBId : teamAId;
     } else {
       battingFirstId = (tossDecision == 'bowl') ? teamBId : teamAId;
@@ -4600,7 +4679,7 @@ class MockDatabase extends ChangeNotifier {
       dateTime: DateTime.now(),
       overs: overs,
       status: MatchStatus.live,
-      tossWonBy: tossWonBy ?? teamAId,
+      tossWonBy: tossWinnerTeamId,
       tossDecision: tossDecision ?? 'bat',
       battingFirstId: battingFirstId,
       currentInningsNumber: 1,
@@ -4620,9 +4699,9 @@ class MockDatabase extends ChangeNotifier {
       inningsNumber: 1,
       battingTeamId: battingFirstId,
       bowlingTeamId: bowlingFirstId,
-      currentStrikerId: (battingFirstId == teamAId ? playingXIA : playingXIB)?.firstOrNull,
-      currentNonStrikerId: (battingFirstId == teamAId ? playingXIA : playingXIB)?.skip(1).firstOrNull,
-      currentBowlerId: (bowlingFirstId == teamAId ? playingXIA : playingXIB)?.lastOrNull,
+      currentStrikerId: strikerId ?? (battingFirstId == teamAId ? playingXIA : playingXIB)?.firstOrNull,
+      currentNonStrikerId: nonStrikerId ?? (battingFirstId == teamAId ? playingXIA : playingXIB)?.skip(1).firstOrNull ?? (battingFirstId == teamAId ? playingXIA : playingXIB)?.firstOrNull,
+      currentBowlerId: bowlerId ?? (bowlingFirstId == teamAId ? playingXIA : playingXIB)?.lastOrNull ?? (bowlingFirstId == teamAId ? playingXIA : playingXIB)?.firstOrNull,
     );
     inningsList.add(inn1);
 
@@ -5560,6 +5639,9 @@ class MockDatabase extends ChangeNotifier {
   bool isScoringUnlockedForMatch(String matchId) {
     final match = matches.where((m) => m.id == matchId).firstOrNull;
     if (match == null) return false;
+
+    // 0. Standalone / Direct match is always unlocked for live scoring
+    if (match.tournamentId == 'standalone' || match.isStandalone) return true;
 
     // 1. Creator of the tournament has full control
     if (createdTournamentIds.contains(match.tournamentId)) return true;

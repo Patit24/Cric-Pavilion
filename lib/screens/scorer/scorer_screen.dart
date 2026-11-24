@@ -12,6 +12,7 @@ import 'full_scorecard_dialog.dart';
 import '../tournaments/create_tournament_dialog.dart';
 import '../tournaments/tournament_hub_screen.dart';
 import 'fill_team_squad_dialog.dart';
+import '../matches/create_direct_match_dialog.dart';
 
 class ScorerScreen extends StatefulWidget {
   final String? initialMatchId;
@@ -106,10 +107,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final isMatchCompleted = match.status == MatchStatus.completed;
 
     // Roster players safely
-    final teamAPlayers = db.players.where((p) => p.teamId == teamA.id).toList();
-    final teamBPlayers = db.players.where((p) => p.teamId == teamB.id).toList();
-    final safeTeamAPlayers = teamAPlayers.isNotEmpty ? teamAPlayers : db.players.take(5).toList();
-    final safeTeamBPlayers = teamBPlayers.isNotEmpty ? teamBPlayers : db.players.skip(5).take(5).toList();
+    final teamAPlayers = db.players.where((p) => match.playingXIA.contains(p.id) || p.teamId == teamA.id).toList();
+    final teamBPlayers = db.players.where((p) => match.playingXIB.contains(p.id) || p.teamId == teamB.id).toList();
+    final safeTeamAPlayers = teamAPlayers;
+    final safeTeamBPlayers = teamBPlayers;
 
     // Batting & Bowling Teams for active innings
     final battingTeamId = currentInnings?.battingTeamId ?? match.battingFirstId ?? teamA.id;
@@ -145,7 +146,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final bowlerCard = db.bowlingScorecards.where((b) => b.inningsId == currentInnings?.id && b.playerId == bowler?.id).firstOrNull ??
         BowlingScorecard(id: 'temp_bowl', inningsId: currentInnings?.id ?? '', matchId: match.id, playerId: bowler?.id ?? '', playerName: bowler?.fullName ?? '');
 
-    final bool areTeamsReady = db.areTeamsReadyForScoring(match.teamAId, match.teamBId);
+    final bool isStandaloneMatch = match.tournamentId == 'standalone' || match.isStandalone;
+    final bool areTeamsReady = isStandaloneMatch
+        ? (safeTeamAPlayers.isNotEmpty && safeTeamBPlayers.isNotEmpty)
+        : db.areTeamsReadyForScoring(match.teamAId, match.teamBId, match: match);
 
     return Scaffold(
       backgroundColor: NeoGlassTheme.bgCanvas,
@@ -269,9 +273,25 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 case 'reset_match':
                   _confirmResetMatch(context, db, match);
                   break;
+                case 'create_quick_match':
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => CreateDirectMatchDialog(db: db),
+                  );
+                  break;
               }
             },
             itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'create_quick_match',
+                child: Row(
+                  children: [
+                    Icon(Icons.flash_on, color: Color(0xFF00F5A0), size: 17),
+                    SizedBox(width: 10),
+                    Text('Create Another Quick Match', style: TextStyle(color: Color(0xFF00F5A0), fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'scorecard',
                 child: Row(
@@ -381,8 +401,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
     Team teamA,
     Team teamB,
   ) {
-    final playersA = db.getTeamPlayers(teamA.id);
-    final playersB = db.getTeamPlayers(teamB.id);
+    final playersA = db.players.where((p) => match.playingXIA.contains(p.id) || p.teamId == teamA.id).toList();
+    final playersB = db.players.where((p) => match.playingXIB.contains(p.id) || p.teamId == teamB.id).toList();
     final playersAWithMobile = playersA.where((p) => p.mobileNumber.trim().isNotEmpty && p.fullName.trim().isNotEmpty).toList();
     final playersBWithMobile = playersB.where((p) => p.mobileNumber.trim().isNotEmpty && p.fullName.trim().isNotEmpty).toList();
 
@@ -562,43 +582,6 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     backgroundColor: const Color(0xFF009270),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Quick Auto-Fill for Testing Convenience
-                OutlinedButton.icon(
-                  onPressed: () {
-                    final namesA = ['Rahul Das', 'Amit Sharma', 'Suman Biswas', 'Subham Dey', 'Debayan Paul'];
-                    final entriesA = namesA.asMap().entries.map((e) => {
-                      'name': '${teamA.shortName} ${e.value}',
-                      'mobile': '983011000${e.key}',
-                      'role': e.key < 3 ? 'batter' : 'bowler',
-                    }).toList();
-                    db.saveTeamSquadWithMobileNumbers(teamId: teamA.id, playerEntries: entriesA);
-
-                    final namesB = ['Vikram Sen', 'Rohan Mukherjee', 'Tanmoy Das', 'Arjun Ghosh', 'Manoj Tiwary'];
-                    final entriesB = namesB.asMap().entries.map((e) => {
-                      'name': '${teamB.shortName} ${e.value}',
-                      'mobile': '983021000${e.key}',
-                      'role': e.key < 3 ? 'batter' : 'bowler',
-                    }).toList();
-                    db.saveTeamSquadWithMobileNumbers(teamId: teamB.id, playerEntries: entriesB);
-
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Color(0xFF009270),
-                        content: Text('Realistic squads with mobile numbers auto-filled! Scoring unlocked.'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.flash_on, size: 14, color: Colors.amberAccent),
-                  label: const Text('⚡ Auto-Fill 5 Players Each (Quick Test)', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.amberAccent),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -849,6 +832,22 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ],
               ],
             ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => CreateDirectMatchDialog(db: db),
+                );
+              },
+              icon: const Icon(Icons.flash_on, color: Colors.black, size: 18),
+              label: const Text('CREATE ANOTHER QUICK MATCH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F5A0),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ],
         ),
       ),
@@ -1060,23 +1059,47 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   ),
                 ),
 
-                if (currentInnings.inningsNumber == 2 && currentInnings.legalBalls == 0) ...[
+                if (currentInnings.legalBalls == 0) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF059669)),
+                      border: Border.all(
+                        color: currentInnings.inningsNumber == 1
+                            ? const Color(0xFF00F5A0).withValues(alpha: 0.6)
+                            : const Color(0xFF34D399).withValues(alpha: 0.6),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.flag_circle, color: Color(0xFF34D399), size: 16),
+                        Icon(
+                          currentInnings.inningsNumber == 1 ? Icons.sports_cricket : Icons.flag_circle,
+                          color: currentInnings.inningsNumber == 1 ? const Color(0xFF00F5A0) : const Color(0xFF34D399),
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            'Chase Target: ${currentInnings.targetRuns ?? ((inn1?.totalRuns ?? 0) + 1)} runs in ${match.overs} ov',
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentInnings.inningsNumber == 1
+                                    ? 'Innings 1 Opening Crease Lineup'
+                                    : 'Innings 2 Chase Target: ${currentInnings.targetRuns ?? ((inn1?.totalRuns ?? 0) + 1)} runs in ${match.overs} ov',
+                                style: TextStyle(
+                                  color: currentInnings.inningsNumber == 1 ? const Color(0xFF00F5A0) : const Color(0xFF34D399),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Striker: ${_formatPlayerName(striker, "Select")} • Non-Striker: ${_formatPlayerName(nonStriker, "Select")} • Bowler: ${_formatPlayerName(bowler, "Select")}',
+                                style: const TextStyle(color: Colors.white70, fontSize: 10),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                         if (isScorer)
@@ -1091,10 +1114,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF009270),
+                                color: currentInnings.inningsNumber == 1 ? const Color(0xFF009270) : const Color(0xFF059669),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text('Change Openers', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                              child: const Text('Change Crease', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                             ),
                           ),
                       ],
@@ -1596,16 +1619,23 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 3),
                   child: InkWell(
-                    onTap: bowler == null
+                    onTap: (striker == null || nonStriker == null)
                         ? () {
-                            _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
+                            _showOpeningCreaseDialog(context, db, currentInnings, battingTeamPlayers, bowlingTeamPlayers);
                           }
-                        : () {
-                            db.recordDelivery(
-                              inningsId: currentInnings.id,
-                              runsBatter: run,
-                            );
-                          },
+                        : bowler == null
+                            ? () {
+                                _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
+                              }
+                            : () {
+                                _executeDelivery(
+                                  context: context,
+                                  db: db,
+                                  inn: currentInnings,
+                                  bowlingPlayers: bowlingTeamPlayers,
+                                  runsBatter: run,
+                                );
+                              },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1644,9 +1674,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: bowler == null
-                      ? null
-                      : () => _showExtrasDialog(context, db, currentInnings),
+                  onTap: (striker == null || nonStriker == null)
+                      ? () => _showOpeningCreaseDialog(context, db, currentInnings, battingTeamPlayers, bowlingTeamPlayers)
+                      : bowler == null
+                          ? () => _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId)
+                          : () => _showExtrasDialog(context, db, currentInnings, bowlingTeamPlayers),
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -1675,38 +1707,43 @@ class _ScorerScreenState extends State<ScorerScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: InkWell(
-                  onTap: (bowler == null || striker == null || nonStriker == null)
-                      ? null
-                      : () {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => WicketDialog(
-                              striker: striker,
-                              nonStriker: nonStriker,
-                              battingTeamPlayers: battingTeamPlayers,
-                              bowlingTeamPlayers: bowlingTeamPlayers,
-                              deliveries: db.deliveries,
-                              inningsId: currentInnings.id,
-                              currentWickets: currentInnings.wickets,
-                              onConfirmWicket: ({
-                                required dismissalType,
-                                required dismissedPlayerId,
-                                fielderId,
-                                nextBatterId,
-                              }) {
-                                db.recordDelivery(
+                  onTap: (striker == null || nonStriker == null)
+                      ? () => _showOpeningCreaseDialog(context, db, currentInnings, battingTeamPlayers, bowlingTeamPlayers)
+                      : bowler == null
+                          ? () => _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId)
+                          : () {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => WicketDialog(
+                                  striker: striker,
+                                  nonStriker: nonStriker,
+                                  battingTeamPlayers: battingTeamPlayers,
+                                  bowlingTeamPlayers: bowlingTeamPlayers,
+                                  deliveries: db.deliveries,
                                   inningsId: currentInnings.id,
-                                  runsBatter: 0,
-                                  isWicket: true,
-                                  dismissalType: dismissalType,
-                                  dismissedPlayerId: dismissedPlayerId,
-                                  fielderId: fielderId,
-                                  nextBatterId: nextBatterId,
-                                );
-                              },
-                            ),
-                          );
-                        },
+                                  currentWickets: currentInnings.wickets,
+                                  onConfirmWicket: ({
+                                    required dismissalType,
+                                    required dismissedPlayerId,
+                                    fielderId,
+                                    nextBatterId,
+                                  }) {
+                                    _executeDelivery(
+                                      context: context,
+                                      db: db,
+                                      inn: currentInnings,
+                                      bowlingPlayers: bowlingTeamPlayers,
+                                      runsBatter: 0,
+                                      isWicket: true,
+                                      dismissalType: dismissalType,
+                                      dismissedPlayerId: dismissedPlayerId,
+                                      fielderId: fielderId,
+                                      nextBatterId: nextBatterId,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -2025,6 +2062,43 @@ class _ScorerScreenState extends State<ScorerScreen> {
     );
   }
 
+  void _executeDelivery({
+    required BuildContext context,
+    required MockDatabase db,
+    required Innings inn,
+    required List<Player> bowlingPlayers,
+    required int runsBatter,
+    int extrasRuns = 0,
+    ExtrasType extrasType = ExtrasType.none,
+    bool isWicket = false,
+    DismissalType? dismissalType,
+    String? dismissedPlayerId,
+    String? fielderId,
+    String? nextBatterId,
+  }) {
+    final activeBowlerBeforeBall = inn.currentBowlerId;
+    db.recordDelivery(
+      inningsId: inn.id,
+      runsBatter: runsBatter,
+      extrasRuns: extrasRuns,
+      extrasType: extrasType,
+      isWicket: isWicket,
+      dismissalType: dismissalType,
+      dismissedPlayerId: dismissedPlayerId,
+      fielderId: fielderId,
+      nextBatterId: nextBatterId,
+    );
+
+    final updated = db.inningsList.firstWhere((i) => i.id == inn.id);
+    if (updated.currentBowlerId == null && !updated.isCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showBowlerSelectDialog(context, db, updated, bowlingPlayers, activeBowlerBeforeBall);
+        }
+      });
+    }
+  }
+
   void _showOpeningCreaseDialog(
     BuildContext context,
     MockDatabase db,
@@ -2032,9 +2106,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
     List<Player> battingPlayers,
     List<Player> bowlingPlayers,
   ) {
-    String? curStrikerId = inn.currentStrikerId;
-    String? curNonStrikerId = inn.currentNonStrikerId;
-    String? curBowlerId = inn.currentBowlerId;
+    String? curStrikerId = inn.currentStrikerId ?? battingPlayers.firstOrNull?.id;
+    String? curNonStrikerId = inn.currentNonStrikerId ?? (battingPlayers.length > 1 ? battingPlayers[1].id : battingPlayers.firstOrNull?.id);
+    String? curBowlerId = inn.currentBowlerId ?? bowlingPlayers.where((p) => p.role == PlayerRole.bowler).firstOrNull?.id ??
+        (bowlingPlayers.isNotEmpty ? bowlingPlayers.first.id : (battingPlayers.isNotEmpty ? battingPlayers.first.id : null));
 
     showModalBottomSheet(
       context: context,
@@ -2043,7 +2118,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(builder: (sheetCtx, setSheetState) {
-          final isSameBatter = curStrikerId != null && curNonStrikerId != null && curStrikerId == curNonStrikerId;
+          final isSameBatter = curStrikerId != null && curNonStrikerId != null && curStrikerId == curNonStrikerId && battingPlayers.length > 1;
           return Padding(
             padding: EdgeInsets.only(
               top: 20,
@@ -2056,10 +2131,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'CHANGE OPENING CREASE LINEUP (0.0)',
+                  Text(
+                    'SELECT OPENING CREASE LINEUP (INNINGS ${inn.inningsNumber})',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 14),
 
@@ -2180,7 +2255,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     );
   }
 
-  void _showExtrasDialog(BuildContext context, MockDatabase db, Innings inn) {
+  void _showExtrasDialog(BuildContext context, MockDatabase db, Innings inn, List<Player> bowlingTeamPlayers) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -2233,7 +2308,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.wide);
+                  _executeDelivery(
+                    context: context,
+                    db: db,
+                    inn: inn,
+                    bowlingPlayers: bowlingTeamPlayers,
+                    runsBatter: 0,
+                    extrasRuns: 1,
+                    extrasType: ExtrasType.wide,
+                  );
                 },
               ),
               const Divider(color: Colors.white12, height: 1),
@@ -2247,7 +2330,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.noBall);
+                  _executeDelivery(
+                    context: context,
+                    db: db,
+                    inn: inn,
+                    bowlingPlayers: bowlingTeamPlayers,
+                    runsBatter: 0,
+                    extrasRuns: 1,
+                    extrasType: ExtrasType.noBall,
+                  );
                 },
               ),
               const Divider(color: Colors.white12, height: 1),
@@ -2261,7 +2352,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.bye);
+                  _executeDelivery(
+                    context: context,
+                    db: db,
+                    inn: inn,
+                    bowlingPlayers: bowlingTeamPlayers,
+                    runsBatter: 0,
+                    extrasRuns: 1,
+                    extrasType: ExtrasType.bye,
+                  );
                 },
               ),
               const Divider(color: Colors.white12, height: 1),
@@ -2275,7 +2374,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  db.recordDelivery(inningsId: inn.id, runsBatter: 0, extrasRuns: 1, extrasType: ExtrasType.legBye);
+                  _executeDelivery(
+                    context: context,
+                    db: db,
+                    inn: inn,
+                    bowlingPlayers: bowlingTeamPlayers,
+                    runsBatter: 0,
+                    extrasRuns: 1,
+                    extrasType: ExtrasType.legBye,
+                  );
                 },
               ),
             ],

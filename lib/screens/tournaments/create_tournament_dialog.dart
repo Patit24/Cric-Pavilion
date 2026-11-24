@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../theme/neo_glass_theme.dart';
 import '../../widgets/app_animations.dart';
+import '../scorer/scorer_screen.dart';
 import 'tournament_hub_screen.dart';
 
 class CreateTournamentDialog extends StatefulWidget {
@@ -132,35 +134,6 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
         'mobileController': TextEditingController(text: mobile),
         'role': role,
       });
-    });
-  }
-
-  void _autoFillSampleSquad(int teamIdx, String teamPrefix, String mobilePrefix) {
-    final names = [
-      'Rahul Das',
-      'Amit Sharma',
-      'Suman Biswas',
-      'Subham Dey',
-      'Debayan Paul',
-      'Tanmoy Das',
-      'Arjun Ghosh',
-      'Vikram Sen',
-      'Rohan Mukherjee',
-      'Pankaj Roy',
-      'Manoj Tiwary',
-    ];
-
-    setState(() {
-      final pList = customTeams[teamIdx]['players'] as List<Map<String, dynamic>>;
-      pList.clear();
-      for (int i = 0; i < names.length; i++) {
-        final role = i < 4 ? 'batter' : (i < 6 ? 'wicketkeeper' : (i < 8 ? 'allrounder' : 'bowler'));
-        pList.add({
-          'nameController': TextEditingController(text: '$teamPrefix ${names[i]}'),
-          'mobileController': TextEditingController(text: '$mobilePrefix${1000 + i}'),
-          'role': role,
-        });
-      }
     });
   }
 
@@ -1275,7 +1248,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Add your playing XI players, paste your WhatsApp roster, or click Auto-Fill 11.',
+                        'Add your playing XI players or paste your squad roster.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white60, fontSize: 11),
                       ),
@@ -1288,21 +1261,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                           ElevatedButton.icon(
                             onPressed: () => _addPlayerToTeam(selectedTeamIndex),
                             icon: const Icon(Icons.add, size: 14, color: Colors.black),
-                            label: const Text('Add First Player', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
+                            label: const Text('Add Player', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF34D399),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              final short = teamShortCtrl.text.trim().isNotEmpty ? teamShortCtrl.text.trim() : 'T${selectedTeamIndex + 1}';
-                              _autoFillSampleSquad(selectedTeamIndex, short, '987${selectedTeamIndex}0');
-                            },
-                            icon: const Icon(Icons.flash_on, size: 14, color: Colors.amberAccent),
-                            label: const Text('Auto-Fill 11', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.amberAccent),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
                           ),
@@ -1456,16 +1417,6 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 runSpacing: 8,
                 children: [
                   NeoGlassButton(
-                    onPressed: () => _executeTournamentCreation(skipPlayers: true),
-                    icon: Icons.flash_on,
-                    gradient: NeoGlassTheme.amberGoldGradient,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    child: const Text(
-                      '⚡ Quick Create',
-                      style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  NeoGlassButton(
                     onPressed: () {
                       if (nameController.text.trim().isEmpty || shortController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1480,10 +1431,10 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     },
                     icon: Icons.arrow_forward,
                     gradient: NeoGlassTheme.neonGradient,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     child: const Text(
-                      'Next: Teams & Players',
-                      style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
+                      'Next: Teams & Players →',
+                      style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1637,18 +1588,185 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     );
 
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF009270),
-        content: Text('Tournament "${created.name}" created (${created.overs} Ov)! (PIN: ${created.passcode})'),
-      ),
-    );
 
-    // Open dedicated tournament hub immediately!
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (ctx) => TournamentHubScreen(initialTournamentId: created.id),
+    final inauguralMatch = widget.db.matches.where((m) => m.tournamentId == created.id).firstOrNull;
+    if (inauguralMatch != null) {
+      _showTournamentCreatedIdPassDialog(context, created, inauguralMatch);
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) => TournamentHubScreen(initialTournamentId: created.id),
+        ),
+      );
+    }
+  }
+
+  void _showTournamentCreatedIdPassDialog(BuildContext context, Tournament tourn, MatchModel inauguralMatch) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF00F5A0), width: 1.4),
+        ),
+        contentPadding: const EdgeInsets.all(22),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header Badge & Title
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.emoji_events, color: Color(0xFF00F5A0), size: 26),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tourn.name,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Tournament Created • ${tourn.overs} Overs T20',
+                          style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // ID & Passcode Box
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Scorer Room ID:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF00D9F5).withValues(alpha: 0.5)),
+                          ),
+                          child: Text(
+                            tourn.roomId,
+                            style: const TextStyle(color: Color(0xFF00D9F5), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white10, height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Scorer PIN / Passcode:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                          ),
+                          child: Text(
+                            tourn.passcode,
+                            style: const TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Organizer Access Notice
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF009270).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF059669)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Icon(Icons.verified_user, color: Color(0xFF34D399), size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'You are the Organizer: Live scoring is unlocked for you immediately! Share this Room ID and PIN only with delegates or other scorers if you want someone else to score.',
+                        style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Buttons
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ScorerScreen(initialMatchId: inauguralMatch.id),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.sports_cricket, size: 18, color: Colors.black),
+                label: const Text('Conduct Toss & Start Match Scoring 🚀', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00F5A0),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TournamentHubScreen(initialTournamentId: tourn.id),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.white24),
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('View Tournament Hub', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

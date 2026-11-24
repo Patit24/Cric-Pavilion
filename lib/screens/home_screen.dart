@@ -11,6 +11,7 @@ import 'tournaments/create_tournament_dialog.dart';
 import 'auction/create_auction_dialog.dart';
 import 'auction/auction_screen.dart';
 import 'matches/match_detail_screen.dart';
+import 'matches/create_direct_match_dialog.dart';
 import '../../widgets/activity_audit_dialog.dart';
 import 'public/join_auction_screen.dart';
 import '../../widgets/organize_hub_modal.dart';
@@ -133,6 +134,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          // Quick Match Launcher
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => CreateDirectMatchDialog(db: db),
+                );
+              },
+              icon: const Icon(Icons.flash_on, color: Colors.black, size: 14),
+              label: const Text(
+                'QUICK MATCH',
+                style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F5A0),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+            ),
+          ),
           // Activity & Audit Log Access
           IconButton(
             tooltip: 'System Audit Log',
@@ -156,6 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
           // 1. TOURNAMENT SEARCH & FILTER BAR
           // ==========================================
           _buildTournamentSearchBar(context, db, activeTournaments),
+
+          // ==========================================
+          // QUICK MATCH BANNER
+          // ==========================================
+          _buildQuickMatchBanner(context, db),
 
           // ==========================================
           // 2. CRICBUZZ HORIZONTAL MATCHES CAROUSEL
@@ -189,6 +218,77 @@ class _HomeScreenState extends State<HomeScreen> {
               searchQuery: searchQuery,
               filterTitle: filterTitle,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // QUICK MATCH BANNER
+  // =========================================================================
+  Widget _buildQuickMatchBanner(BuildContext context, MockDatabase db) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0x6600F5A0), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00F5A0).withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.flash_on, color: Color(0xFF00F5A0), size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  '⚡ Start a Quick Match',
+                  style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w900),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Friendly 2-team match with custom overs & live scoring.',
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => CreateDirectMatchDialog(db: db),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00F5A0),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Play Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
           ),
         ],
       ),
