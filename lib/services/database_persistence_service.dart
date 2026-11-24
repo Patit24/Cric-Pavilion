@@ -395,6 +395,40 @@ class DatabasePersistenceService {
   }
 
   // =========================================================================
+  // PUBLIC ACCESSORS FOR CLOUD DATABASE & SERVICES
+  // =========================================================================
+
+  static Map<String, dynamic> userAccountToMap(UserAccount u) => _userAccountToMap(u);
+  static UserAccount userAccountFromMap(Map<String, dynamic> m) => _userAccountFromMap(m);
+
+  static Map<String, dynamic> matchToMap(MatchModel m) => _matchToMap(m);
+  static MatchModel matchFromMap(Map<String, dynamic> m) => _matchFromMap(m);
+
+  static Map<String, dynamic> tournamentToMap(Tournament t) => _tournamentToMap(t);
+  static Tournament tournamentFromMap(Map<String, dynamic> m) => _tournamentFromMap(m);
+
+  static Map<String, dynamic> teamToMap(Team t) => _teamToMap(t);
+  static Team teamFromMap(Map<String, dynamic> m) => _teamFromMap(m);
+
+  static Map<String, dynamic> playerToMap(Player p) => _playerToMap(p);
+  static Player playerFromMap(Map<String, dynamic> m) => _playerFromMap(m);
+
+  static Map<String, dynamic> inningsToMap(Innings i) => _inningsToMap(i);
+  static Innings inningsFromMap(Map<String, dynamic> m) => _inningsFromMap(m);
+
+  static Map<String, dynamic> deliveryToMap(Delivery d) => _deliveryToMap(d);
+  static Delivery deliveryFromMap(Map<String, dynamic> m) => _deliveryFromMap(m);
+
+  static Map<String, dynamic> battingScorecardToMap(BattingScorecard b) => _battingScorecardToMap(b);
+  static BattingScorecard battingScorecardFromMap(Map<String, dynamic> m) => _battingScorecardFromMap(m);
+
+  static Map<String, dynamic> bowlingScorecardToMap(BowlingScorecard bw) => _bowlingScorecardToMap(bw);
+  static BowlingScorecard bowlingScorecardFromMap(Map<String, dynamic> m) => _bowlingScorecardFromMap(m);
+
+  static Map<String, dynamic> auditLogToMap(AuditLog a) => _auditLogToMap(a);
+  static AuditLog auditLogFromMap(Map<String, dynamic> m) => _auditLogFromMap(m);
+
+  // =========================================================================
   // SERIALIZERS & DESERIALIZERS
   // =========================================================================
 

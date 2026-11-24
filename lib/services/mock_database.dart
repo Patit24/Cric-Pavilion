@@ -5,6 +5,7 @@ import 'cricket_rules_engine.dart';
 import 'totp_service.dart';
 import 'database_persistence_service.dart';
 import 'server_sync_service.dart';
+import 'firestore_database_service.dart';
 
 class MockDatabase extends ChangeNotifier {
   bool _persistScheduled = false;
@@ -16,6 +17,7 @@ class MockDatabase extends ChangeNotifier {
       _persistScheduled = false;
       await DatabasePersistenceService.saveDatabase(this);
       ServerSyncService.pushInBackground(this);
+      FirestoreDatabaseService.pushStateInBackground(this);
     });
   }
 
@@ -29,6 +31,7 @@ class MockDatabase extends ChangeNotifier {
   Future<void> persistState() async {
     await DatabasePersistenceService.saveDatabase(this);
     ServerSyncService.pushInBackground(this);
+    FirestoreDatabaseService.pushStateInBackground(this);
   }
 
   /// Hydrates database from permanent storage if saved data exists
@@ -42,6 +45,14 @@ class MockDatabase extends ChangeNotifier {
       await ServerSyncService.syncWithServer(this);
       ServerSyncService.startAutoSyncPolling(this);
     } catch (_) {}
+
+    // Initialize real-time Cloud Firestore synchronization
+    try {
+      await FirestoreDatabaseService.init(this);
+    } catch (e) {
+      debugPrint('FirestoreDatabaseService init notice: $e');
+    }
+
     super.notifyListeners();
   }
 
@@ -471,6 +482,10 @@ class MockDatabase extends ChangeNotifier {
       details: 'User logged in via $loginMethod: ${user.fullName} (${user.email})',
       performedBy: user.fullName,
     );
+
+    // Bridge with Firebase Auth for Firestore security rules write permission
+    FirestoreDatabaseService.ensureFirebaseAuthForUser(user);
+
     notifyListeners();
   }
 
@@ -2690,6 +2705,20 @@ class MockDatabase extends ChangeNotifier {
         match.winMargin = '$runsDefended runs';
       }
     }
+
+    // Realtime Cloud Firestore Push for instant multi-device scoring broadcast
+    try {
+      final lastDel = deliveries.last;
+      final bCards = battingScorecards.where((b) => b.inningsId == inningsId).toList();
+      final bwCards = bowlingScorecards.where((bw) => bw.inningsId == inningsId).toList();
+      FirestoreDatabaseService.pushLiveScoringEvent(
+        match: match,
+        innings: inn,
+        delivery: lastDel,
+        batCards: bCards,
+        bowlCards: bwCards,
+      );
+    } catch (_) {}
 
     notifyListeners();
   }

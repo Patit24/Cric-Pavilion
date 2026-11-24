@@ -1,0 +1,897 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model Documentation
+    // ===============================================================
+    //
+    // Collection: users/{userId}
+    //   - id: string (required, immutable, matches userId)
+    //   - fullName: string (required, 1-100 chars)
+    //   - email: string (required, valid email format, 3-100 chars)
+    //   - mobileNumber: string (optional, 0-25 chars)
+    //   - passwordHash: string (optional, 0-256 chars)
+    //   - createdAt: string or timestamp (optional)
+    //   - isMobileVerified: bool (optional)
+    //   - linkedPlayerId: string (optional, 0-100 chars)
+    //   - isGoogleAuthEnabled: bool (optional)
+    //   - googleAuthSecret: string (optional, 0-100 chars)
+    //   - googleAuthRecoveryCodes: list of strings (optional, max 20 items)
+    //   - googleAuthEnabledAt: string or timestamp (optional)
+    //   - isGoogleOAuthUser: bool (optional)
+    //   - ownedTeamIds: list of strings (optional, max 50 items)
+    //   - conductorAuctionIds: list of strings (optional, max 50 items)
+    //   - scorerMatchIds: list of strings (optional, max 50 items)
+    //   - tournamentRoles: map (optional, max 50 keys)
+    //
+    // Collection: tournaments/{tournamentId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - name: string (required, 1-150 chars)
+    //   - shortName: string (required, 1-30 chars)
+    //   - location: string (required, 1-150 chars)
+    //   - startDate: string (required, 1-50 chars)
+    //   - endDate: string (required, 1-50 chars)
+    //   - overs: int (required, 1-100)
+    //   - totalTeams: int (required, 1-64)
+    //   - status: string (required, 1-30 chars)
+    //   - bannerUrl: string (optional, 0-1000 chars)
+    //   - roomId: string (optional, 0-50 chars)
+    //   - passcode: string (optional, 0-50 chars)
+    //   - createdBy: string (optional, 0-100 chars)
+    //
+    // Collection: teams/{teamId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - tournamentId: string (optional, 0-100 chars)
+    //   - name: string (required, 1-100 chars)
+    //   - shortName: string (required, 1-20 chars)
+    //   - uniqueTeamCode: string (optional, 0-50 chars)
+    //   - passcode: string (optional, 0-50 chars)
+    //   - ownerMobileNumber: string (optional, 0-25 chars)
+    //   - ownerName: string (optional, 0-100 chars)
+    //   - primaryColor: int (optional, ARGB color int)
+    //   - logoUrl: string (optional, 0-1000 chars)
+    //   - purseRemaining: int (required, >= 0)
+    //   - maxPurse: int (required, >= 0)
+    //   - squadCount: int (required, >= 0)
+    //   - minSquadRequirement: int (optional, >= 0)
+    //   - maxSquadLimit: int (optional, >= 0)
+    //   - overseasCount: int (optional, >= 0)
+    //
+    // Collection: players/{playerId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - permanentPlayerCode: string (optional, 0-50 chars)
+    //   - tournamentId: string (optional, 0-100 chars)
+    //   - fullName: string (required, 1-100 chars)
+    //   - displayName: string (required, 1-100 chars)
+    //   - mobileNumber: string (optional, 0-25 chars)
+    //   - age: int (optional, 0-120)
+    //   - dateOfBirth: string (optional, 0-30 chars)
+    //   - city: string (optional, 0-100 chars)
+    //   - role: string (required, e.g. batsman, bowler, allRounder, wicketKeeper)
+    //   - battingStyle: string (optional, 0-50 chars)
+    //   - bowlingStyle: string (optional, 0-50 chars)
+    //   - experienceYears: int (optional, 0-50)
+    //   - category: string (optional, 0-50 chars)
+    //   - basePrice: int (required, >= 0)
+    //   - photoUrl: string (optional, 0-1000 chars)
+    //   - registrationStatus: string (optional, 0-30 chars)
+    //   - auctionStatus: string (optional, 0-30 chars)
+    //   - teamId: string (optional, 0-100 chars)
+    //   - soldPrice: int (optional, >= 0)
+    //   - soldRound: int (optional, >= 0)
+    //   - soldTimestamp: string or timestamp (optional)
+    //   - isOverseas: bool (optional)
+    //   - runs: int (optional, >= 0)
+    //   - wickets: int (optional, >= 0)
+    //   - matches: int (optional, >= 0)
+    //   - registeredAt: string or timestamp (optional)
+    //   - registeredByOrganizerId: string (optional, 0-100 chars)
+    //   - isMobileVerified: bool (optional)
+    //   - teamHistory: list (optional, max 50 items)
+    //
+    // Collection: matches/{matchId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - tournamentId: string (required, 0-100 chars)
+    //   - stage: string (required, 1-50 chars)
+    //   - teamAId: string (required, 1-100 chars)
+    //   - teamBId: string (required, 1-100 chars)
+    //   - venue: string (required, 1-150 chars)
+    //   - dateTime: string or timestamp (required)
+    //   - overs: int (required, 1-100)
+    //   - status: string (required, scheduled, toss, live, inningsBreak, completed, abandoned)
+    //   - tossWonBy: string (optional, 0-100 chars)
+    //   - tossDecision: string (optional, 0-30 chars)
+    //   - battingFirstId: string (optional, 0-100 chars)
+    //   - winnerId: string (optional, 0-100 chars)
+    //   - winMargin: string (optional, 0-100 chars)
+    //   - currentInningsNumber: int (optional, 1-4)
+    //   - playingXIA: list of strings (optional, max 30 items)
+    //   - playingXIB: list of strings (optional, max 30 items)
+    //   - captainAId: string (optional, 0-100 chars)
+    //   - captainBId: string (optional, 0-100 chars)
+    //   - keeperAId: string (optional, 0-100 chars)
+    //   - keeperBId: string (optional, 0-100 chars)
+    //   - playerOfTheMatchId: string (optional, 0-100 chars)
+    //   - playerOfTheMatchName: string (optional, 0-100 chars)
+    //   - isLocked: bool (optional)
+    //
+    // Collection: innings/{inningsId} & matches/{matchId}/innings/{inningsId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - matchId: string (required, 1-100 chars)
+    //   - inningsNumber: int (required, 1-4)
+    //   - battingTeamId: string (required, 1-100 chars)
+    //   - bowlingTeamId: string (required, 1-100 chars)
+    //   - totalRuns: int (required, >= 0)
+    //   - wickets: int (required, 0-11)
+    //   - legalBalls: int (required, >= 0)
+    //   - oversStr: string (required, 1-15 chars)
+    //   - extrasWides: int (optional, >= 0)
+    //   - extrasNoBalls: int (optional, >= 0)
+    //   - extrasByes: int (optional, >= 0)
+    //   - extrasLegByes: int (optional, >= 0)
+    //   - totalExtras: int (optional, >= 0)
+    //   - isCompleted: bool (required)
+    //   - currentStrikerId: string (optional, 0-100 chars)
+    //   - currentNonStrikerId: string (optional, 0-100 chars)
+    //   - currentBowlerId: string (optional, 0-100 chars)
+    //   - targetRuns: int (optional, >= 0)
+    //
+    // Collection: deliveries/{deliveryId} & matches/{matchId}/deliveries/{deliveryId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - inningsId: string (required, 1-100 chars)
+    //   - matchId: string (required, 1-100 chars)
+    //   - overNumber: int (required, >= 0)
+    //   - ballInOver: int (required, 1-10)
+    //   - deliverySequence: int (required, >= 1)
+    //   - strikerId: string (required, 1-100 chars)
+    //   - nonStrikerId: string (required, 1-100 chars)
+    //   - bowlerId: string (required, 1-100 chars)
+    //   - runsBatter: int (required, 0-7)
+    //   - extrasRuns: int (required, 0-10)
+    //   - isLegal: bool (required)
+    //   - isWicket: bool (required)
+    //   - extrasType: string (optional, 0-30 chars)
+    //   - dismissalType: string (optional, 0-30 chars)
+    //   - dismissedPlayerId: string (optional, 0-100 chars)
+    //   - fielderId: string (optional, 0-100 chars)
+    //   - commentaryText: string (optional, 0-500 chars)
+    //   - timestamp: string or timestamp (required)
+    //   - isUndone: bool (optional)
+    //
+    // Collection: battingScorecards/{scorecardId} & matches/{matchId}/battingScorecards/{scorecardId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - inningsId: string (required, 1-100 chars)
+    //   - matchId: string (required, 1-100 chars)
+    //   - playerId: string (required, 1-100 chars)
+    //   - playerName: string (required, 1-100 chars)
+    //   - runs: int (required, >= 0)
+    //   - balls: int (required, >= 0)
+    //   - fours: int (required, >= 0)
+    //   - sixes: int (required, >= 0)
+    //   - strikeRate: number (required, >= 0)
+    //   - dismissalText: string (optional, 0-200 chars)
+    //   - isOut: bool (required)
+    //
+    // Collection: bowlingScorecards/{scorecardId} & matches/{matchId}/bowlingScorecards/{scorecardId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - inningsId: string (required, 1-100 chars)
+    //   - matchId: string (required, 1-100 chars)
+    //   - playerId: string (required, 1-100 chars)
+    //   - playerName: string (required, 1-100 chars)
+    //   - oversStr: string (required, 1-15 chars)
+    //   - legalBalls: int (required, >= 0)
+    //   - maidens: int (required, >= 0)
+    //   - runsConceded: int (required, >= 0)
+    //   - wickets: int (required, >= 0)
+    //   - dots: int (optional, >= 0)
+    //   - economy: number (required, >= 0)
+    //
+    // Collection: auctions/{auctionId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - tournamentId: string (required, 0-100 chars)
+    //   - title: string (required, 1-150 chars)
+    //   - auctionCode: string (optional, 0-50 chars)
+    //   - auctionPin: string (optional, 0-50 chars)
+    //   - isJoiningEnabled: bool (optional)
+    //   - joiningMode: string (optional, 0-30 chars)
+    //   - hostUserId: string (required, 1-100 chars)
+    //   - isPursePublic: bool (optional)
+    //   - committeeUserIds: list of strings (optional, max 50 items)
+    //   - gavelWarningCount: int (optional, >= 0)
+    //   - status: string (required, 1-30 chars)
+    //   - floorStatus: string (optional, 0-30 chars)
+    //   - currentLotId: string (optional, 0-100 chars)
+    //   - currentBid: int (optional, >= 0)
+    //   - highBidderTeamId: string (optional, 0-100 chars)
+    //   - totalLots: int (required, >= 0)
+    //   - completedLots: int (optional, >= 0)
+    //   - adminPasscode: string (optional, 0-50 chars)
+    //   - minBidIncrement: int (optional, >= 0)
+    //   - maxPursePerTeam: int (optional, >= 0)
+    //   - requiredTeamsCount: int (optional, >= 0)
+    //   - joinedTeamIds: list of strings (optional, max 50 items)
+    //   - biddingSecondsRemaining: int (optional, >= 0)
+    //   - defaultTimerSeconds: int (optional, >= 0)
+    //   - isTimerRunning: bool (optional)
+    //   - isBiddingActive: bool (optional)
+    //   - assignedAuctioneerId: string (optional, 0-100 chars)
+    //   - assignedAuctioneerName: string (optional, 0-100 chars)
+    //   - assignedOperatorIds: list of strings (optional, max 50 items)
+    //   - currentRound: int (optional, >= 1)
+    //   - totalRounds: int (optional, >= 1)
+    //   - minSquadSize: int (optional, >= 0)
+    //   - maxSquadSize: int (optional, >= 0)
+    //   - maxOverseasPlayers: int (optional, >= 0)
+    //   - allowUnsoldReEntry: bool (optional)
+    //   - basePrice: int (optional, >= 0)
+    //   - bidIncrements: list of ints (optional, max 20 items)
+    //
+    // Collection: auctions/{auctionId}/lots/{lotId} & auctionLots/{lotId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - auctionId: string (required, 1-100 chars)
+    //   - lotNumber: int (required, >= 1)
+    //   - playerId: string (required, 1-100 chars)
+    //   - category: string (required, 1-50 chars)
+    //   - basePrice: int (required, >= 0)
+    //   - startingPrice: int (optional, >= 0)
+    //   - currentBid: int (optional, >= 0)
+    //   - winningTeamId: string (optional, 0-100 chars)
+    //   - status: string (required, 1-30 chars)
+    //   - isSelectedForSpin: bool (optional)
+    //   - round: int (optional, >= 1)
+    //   - soldPrice: int (optional, >= 0)
+    //   - soldTimestamp: string or timestamp (optional)
+    //
+    // Collection: auctions/{auctionId}/bids/{bidId} & auctionBids/{bidId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - lotId: string (required, 1-100 chars)
+    //   - teamId: string (required, 1-100 chars)
+    //   - teamName: string (required, 1-100 chars)
+    //   - amount: int (required, > 0)
+    //   - timestamp: string or timestamp (required)
+    //   - auctionId: string (optional, 0-100 chars)
+    //   - playerId: string (optional, 0-100 chars)
+    //   - round: int (optional, >= 1)
+    //   - isValid: bool (optional)
+    //   - rejectionReason: string (optional, 0-200 chars)
+    //
+    // Collection: auctions/{auctionId}/transactions/{txId} & auctionTransactions/{txId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - tournamentId: string (optional, 0-100 chars)
+    //   - auctionId: string (required, 1-100 chars)
+    //   - lotId: string (required, 1-100 chars)
+    //   - playerId: string (required, 1-100 chars)
+    //   - playerName: string (optional, 0-100 chars)
+    //   - teamId: string (required, 1-100 chars)
+    //   - teamName: string (optional, 0-100 chars)
+    //   - amount: int (required, >= 0)
+    //   - round: int (required, >= 1)
+    //   - type: string (required, e.g. PURCHASE, REVERSAL, ADJUSTMENT)
+    //   - timestamp: string or timestamp (required)
+    //   - performedBy: string (optional, 0-100 chars)
+    //   - notes: string (optional, 0-500 chars)
+    //
+    // Collection: auditLogs/{logId}
+    //   - id: string (required, immutable, 1-100 chars)
+    //   - timestamp: string or timestamp (required)
+    //   - category: string (required, 1-50 chars)
+    //   - action: string (required, 1-100 chars)
+    //   - details: string (required, 0-1000 chars)
+    //   - performedBy: string (required, 1-100 chars)
+    //   - tournamentId: string (optional, 0-100 chars)
+    //   - auctionId: string (optional, 0-100 chars)
+    //   - role: string (optional, 0-50 chars)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Global Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequired(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isNonEmptyString(val, maxLen) {
+      return val is string && val.size() > 0 && val.size() <= maxLen;
+    }
+
+    function isOptionalString(val, maxLen) {
+      return val == null || (val is string && val.size() <= maxLen);
+    }
+
+    function isPosInt(val) {
+      return val is int && val >= 0;
+    }
+
+    function isStrictPosInt(val) {
+      return val is int && val > 0;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() >= 3 && email.size() <= 100 &&
+        email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isStringList(arr, maxItems) {
+      return arr is list && arr.size() <= maxItems;
+    }
+
+    // ===============================================================
+    // Domain Validator Functions (Used on BOTH create and update)
+    // ===============================================================
+
+    function isValidUserAccount(data, userId) {
+      return hasRequired(['id', 'fullName', 'email']) &&
+        data.id == userId &&
+        isNonEmptyString(data.fullName, 100) &&
+        isValidEmail(data.email) &&
+        (!('mobileNumber' in data) || isOptionalString(data.mobileNumber, 25)) &&
+        (!('passwordHash' in data) || isOptionalString(data.passwordHash, 256)) &&
+        (!('linkedPlayerId' in data) || isOptionalString(data.linkedPlayerId, 100)) &&
+        (!('isMobileVerified' in data) || data.isMobileVerified is bool) &&
+        (!('isGoogleAuthEnabled' in data) || data.isGoogleAuthEnabled is bool) &&
+        (!('googleAuthSecret' in data) || isOptionalString(data.googleAuthSecret, 100)) &&
+        (!('isGoogleOAuthUser' in data) || data.isGoogleOAuthUser is bool) &&
+        (!('ownedTeamIds' in data) || isStringList(data.ownedTeamIds, 50)) &&
+        (!('conductorAuctionIds' in data) || isStringList(data.conductorAuctionIds, 50)) &&
+        (!('scorerMatchIds' in data) || isStringList(data.scorerMatchIds, 50)) &&
+        (!('tournamentRoles' in data) || (data.tournamentRoles is map && data.tournamentRoles.size() <= 50));
+    }
+
+    function isValidTournament(data) {
+      return hasRequired(['id', 'name', 'shortName', 'location', 'startDate', 'endDate', 'overs', 'totalTeams', 'status']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.name, 150) &&
+        isNonEmptyString(data.shortName, 30) &&
+        isNonEmptyString(data.location, 150) &&
+        isNonEmptyString(data.startDate, 50) &&
+        isNonEmptyString(data.endDate, 50) &&
+        (data.overs is int && data.overs >= 1 && data.overs <= 100) &&
+        (data.totalTeams is int && data.totalTeams >= 1 && data.totalTeams <= 64) &&
+        isNonEmptyString(data.status, 30) &&
+        (!('bannerUrl' in data) || isOptionalString(data.bannerUrl, 1000)) &&
+        (!('roomId' in data) || isOptionalString(data.roomId, 50)) &&
+        (!('passcode' in data) || isOptionalString(data.passcode, 50)) &&
+        (!('createdBy' in data) || isOptionalString(data.createdBy, 100));
+    }
+
+    function isValidTeam(data) {
+      return hasRequired(['id', 'name', 'shortName', 'purseRemaining', 'maxPurse', 'squadCount']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.name, 100) &&
+        isNonEmptyString(data.shortName, 20) &&
+        isPosInt(data.purseRemaining) &&
+        isPosInt(data.maxPurse) &&
+        isPosInt(data.squadCount) &&
+        (!('tournamentId' in data) || isOptionalString(data.tournamentId, 100)) &&
+        (!('uniqueTeamCode' in data) || isOptionalString(data.uniqueTeamCode, 50)) &&
+        (!('passcode' in data) || isOptionalString(data.passcode, 50)) &&
+        (!('ownerMobileNumber' in data) || isOptionalString(data.ownerMobileNumber, 25)) &&
+        (!('ownerName' in data) || isOptionalString(data.ownerName, 100)) &&
+        (!('logoUrl' in data) || isOptionalString(data.logoUrl, 1000)) &&
+        (!('primaryColor' in data) || data.primaryColor is int) &&
+        (!('minSquadRequirement' in data) || isPosInt(data.minSquadRequirement)) &&
+        (!('maxSquadLimit' in data) || isPosInt(data.maxSquadLimit)) &&
+        (!('overseasCount' in data) || isPosInt(data.overseasCount));
+    }
+
+    function isValidPlayer(data) {
+      return hasRequired(['id', 'fullName', 'displayName', 'role', 'basePrice']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.fullName, 100) &&
+        isNonEmptyString(data.displayName, 100) &&
+        isNonEmptyString(data.role, 30) &&
+        isPosInt(data.basePrice) &&
+        (!('permanentPlayerCode' in data) || isOptionalString(data.permanentPlayerCode, 50)) &&
+        (!('tournamentId' in data) || isOptionalString(data.tournamentId, 100)) &&
+        (!('mobileNumber' in data) || isOptionalString(data.mobileNumber, 25)) &&
+        (!('age' in data) || (data.age is int && data.age >= 0 && data.age <= 120)) &&
+        (!('city' in data) || isOptionalString(data.city, 100)) &&
+        (!('battingStyle' in data) || isOptionalString(data.battingStyle, 50)) &&
+        (!('bowlingStyle' in data) || isOptionalString(data.bowlingStyle, 50)) &&
+        (!('experienceYears' in data) || (data.experienceYears is int && data.experienceYears >= 0 && data.experienceYears <= 50)) &&
+        (!('category' in data) || isOptionalString(data.category, 50)) &&
+        (!('photoUrl' in data) || isOptionalString(data.photoUrl, 1000)) &&
+        (!('registrationStatus' in data) || isOptionalString(data.registrationStatus, 30)) &&
+        (!('auctionStatus' in data) || isOptionalString(data.auctionStatus, 30)) &&
+        (!('teamId' in data) || isOptionalString(data.teamId, 100)) &&
+        (!('soldPrice' in data) || isPosInt(data.soldPrice)) &&
+        (!('soldRound' in data) || isPosInt(data.soldRound)) &&
+        (!('isOverseas' in data) || data.isOverseas is bool) &&
+        (!('runs' in data) || isPosInt(data.runs)) &&
+        (!('wickets' in data) || isPosInt(data.wickets)) &&
+        (!('matches' in data) || isPosInt(data.matches)) &&
+        (!('isMobileVerified' in data) || data.isMobileVerified is bool) &&
+        (!('teamHistory' in data) || (data.teamHistory is list && data.teamHistory.size() <= 50));
+    }
+
+    function isValidMatch(data) {
+      return hasRequired(['id', 'tournamentId', 'stage', 'teamAId', 'teamBId', 'venue', 'overs', 'status']) &&
+        isNonEmptyString(data.id, 100) &&
+        isOptionalString(data.tournamentId, 100) &&
+        isNonEmptyString(data.stage, 50) &&
+        isNonEmptyString(data.teamAId, 100) &&
+        isNonEmptyString(data.teamBId, 100) &&
+        isNonEmptyString(data.venue, 150) &&
+        (data.overs is int && data.overs >= 1 && data.overs <= 100) &&
+        isNonEmptyString(data.status, 30) &&
+        (!('tossWonBy' in data) || isOptionalString(data.tossWonBy, 100)) &&
+        (!('tossDecision' in data) || isOptionalString(data.tossDecision, 30)) &&
+        (!('battingFirstId' in data) || isOptionalString(data.battingFirstId, 100)) &&
+        (!('winnerId' in data) || isOptionalString(data.winnerId, 100)) &&
+        (!('winMargin' in data) || isOptionalString(data.winMargin, 100)) &&
+        (!('currentInningsNumber' in data) || (data.currentInningsNumber is int && data.currentInningsNumber >= 1 && data.currentInningsNumber <= 4)) &&
+        (!('playingXIA' in data) || isStringList(data.playingXIA, 30)) &&
+        (!('playingXIB' in data) || isStringList(data.playingXIB, 30)) &&
+        (!('captainAId' in data) || isOptionalString(data.captainAId, 100)) &&
+        (!('captainBId' in data) || isOptionalString(data.captainBId, 100)) &&
+        (!('keeperAId' in data) || isOptionalString(data.keeperAId, 100)) &&
+        (!('keeperBId' in data) || isOptionalString(data.keeperBId, 100)) &&
+        (!('playerOfTheMatchId' in data) || isOptionalString(data.playerOfTheMatchId, 100)) &&
+        (!('playerOfTheMatchName' in data) || isOptionalString(data.playerOfTheMatchName, 100)) &&
+        (!('isLocked' in data) || data.isLocked is bool);
+    }
+
+    function isValidInnings(data) {
+      return hasRequired(['id', 'matchId', 'inningsNumber', 'battingTeamId', 'bowlingTeamId', 'totalRuns', 'wickets', 'legalBalls', 'oversStr', 'isCompleted']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.matchId, 100) &&
+        (data.inningsNumber is int && data.inningsNumber >= 1 && data.inningsNumber <= 4) &&
+        isNonEmptyString(data.battingTeamId, 100) &&
+        isNonEmptyString(data.bowlingTeamId, 100) &&
+        isPosInt(data.totalRuns) &&
+        (data.wickets is int && data.wickets >= 0 && data.wickets <= 11) &&
+        isPosInt(data.legalBalls) &&
+        isNonEmptyString(data.oversStr, 15) &&
+        data.isCompleted is bool &&
+        (!('extrasWides' in data) || isPosInt(data.extrasWides)) &&
+        (!('extrasNoBalls' in data) || isPosInt(data.extrasNoBalls)) &&
+        (!('extrasByes' in data) || isPosInt(data.extrasByes)) &&
+        (!('extrasLegByes' in data) || isPosInt(data.extrasLegByes)) &&
+        (!('totalExtras' in data) || isPosInt(data.totalExtras)) &&
+        (!('currentStrikerId' in data) || isOptionalString(data.currentStrikerId, 100)) &&
+        (!('currentNonStrikerId' in data) || isOptionalString(data.currentNonStrikerId, 100)) &&
+        (!('currentBowlerId' in data) || isOptionalString(data.currentBowlerId, 100)) &&
+        (!('targetRuns' in data) || isPosInt(data.targetRuns));
+    }
+
+    function isValidDelivery(data) {
+      return hasRequired(['id', 'inningsId', 'matchId', 'overNumber', 'ballInOver', 'deliverySequence', 'strikerId', 'nonStrikerId', 'bowlerId', 'runsBatter', 'extrasRuns', 'isLegal', 'isWicket']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.inningsId, 100) &&
+        isNonEmptyString(data.matchId, 100) &&
+        isPosInt(data.overNumber) &&
+        (data.ballInOver is int && data.ballInOver >= 1 && data.ballInOver <= 10) &&
+        (data.deliverySequence is int && data.deliverySequence >= 1) &&
+        isNonEmptyString(data.strikerId, 100) &&
+        isNonEmptyString(data.nonStrikerId, 100) &&
+        isNonEmptyString(data.bowlerId, 100) &&
+        (data.runsBatter is int && data.runsBatter >= 0 && data.runsBatter <= 7) &&
+        (data.extrasRuns is int && data.extrasRuns >= 0 && data.extrasRuns <= 10) &&
+        data.isLegal is bool &&
+        data.isWicket is bool &&
+        (!('extrasType' in data) || isOptionalString(data.extrasType, 30)) &&
+        (!('dismissalType' in data) || isOptionalString(data.dismissalType, 30)) &&
+        (!('dismissedPlayerId' in data) || isOptionalString(data.dismissedPlayerId, 100)) &&
+        (!('fielderId' in data) || isOptionalString(data.fielderId, 100)) &&
+        (!('commentaryText' in data) || isOptionalString(data.commentaryText, 500)) &&
+        (!('isUndone' in data) || data.isUndone is bool);
+    }
+
+    function isValidBattingScorecard(data) {
+      return hasRequired(['id', 'inningsId', 'matchId', 'playerId', 'playerName', 'runs', 'balls', 'fours', 'sixes', 'strikeRate', 'isOut']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.inningsId, 100) &&
+        isNonEmptyString(data.matchId, 100) &&
+        isNonEmptyString(data.playerId, 100) &&
+        isNonEmptyString(data.playerName, 100) &&
+        isPosInt(data.runs) &&
+        isPosInt(data.balls) &&
+        isPosInt(data.fours) &&
+        isPosInt(data.sixes) &&
+        (data.strikeRate is number && data.strikeRate >= 0) &&
+        data.isOut is bool &&
+        (!('dismissalText' in data) || isOptionalString(data.dismissalText, 200));
+    }
+
+    function isValidBowlingScorecard(data) {
+      return hasRequired(['id', 'inningsId', 'matchId', 'playerId', 'playerName', 'oversStr', 'legalBalls', 'maidens', 'runsConceded', 'wickets', 'economy']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.inningsId, 100) &&
+        isNonEmptyString(data.matchId, 100) &&
+        isNonEmptyString(data.playerId, 100) &&
+        isNonEmptyString(data.playerName, 100) &&
+        isNonEmptyString(data.oversStr, 15) &&
+        isPosInt(data.legalBalls) &&
+        isPosInt(data.maidens) &&
+        isPosInt(data.runsConceded) &&
+        isPosInt(data.wickets) &&
+        (data.economy is number && data.economy >= 0) &&
+        (!('dots' in data) || isPosInt(data.dots));
+    }
+
+    function isValidAuction(data) {
+      return hasRequired(['id', 'tournamentId', 'title', 'hostUserId', 'status', 'totalLots']) &&
+        isNonEmptyString(data.id, 100) &&
+        isOptionalString(data.tournamentId, 100) &&
+        isNonEmptyString(data.title, 150) &&
+        isNonEmptyString(data.hostUserId, 100) &&
+        isNonEmptyString(data.status, 30) &&
+        isPosInt(data.totalLots) &&
+        (!('auctionCode' in data) || isOptionalString(data.auctionCode, 50)) &&
+        (!('auctionPin' in data) || isOptionalString(data.auctionPin, 50)) &&
+        (!('isJoiningEnabled' in data) || data.isJoiningEnabled is bool) &&
+        (!('joiningMode' in data) || isOptionalString(data.joiningMode, 30)) &&
+        (!('isPursePublic' in data) || data.isPursePublic is bool) &&
+        (!('committeeUserIds' in data) || isStringList(data.committeeUserIds, 50)) &&
+        (!('gavelWarningCount' in data) || isPosInt(data.gavelWarningCount)) &&
+        (!('floorStatus' in data) || isOptionalString(data.floorStatus, 30)) &&
+        (!('currentLotId' in data) || isOptionalString(data.currentLotId, 100)) &&
+        (!('currentBid' in data) || isPosInt(data.currentBid)) &&
+        (!('highBidderTeamId' in data) || isOptionalString(data.highBidderTeamId, 100)) &&
+        (!('completedLots' in data) || isPosInt(data.completedLots)) &&
+        (!('adminPasscode' in data) || isOptionalString(data.adminPasscode, 50)) &&
+        (!('minBidIncrement' in data) || isPosInt(data.minBidIncrement)) &&
+        (!('maxPursePerTeam' in data) || isPosInt(data.maxPursePerTeam)) &&
+        (!('requiredTeamsCount' in data) || isPosInt(data.requiredTeamsCount)) &&
+        (!('joinedTeamIds' in data) || isStringList(data.joinedTeamIds, 50)) &&
+        (!('biddingSecondsRemaining' in data) || isPosInt(data.biddingSecondsRemaining)) &&
+        (!('defaultTimerSeconds' in data) || isPosInt(data.defaultTimerSeconds)) &&
+        (!('isTimerRunning' in data) || data.isTimerRunning is bool) &&
+        (!('isBiddingActive' in data) || data.isBiddingActive is bool) &&
+        (!('assignedAuctioneerId' in data) || isOptionalString(data.assignedAuctioneerId, 100)) &&
+        (!('assignedAuctioneerName' in data) || isOptionalString(data.assignedAuctioneerName, 100)) &&
+        (!('assignedOperatorIds' in data) || isStringList(data.assignedOperatorIds, 50)) &&
+        (!('currentRound' in data) || (data.currentRound is int && data.currentRound >= 1)) &&
+        (!('totalRounds' in data) || (data.totalRounds is int && data.totalRounds >= 1)) &&
+        (!('minSquadSize' in data) || isPosInt(data.minSquadSize)) &&
+        (!('maxSquadSize' in data) || isPosInt(data.maxSquadSize)) &&
+        (!('maxOverseasPlayers' in data) || isPosInt(data.maxOverseasPlayers)) &&
+        (!('allowUnsoldReEntry' in data) || data.allowUnsoldReEntry is bool) &&
+        (!('basePrice' in data) || isPosInt(data.basePrice)) &&
+        (!('bidIncrements' in data) || (data.bidIncrements is list && data.bidIncrements.size() <= 20));
+    }
+
+    function isValidAuctionLot(data) {
+      return hasRequired(['id', 'auctionId', 'lotNumber', 'playerId', 'category', 'basePrice', 'status']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.auctionId, 100) &&
+        (data.lotNumber is int && data.lotNumber >= 1) &&
+        isNonEmptyString(data.playerId, 100) &&
+        isNonEmptyString(data.category, 50) &&
+        isPosInt(data.basePrice) &&
+        isNonEmptyString(data.status, 30) &&
+        (!('startingPrice' in data) || isPosInt(data.startingPrice)) &&
+        (!('currentBid' in data) || isPosInt(data.currentBid)) &&
+        (!('winningTeamId' in data) || isOptionalString(data.winningTeamId, 100)) &&
+        (!('isSelectedForSpin' in data) || data.isSelectedForSpin is bool) &&
+        (!('round' in data) || (data.round is int && data.round >= 1)) &&
+        (!('soldPrice' in data) || isPosInt(data.soldPrice));
+    }
+
+    function isValidAuctionBid(data) {
+      return hasRequired(['id', 'lotId', 'teamId', 'teamName', 'amount']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.lotId, 100) &&
+        isNonEmptyString(data.teamId, 100) &&
+        isNonEmptyString(data.teamName, 100) &&
+        isStrictPosInt(data.amount) &&
+        (!('auctionId' in data) || isOptionalString(data.auctionId, 100)) &&
+        (!('playerId' in data) || isOptionalString(data.playerId, 100)) &&
+        (!('round' in data) || (data.round is int && data.round >= 1)) &&
+        (!('isValid' in data) || data.isValid is bool) &&
+        (!('rejectionReason' in data) || isOptionalString(data.rejectionReason, 200));
+    }
+
+    function isValidAuctionTransaction(data) {
+      return hasRequired(['id', 'auctionId', 'lotId', 'playerId', 'teamId', 'amount', 'round', 'type']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.auctionId, 100) &&
+        isNonEmptyString(data.lotId, 100) &&
+        isNonEmptyString(data.playerId, 100) &&
+        isNonEmptyString(data.teamId, 100) &&
+        isPosInt(data.amount) &&
+        (data.round is int && data.round >= 1) &&
+        isNonEmptyString(data.type, 30) &&
+        (!('tournamentId' in data) || isOptionalString(data.tournamentId, 100)) &&
+        (!('playerName' in data) || isOptionalString(data.playerName, 100)) &&
+        (!('teamName' in data) || isOptionalString(data.teamName, 100)) &&
+        (!('performedBy' in data) || isOptionalString(data.performedBy, 100)) &&
+        (!('notes' in data) || isOptionalString(data.notes, 500));
+    }
+
+    function isValidAuditLog(data) {
+      return hasRequired(['id', 'category', 'action', 'details', 'performedBy']) &&
+        isNonEmptyString(data.id, 100) &&
+        isNonEmptyString(data.category, 50) &&
+        isNonEmptyString(data.action, 100) &&
+        isOptionalString(data.details, 1000) &&
+        isNonEmptyString(data.performedBy, 100) &&
+        (!('tournamentId' in data) || isOptionalString(data.tournamentId, 100)) &&
+        (!('auctionId' in data) || isOptionalString(data.auctionId, 100)) &&
+        (!('role' in data) || isOptionalString(data.role, 50));
+    }
+
+    function isValidRoom(data) {
+      return hasRequired(['id', 'passcode', 'createdBy']) &&
+        isNonEmptyString(data.id, 50) &&
+        isNonEmptyString(data.passcode, 50) &&
+        isNonEmptyString(data.createdBy, 100) &&
+        (!('matchId' in data) || isOptionalString(data.matchId, 100)) &&
+        (!('auctionId' in data) || isOptionalString(data.auctionId, 100)) &&
+        (!('adminPasscode' in data) || isOptionalString(data.adminPasscode, 50));
+    }
+
+    // ===============================================================
+    // Collection Match Rules
+    // ===============================================================
+
+    // --- Users Collection ---
+    // Protect PII (email, phone, 2FA secret): Owner only read and write
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserAccount(request.resource.data, userId);
+      allow update: if isOwner(userId) &&
+                       isValidUserAccount(request.resource.data, userId) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId);
+    }
+
+    // --- Tournaments Collection ---
+    // Public read for tournament standings, schedule, info
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidTournament(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidTournament(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Teams Collection ---
+    // Public read for franchise rosters, budgets, stats
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidTeam(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidTeam(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Players Collection ---
+    // Public read for player directory, stats, auction pool
+    match /players/{playerId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidPlayer(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidPlayer(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Matches Collection ---
+    // Public read for live scores, fixtures, completed matches
+    match /matches/{matchId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidMatch(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidMatch(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+
+      // Subcollection: Innings under Match
+      match /innings/{inningsId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidInnings(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidInnings(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+
+      // Subcollection: Deliveries under Match
+      match /deliveries/{deliveryId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidDelivery(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidDelivery(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+
+      // Subcollection: Batting Scorecards under Match
+      match /battingScorecards/{scorecardId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidBattingScorecard(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidBattingScorecard(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+
+      // Subcollection: Bowling Scorecards under Match
+      match /bowlingScorecards/{scorecardId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidBowlingScorecard(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidBowlingScorecard(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+    }
+
+    // --- Innings Root Collection ---
+    // Support top-level collection queries
+    match /innings/{inningsId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidInnings(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidInnings(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Deliveries Root Collection ---
+    // Ball-by-ball updates
+    match /deliveries/{deliveryId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidDelivery(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidDelivery(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Batting Scorecards Root Collection ---
+    match /battingScorecards/{scorecardId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidBattingScorecard(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidBattingScorecard(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    match /batting_scorecards/{scorecardId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidBattingScorecard(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidBattingScorecard(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Bowling Scorecards Root Collection ---
+    match /bowlingScorecards/{scorecardId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidBowlingScorecard(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidBowlingScorecard(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    match /bowling_scorecards/{scorecardId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidBowlingScorecard(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidBowlingScorecard(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Auctions Collection ---
+    // Public read for live auction projector, public view, spectator floor
+    match /auctions/{auctionId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidAuction(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidAuction(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+
+      // Subcollection: Auction Lots
+      match /lots/{lotId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidAuctionLot(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidAuctionLot(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+
+      // Subcollection: Auction Bids
+      match /bids/{bidId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidAuctionBid(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidAuctionBid(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+
+      // Subcollection: Auction Transactions
+      match /transactions/{txId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidAuctionTransaction(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isValidAuctionTransaction(request.resource.data) &&
+                         request.resource.data.id == resource.data.id;
+        allow delete: if isAuthenticated();
+      }
+    }
+
+    // --- Auction Lots Root Collection ---
+    match /auctionLots/{lotId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidAuctionLot(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidAuctionLot(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Auction Bids Root Collection ---
+    match /auctionBids/{bidId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidAuctionBid(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidAuctionBid(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Auction Transactions Root Collection ---
+    match /auctionTransactions/{txId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidAuctionTransaction(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidAuctionTransaction(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // --- Audit Logs Collection ---
+    // Append-only audit trail; authenticated users can read and record actions
+    match /auditLogs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAuditLog(request.resource.data);
+      allow update, delete: if false; // Immutable audit trail
+    }
+
+    // --- Rooms Collection (Scoring Rooms & Auction Rooms) ---
+    match /scoringRooms/{roomId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidRoom(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidRoom(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    match /auctionRooms/{roomId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidRoom(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidRoom(request.resource.data) &&
+                       request.resource.data.id == resource.data.id;
+      allow delete: if isAuthenticated();
+    }
+
+    // Default deny for any unspecified documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
