@@ -812,8 +812,8 @@ class PendingTeamRegistration {
 
 class UserAccount {
   final String id;
-  final String fullName;
-  final String email;
+  String fullName;
+  String email;
   String mobileNumber;
   final String passwordHash;
   final DateTime createdAt;
@@ -862,6 +862,9 @@ class UserAccount {
 
   /// Returns true if the user has a verified 10-digit mobile number saved in the database
   bool get hasVerifiedMobile => isMobileVerified && mobileNumber.trim().isNotEmpty;
+
+  /// Returns true if the user has BOTH a valid Gmail/email and a verified mobile number
+  bool get isProfileComplete => hasVerifiedMobile && email.trim().contains('@') && email.trim().contains('.');
 }
 
 class JoinAuctionValidationResult {

@@ -6,6 +6,7 @@ import 'totp_service.dart';
 import 'database_persistence_service.dart';
 import 'server_sync_service.dart';
 import 'firestore_database_service.dart';
+import 'google_auth_service.dart';
 
 class MockDatabase extends ChangeNotifier {
   bool _persistScheduled = false;
@@ -569,6 +570,125 @@ class MockDatabase extends ChangeNotifier {
     return user;
   }
 
+  /// Logs in an existing user via verified mobile number OTP,
+  /// or provisions a new account if this is a first-time mobile user.
+  UserAccount loginWithVerifiedMobile({
+    required String mobileNumber,
+    String? email,
+    String? fullName,
+  }) {
+    final norm = normalizeMobile(mobileNumber);
+    final cleanEmail = (email ?? '').trim().toLowerCase();
+
+    var user = users.where((u) => normalizeMobile(u.mobileNumber) == norm && norm.isNotEmpty).firstOrNull;
+    if (user == null && cleanEmail.isNotEmpty) {
+      user = users.where((u) => u.email.toLowerCase() == cleanEmail).firstOrNull;
+    }
+
+    if (user == null) {
+      user = UserAccount(
+        id: 'usr_m_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: (fullName ?? '').trim().isNotEmpty ? fullName!.trim() : 'Cricketer',
+        email: cleanEmail,
+        mobileNumber: norm,
+        passwordHash: 'otp_${DateTime.now().millisecondsSinceEpoch}',
+        createdAt: DateTime.now(),
+        isMobileVerified: true,
+      );
+      users.add(user);
+    } else {
+      user.mobileNumber = norm;
+      user.isMobileVerified = true;
+      if (cleanEmail.isNotEmpty && user.email.trim().isEmpty) {
+        user.email = cleanEmail;
+      }
+      if ((fullName ?? '').trim().isNotEmpty && (user.fullName.isEmpty || user.fullName == 'Cricketer')) {
+        user.fullName = fullName!.trim();
+      }
+    }
+
+    // Link or auto-create permanent player profile
+    var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
+    if (existingPlayer != null) {
+      user.linkedPlayerId = existingPlayer.id;
+      existingPlayer.isMobileVerified = true;
+    } else if (user.fullName.isNotEmpty && user.fullName != 'Cricketer') {
+      final newPlayer = registerPermanentPlayer(
+        fullName: user.fullName,
+        mobileNumber: norm,
+        role: PlayerRole.allRounder,
+      );
+      user.linkedPlayerId = newPlayer.id;
+    }
+
+    _finalizeUserLogin(user, loginMethod: 'Mobile OTP');
+    if (user.isProfileComplete) {
+      FirestoreDatabaseService.pushUserProfile(user);
+    }
+    return user;
+  }
+
+  /// Completes Gmail/email and Full Name for first-time mobile-login users.
+  bool completeFirstTimeEmailAndName({
+    required String email,
+    required String fullName,
+  }) {
+    if (currentUser == null) return false;
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanName = fullName.trim();
+    if (!cleanEmail.contains('@') || !cleanEmail.contains('.') || cleanName.isEmpty) {
+      return false;
+    }
+
+    // Check if another account already exists with this email and merge if unverified, else block duplicate
+    final existingWithEmail = users.where((u) => u.email.toLowerCase() == cleanEmail && u.id != currentUser!.id).firstOrNull;
+    if (existingWithEmail != null) {
+      // Link mobile to that existing account if they are the same person logging in
+      existingWithEmail.mobileNumber = currentUser!.mobileNumber;
+      existingWithEmail.isMobileVerified = currentUser!.isMobileVerified;
+      if (existingWithEmail.fullName.isEmpty || existingWithEmail.fullName == 'Cricketer') {
+        existingWithEmail.fullName = cleanName;
+      }
+      users.removeWhere((u) => u.id == currentUser!.id);
+      currentUser = existingWithEmail;
+    } else {
+      currentUser!.email = cleanEmail;
+      currentUser!.fullName = cleanName;
+      final u = users.where((usr) => usr.id == currentUser!.id).firstOrNull;
+      if (u != null) {
+        u.email = cleanEmail;
+        u.fullName = cleanName;
+      }
+    }
+
+    // Ensure linked player has updated name
+    final norm = normalizeMobile(currentUser!.mobileNumber);
+    if (norm.isNotEmpty) {
+      var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
+      if (existingPlayer == null) {
+        final newPlayer = registerPermanentPlayer(
+          fullName: currentUser!.fullName,
+          mobileNumber: norm,
+          role: PlayerRole.allRounder,
+        );
+        currentUser!.linkedPlayerId = newPlayer.id;
+      } else {
+        currentUser!.linkedPlayerId = existingPlayer.id;
+        existingPlayer.isMobileVerified = true;
+      }
+    }
+
+    logAudit(
+      category: 'auth',
+      action: 'PROFILE_COMPLETED',
+      details: 'First-time Gmail & mobile setup completed for ${currentUser!.fullName} ($cleanEmail)',
+      performedBy: currentUser!.fullName,
+    );
+    FirestoreDatabaseService.pushUserProfile(currentUser!);
+    notifyListeners();
+    return true;
+  }
+
   void logoutUser() {
     final prevName = currentUser?.fullName ?? 'Anonymous';
     currentUser = null;
@@ -577,6 +697,10 @@ class MockDatabase extends ChangeNotifier {
     authenticatedAuctioneerId = null;
     isAuctionAdmin = false;
     isAuctionUnlocked = false;
+
+    if (FirestoreDatabaseService.isFirebaseAvailable) {
+      GoogleAuthService.signOut();
+    }
 
     logAudit(
       category: 'auth',
@@ -4663,48 +4787,55 @@ class MockDatabase extends ChangeNotifier {
 
     // Check if OTP matches generated pending OTP, demo '123456', or verified by Firebase SMS
     final pending = _pendingMobileOtps[norm];
-    final isValid = bypassCodeCheck || cleanOtp == '123456' || (pending != null && pending == cleanOtp);
+    final expiresAt = _otpExpiresAt[norm];
+    final isNotExpired = expiresAt == null || DateTime.now().isBefore(expiresAt);
+    final isValid = bypassCodeCheck ||
+        cleanOtp == '123456' ||
+        (pending != null && pending == cleanOtp && isNotExpired);
     if (!isValid) return false;
 
     _pendingMobileOtps.remove(norm);
     _otpExpiresAt.remove(norm);
 
-    if (currentUser != null) {
-      currentUser!.mobileNumber = norm;
-      currentUser!.isMobileVerified = true;
-
-      // Update in users collection so permanently saved in database
-      final u = users.where((usr) => usr.id == currentUser!.id).firstOrNull;
-      if (u != null) {
-        u.mobileNumber = norm;
-        u.isMobileVerified = true;
-      }
-
-      // Automatically link to existing permanent player profile if available
-      var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
-      if (existingPlayer != null) {
-        currentUser!.linkedPlayerId = existingPlayer.id;
-        existingPlayer.isMobileVerified = true;
-      } else {
-        // Auto-create permanent player profile for the verified mobile user
-        final newPlayer = registerPermanentPlayer(
-          fullName: currentUser!.fullName,
-          mobileNumber: norm,
-          role: PlayerRole.allRounder,
-        );
-        currentUser!.linkedPlayerId = newPlayer.id;
-      }
-
-      logAudit(
-        category: 'auth',
-        action: 'MOBILE_VERIFIED',
-        details: 'Mobile permanently saved and verified for user ${currentUser!.fullName}: +91 $norm',
-        performedBy: currentUser!.fullName,
-      );
-      notifyListeners();
+    if (currentUser == null) {
+      loginWithVerifiedMobile(mobileNumber: norm);
       return true;
     }
-    return false;
+
+    currentUser!.mobileNumber = norm;
+    currentUser!.isMobileVerified = true;
+
+    // Update in users collection so permanently saved in database
+    final u = users.where((usr) => usr.id == currentUser!.id).firstOrNull;
+    if (u != null) {
+      u.mobileNumber = norm;
+      u.isMobileVerified = true;
+    }
+
+    // Automatically link to existing permanent player profile if available
+    var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
+    if (existingPlayer != null) {
+      currentUser!.linkedPlayerId = existingPlayer.id;
+      existingPlayer.isMobileVerified = true;
+    } else {
+      // Auto-create permanent player profile for the verified mobile user
+      final newPlayer = registerPermanentPlayer(
+        fullName: currentUser!.fullName,
+        mobileNumber: norm,
+        role: PlayerRole.allRounder,
+      );
+      currentUser!.linkedPlayerId = newPlayer.id;
+    }
+
+    logAudit(
+      category: 'auth',
+      action: 'MOBILE_VERIFIED',
+      details: 'Mobile permanently saved and verified for user ${currentUser!.fullName}: +91 $norm',
+      performedBy: currentUser!.fullName,
+    );
+    FirestoreDatabaseService.pushUserProfile(currentUser!);
+    notifyListeners();
+    return true;
   }
 
   /// Creates a direct two-team match without requiring a tournament

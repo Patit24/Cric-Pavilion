@@ -694,6 +694,79 @@ class FirestoreDatabaseService {
     }
   }
 
+  /// Pushes authenticated user's profile to Firestore `/users/{firebaseUid}`
+  /// so mobile verification status and contact info sync across all devices.
+  static Future<void> pushUserProfile(UserAccount user) async {
+    if (!isFirebaseAvailable || _firestore == null || _auth?.currentUser == null) return;
+    try {
+      final uid = _auth!.currentUser!.uid;
+      final cleanEmail = user.email.trim().toLowerCase();
+      if (cleanEmail.isEmpty || !cleanEmail.contains('@') || !cleanEmail.contains('.')) {
+        return; // Satisfy firestore.rules isValidEmail check
+      }
+      final payload = _sanitizePayload(DatabasePersistenceService.userAccountToMap(user));
+      payload['id'] = uid;
+      payload['email'] = cleanEmail;
+      if ((payload['fullName'] as String? ?? '').trim().isEmpty) {
+        payload['fullName'] = 'Cricketer';
+      }
+      await _firestore!.collection(colUsers).doc(uid).set(payload, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[FirestoreDatabaseService] pushUserProfile error: $e');
+    }
+  }
+
+  /// Fetches the authenticated user's profile from Firestore `/users/{firebaseUid}`
+  /// and merges verification status & mobile number into MockDatabase.
+  static Future<bool> fetchAndMergeCurrentUser(MockDatabase db) async {
+    if (!isFirebaseAvailable || _firestore == null || _auth?.currentUser == null) return false;
+    try {
+      final uid = _auth!.currentUser!.uid;
+      final doc = await _firestore!.collection(colUsers).doc(uid).get();
+      if (!doc.exists || doc.data() == null) return false;
+
+      final data = doc.data()!;
+      final cloudEmail = (data['email'] as String? ?? '').trim().toLowerCase();
+      final cloudMobile = (data['mobileNumber'] as String? ?? '').trim();
+      final cloudVerified = data['isMobileVerified'] as bool? ?? false;
+      final cloudName = (data['fullName'] as String? ?? '').trim();
+      final cloudLinkedPlayerId = data['linkedPlayerId'] as String?;
+
+      bool merged = false;
+      if (db.currentUser != null) {
+        if (cloudMobile.isNotEmpty && db.currentUser!.mobileNumber.isEmpty) {
+          db.currentUser!.mobileNumber = cloudMobile;
+          merged = true;
+        }
+        if (cloudVerified && !db.currentUser!.isMobileVerified) {
+          db.currentUser!.isMobileVerified = true;
+          merged = true;
+        }
+        if (cloudEmail.isNotEmpty && db.currentUser!.email.isEmpty) {
+          db.currentUser!.email = cloudEmail;
+          merged = true;
+        }
+        if (cloudName.isNotEmpty && (db.currentUser!.fullName.isEmpty || db.currentUser!.fullName == 'Cricketer')) {
+          db.currentUser!.fullName = cloudName;
+          merged = true;
+        }
+        if (cloudLinkedPlayerId != null && db.currentUser!.linkedPlayerId == null) {
+          db.currentUser!.linkedPlayerId = cloudLinkedPlayerId;
+          merged = true;
+        }
+      }
+
+      if (merged) {
+        db.notifyListeners();
+        DatabasePersistenceService.saveDatabase(db);
+      }
+      return cloudVerified && cloudMobile.isNotEmpty;
+    } catch (e) {
+      debugPrint('[FirestoreDatabaseService] fetchAndMergeCurrentUser error: $e');
+      return false;
+    }
+  }
+
   /// Immediate push for ball recording (delivery, innings, scorecards, match)
   static Future<void> pushLiveScoringEvent({
     required MatchModel match,

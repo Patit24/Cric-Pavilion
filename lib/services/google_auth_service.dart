@@ -114,20 +114,16 @@ class GoogleAuthService {
           errStr.contains('cancelled-popup-request') ||
           errStr.contains('popup');
 
-      final isConfigIssue = isPopupBlocked ||
-          errStr.contains('unauthorized-domain') ||
-          errStr.contains('network') ||
-          errStr.contains('not supported') ||
-          errStr.contains('no-app') ||
+      final isTestRunnerFallback = errStr.contains('no-app') ||
           errStr.contains('unimplemented');
 
-      if (isConfigIssue && fallbackEmail != null && fallbackEmail.contains('@')) {
+      if (isTestRunnerFallback && fallbackEmail != null && fallbackEmail.contains('@')) {
         return GoogleAuthResult(
           success: true,
           email: fallbackEmail.trim().toLowerCase(),
           displayName: fallbackEmail.split('@').first.replaceAll('.', ' ').toUpperCase(),
           isDevFallback: true,
-          isPopupBlocked: isPopupBlocked,
+          isPopupBlocked: false,
         );
       }
 
@@ -135,7 +131,7 @@ class GoogleAuthService {
         success: false,
         isPopupBlocked: isPopupBlocked,
         errorMessage: isPopupBlocked
-            ? 'Browser blocked the Google popup window. Allow popups for localhost:3000 in your browser address bar, or use the 1-tap Google login below.'
+            ? 'Browser blocked the Google popup window. Please allow popups in your browser address bar and try again, or sign in via Mobile OTP.'
             : e.toString(),
       );
     }
