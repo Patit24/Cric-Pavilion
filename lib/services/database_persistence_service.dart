@@ -200,6 +200,200 @@ class DatabasePersistenceService {
     }
   }
 
+  /// Exports entire MockDatabase state as a serializable JSON-compatible Map.
+  static Map<String, dynamic> exportDatabaseToMap(MockDatabase db) {
+    return {
+      'version': 1,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'users': db.users.map((u) => _userAccountToMap(u)).toList(),
+      'matches': db.matches.map((m) => _matchToMap(m)).toList(),
+      'tournaments': db.tournaments.map((t) => _tournamentToMap(t)).toList(),
+      'teams': db.teams.map((t) => _teamToMap(t)).toList(),
+      'players': db.players.map((p) => _playerToMap(p)).toList(),
+      'innings': db.inningsList.map((i) => _inningsToMap(i)).toList(),
+      'deliveries': db.deliveries.map((d) => _deliveryToMap(d)).toList(),
+      'battingScorecards': db.battingScorecards.map((b) => _battingScorecardToMap(b)).toList(),
+      'bowlingScorecards': db.bowlingScorecards.map((bw) => _bowlingScorecardToMap(bw)).toList(),
+      'auditLogs': db.auditLogs.map((a) => _auditLogToMap(a)).toList(),
+    };
+  }
+
+  /// Exports entire MockDatabase state as a formatted JSON String.
+  static String exportDatabaseToJson(MockDatabase db) {
+    return jsonEncode(exportDatabaseToMap(db));
+  }
+
+  /// Intelligently merges an incoming database payload into MockDatabase.
+  /// Deduplicates items by unique ID and persists the merged state.
+  static bool mergeMapIntoDatabase(MockDatabase db, Map<String, dynamic> data) {
+    bool hasChanges = false;
+    try {
+      // 1. Users
+      if (data['users'] is List) {
+        for (final item in data['users'] as List) {
+          if (item is Map<String, dynamic>) {
+            final u = _userAccountFromMap(item);
+            final idx = db.users.indexWhere((existing) => existing.id == u.id);
+            if (idx == -1) {
+              db.users.add(u);
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 2. Tournaments
+      if (data['tournaments'] is List) {
+        for (final item in data['tournaments'] as List) {
+          if (item is Map<String, dynamic>) {
+            final t = _tournamentFromMap(item);
+            final idx = db.tournaments.indexWhere((existing) => existing.id == t.id);
+            if (idx == -1) {
+              db.tournaments.add(t);
+              hasChanges = true;
+            } else {
+              db.tournaments[idx] = t;
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 3. Teams
+      if (data['teams'] is List) {
+        for (final item in data['teams'] as List) {
+          if (item is Map<String, dynamic>) {
+            final tm = _teamFromMap(item);
+            final idx = db.teams.indexWhere((existing) => existing.id == tm.id);
+            if (idx == -1) {
+              db.teams.add(tm);
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 4. Players
+      if (data['players'] is List) {
+        for (final item in data['players'] as List) {
+          if (item is Map<String, dynamic>) {
+            final p = _playerFromMap(item);
+            final idx = db.players.indexWhere((existing) => existing.id == p.id);
+            if (idx == -1) {
+              db.players.add(p);
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 5. Matches
+      if (data['matches'] is List) {
+        for (final item in data['matches'] as List) {
+          if (item is Map<String, dynamic>) {
+            final m = _matchFromMap(item);
+            final idx = db.matches.indexWhere((existing) => existing.id == m.id);
+            if (idx == -1) {
+              db.matches.add(m);
+              hasChanges = true;
+            } else {
+              db.matches[idx] = m;
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 6. Innings
+      if (data['innings'] is List) {
+        for (final item in data['innings'] as List) {
+          if (item is Map<String, dynamic>) {
+            final inn = _inningsFromMap(item);
+            final idx = db.inningsList.indexWhere((existing) => existing.id == inn.id);
+            if (idx == -1) {
+              db.inningsList.add(inn);
+              hasChanges = true;
+            } else {
+              db.inningsList[idx] = inn;
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 7. Deliveries
+      if (data['deliveries'] is List) {
+        final existingDeliveryIds = db.deliveries.map((d) => d.id).toSet();
+        for (final item in data['deliveries'] as List) {
+          if (item is Map<String, dynamic>) {
+            final d = _deliveryFromMap(item);
+            if (!existingDeliveryIds.contains(d.id)) {
+              db.deliveries.add(d);
+              existingDeliveryIds.add(d.id);
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 8. Batting Scorecards
+      if (data['battingScorecards'] is List) {
+        for (final item in data['battingScorecards'] as List) {
+          if (item is Map<String, dynamic>) {
+            final b = _battingScorecardFromMap(item);
+            final idx = db.battingScorecards.indexWhere((existing) => existing.id == b.id);
+            if (idx == -1) {
+              db.battingScorecards.add(b);
+              hasChanges = true;
+            } else {
+              db.battingScorecards[idx] = b;
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 9. Bowling Scorecards
+      if (data['bowlingScorecards'] is List) {
+        for (final item in data['bowlingScorecards'] as List) {
+          if (item is Map<String, dynamic>) {
+            final bw = _bowlingScorecardFromMap(item);
+            final idx = db.bowlingScorecards.indexWhere((existing) => existing.id == bw.id);
+            if (idx == -1) {
+              db.bowlingScorecards.add(bw);
+              hasChanges = true;
+            } else {
+              db.bowlingScorecards[idx] = bw;
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      // 10. Audit Logs
+      if (data['auditLogs'] is List) {
+        final existingAuditIds = db.auditLogs.map((a) => a.id).toSet();
+        for (final item in data['auditLogs'] as List) {
+          if (item is Map<String, dynamic>) {
+            final a = _auditLogFromMap(item);
+            if (!existingAuditIds.contains(a.id)) {
+              db.auditLogs.add(a);
+              existingAuditIds.add(a.id);
+              hasChanges = true;
+            }
+          }
+        }
+      }
+
+      if (hasChanges) {
+        saveDatabase(db);
+      }
+    } catch (e) {
+      debugPrint('DatabasePersistenceService merge error: $e');
+    }
+    return hasChanges;
+  }
+
   // =========================================================================
   // SERIALIZERS & DESERIALIZERS
   // =========================================================================

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/add_existing_player_dialog.dart';
+import '../../widgets/auth_modal_dialog.dart';
 import '../scorer/scorer_screen.dart';
 
 class CreateDirectMatchDialog extends StatefulWidget {
@@ -465,6 +466,19 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   }
 
   void _launchDirectMatch() {
+    if (!widget.db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to create and score friendly matches.',
+          onAuthSuccess: () {
+            setState(() {});
+          },
+        ),
+      );
+      return;
+    }
+
     if (_teamAPlayers.isEmpty || _teamBPlayers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Both teams must have at least 1 player.')),
@@ -551,6 +565,49 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               ),
               const SizedBox(height: 12),
 
+              if (!widget.db.isAuthenticated) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_outline, color: Colors.amber, size: 16),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Login Required: You must be logged in to create and score matches.',
+                          style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AuthModalDialog(
+                              initialActionPrompt: 'Login Required: Please sign in or register to score friendly matches.',
+                              onAuthSuccess: () => setState(() {}),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00F5A0),
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text('Log In', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Step indicator
               Row(
                 children: [
@@ -589,6 +646,17 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
+                        if (!widget.db.isAuthenticated) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AuthModalDialog(
+                              initialActionPrompt: 'Login Required: Please sign in or register to score friendly matches.',
+                              onAuthSuccess: () => setState(() {}),
+                            ),
+                          );
+                          return;
+                        }
+
                         if (_currentStep < 2) {
                           setState(() => _currentStep++);
                         } else {

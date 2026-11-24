@@ -149,7 +149,7 @@ void main() {
       final pA2 = db.registerPermanentPlayer(fullName: 'Team A Batter 2', mobileNumber: '9333333332', role: PlayerRole.batsman);
       final pB1 = db.registerPermanentPlayer(fullName: 'Team B Chase Striker', mobileNumber: '9333333333', role: PlayerRole.batsman);
       final pB2 = db.registerPermanentPlayer(fullName: 'Team B Chase Non-Striker', mobileNumber: '9333333334', role: PlayerRole.batsman);
-      final pA_Bowler = db.registerPermanentPlayer(fullName: 'Team A Opening Bowler', mobileNumber: '9333333335', role: PlayerRole.bowler);
+      final paBowler = db.registerPermanentPlayer(fullName: 'Team A Opening Bowler', mobileNumber: '9333333335', role: PlayerRole.bowler);
 
       final match = db.createDirectMatch(
         matchName: 'Innings 2 Chase Test',
@@ -157,7 +157,7 @@ void main() {
         teamBName: 'Team B',
         overs: 1,
         venue: 'Wankhede',
-        playingXIA: [pA1.id, pA2.id, pA_Bowler.id],
+        playingXIA: [pA1.id, pA2.id, paBowler.id],
         playingXIB: [pB1.id, pB2.id],
       );
 
@@ -166,13 +166,13 @@ void main() {
         matchId: match.id,
         strikerId: pB1.id,
         nonStrikerId: pB2.id,
-        bowlerId: pA_Bowler.id,
+        bowlerId: paBowler.id,
       );
 
       expect(inn2.inningsNumber, 2);
       expect(inn2.currentStrikerId, pB1.id);
       expect(inn2.currentNonStrikerId, pB2.id);
-      expect(inn2.currentBowlerId, pA_Bowler.id);
+      expect(inn2.currentBowlerId, paBowler.id);
       expect(match.currentInningsNumber, 2);
     });
   });

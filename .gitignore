@@ -35,3 +35,8 @@ migrate_working_dir/
 # Legacy Web App
 legacy_web_app/node_modules/
 legacy_web_app/.next/
+
+# Runtime Database & Temp files
+data/*.tmp
+data/*.json
+

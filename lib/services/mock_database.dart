@@ -4,6 +4,7 @@ import '../models/models.dart';
 import 'cricket_rules_engine.dart';
 import 'totp_service.dart';
 import 'database_persistence_service.dart';
+import 'server_sync_service.dart';
 
 class MockDatabase extends ChangeNotifier {
   bool _persistScheduled = false;
@@ -14,6 +15,7 @@ class MockDatabase extends ChangeNotifier {
     Future.microtask(() async {
       _persistScheduled = false;
       await DatabasePersistenceService.saveDatabase(this);
+      ServerSyncService.pushInBackground(this);
     });
   }
 
@@ -26,6 +28,7 @@ class MockDatabase extends ChangeNotifier {
   /// Explicitly persists current database state to permanent storage immediately
   Future<void> persistState() async {
     await DatabasePersistenceService.saveDatabase(this);
+    ServerSyncService.pushInBackground(this);
   }
 
   /// Hydrates database from permanent storage if saved data exists
@@ -34,6 +37,10 @@ class MockDatabase extends ChangeNotifier {
     if (!loaded) {
       await DatabasePersistenceService.saveDatabase(this);
     }
+    // Attempt automatic sync with central server
+    try {
+      await ServerSyncService.syncWithServer(this);
+    } catch (_) {}
     super.notifyListeners();
   }
 
@@ -2613,7 +2620,7 @@ class MockDatabase extends ChangeNotifier {
     // Delivery log
     deliveries.add(
       Delivery(
-        id: 'del_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'del_${DateTime.now().millisecondsSinceEpoch}_${deliveries.length + 1}',
         inningsId: inningsId,
         matchId: match.id,
         overNumber: (inn.legalBalls - 1) ~/ 6,
@@ -5640,8 +5647,10 @@ class MockDatabase extends ChangeNotifier {
     final match = matches.where((m) => m.id == matchId).firstOrNull;
     if (match == null) return false;
 
-    // 0. Standalone / Direct match is always unlocked for live scoring
-    if (match.tournamentId == 'standalone' || match.isStandalone) return true;
+    // 0. Standalone / Direct match requires user to be logged in
+    if (match.tournamentId == 'standalone' || match.isStandalone) {
+      return isAuthenticated;
+    }
 
     // 1. Creator of the tournament has full control
     if (createdTournamentIds.contains(match.tournamentId)) return true;

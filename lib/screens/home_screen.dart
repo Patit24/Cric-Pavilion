@@ -15,6 +15,8 @@ import 'matches/create_direct_match_dialog.dart';
 import '../../widgets/activity_audit_dialog.dart';
 import 'public/join_auction_screen.dart';
 import '../../widgets/organize_hub_modal.dart';
+import '../../widgets/auth_modal_dialog.dart';
+import '../../widgets/cloud_sync_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onTabChange;
@@ -134,16 +136,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          // Multi-Device Cloud Sync
+          IconButton(
+            tooltip: 'Sync with Mobile / Central Server',
+            icon: const Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 21),
+            onPressed: () {
+              CloudSyncDialog.show(context);
+            },
+          ),
           // Quick Match Launcher
           Container(
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             child: ElevatedButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => CreateDirectMatchDialog(db: db),
-                );
-              },
+              onPressed: () => _openQuickMatch(context, db),
               icon: const Icon(Icons.flash_on, color: Colors.black, size: 14),
               label: const Text(
                 'QUICK MATCH',
@@ -276,12 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 8),
           ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => CreateDirectMatchDialog(db: db),
-              );
-            },
+            onPressed: () => _openQuickMatch(context, db),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00F5A0),
               foregroundColor: Colors.black,
@@ -292,6 +292,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _openQuickMatch(BuildContext context, MockDatabase db) {
+    if (!db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to score friendly matches.',
+          onAuthSuccess: () {
+            showDialog(
+              context: context,
+              builder: (ctx) => CreateDirectMatchDialog(db: db),
+            );
+          },
+        ),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => CreateDirectMatchDialog(db: db),
     );
   }
 

@@ -13,6 +13,8 @@ import '../tournaments/create_tournament_dialog.dart';
 import '../tournaments/tournament_hub_screen.dart';
 import 'fill_team_squad_dialog.dart';
 import '../matches/create_direct_match_dialog.dart';
+import '../../widgets/auth_modal_dialog.dart';
+import '../../widgets/cloud_sync_dialog.dart';
 
 class ScorerScreen extends StatefulWidget {
   final String? initialMatchId;
@@ -85,7 +87,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
 
     final match = db.matches.where((m) => m.id == selectedMatchId).firstOrNull ?? db.matches.first;
 
-    final isScorer = db.isScoringUnlockedForMatch(match.id);
+    final isScorer = db.isAuthenticated && db.isScoringUnlockedForMatch(match.id);
     final currentRoom = db.getScoringRoomForMatch(match.id);
 
     final teamA = db.getTeam(match.teamAId) ?? MockDatabase.emptyTeam;
@@ -220,6 +222,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ],
         ),
         actions: [
+          // Multi-Device Cloud Sync
+          IconButton(
+            tooltip: 'Sync with Mobile / Central Server',
+            icon: const Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 20),
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            onPressed: () => CloudSyncDialog.show(context),
+          ),
           IconButton(
             tooltip: 'Team Squads & Mobile Numbers',
             icon: const Icon(Icons.people_alt, color: Colors.white70, size: 18),
@@ -244,6 +254,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onSelected: (value) {
               switch (value) {
+                case 'cloud_sync':
+                  CloudSyncDialog.show(context);
+                  break;
                 case 'scorecard':
                   showDialog(
                     context: context,
@@ -259,6 +272,16 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   );
                   break;
                 case 'enter_scorer':
+                  if (!db.isAuthenticated) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AuthModalDialog(
+                        initialActionPrompt: 'Login Required: Please sign in or register to enter scoring room.',
+                        onAuthSuccess: () => setState(() {}),
+                      ),
+                    );
+                    break;
+                  }
                   _showEnterRoomDialog(context, db, match);
                   break;
                 case 'exit_scorer':
@@ -274,6 +297,21 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   _confirmResetMatch(context, db, match);
                   break;
                 case 'create_quick_match':
+                  if (!db.isAuthenticated) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AuthModalDialog(
+                        initialActionPrompt: 'Login Required: Please sign in or register to score friendly matches.',
+                        onAuthSuccess: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => CreateDirectMatchDialog(db: db),
+                          );
+                        },
+                      ),
+                    );
+                    break;
+                  }
                   showDialog(
                     context: context,
                     builder: (ctx) => CreateDirectMatchDialog(db: db),
@@ -309,6 +347,16 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     Icon(Icons.emoji_events, color: Colors.amberAccent, size: 17),
                     SizedBox(width: 10),
                     Text('Tournament Hub', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'cloud_sync',
+                child: Row(
+                  children: [
+                    Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 17),
+                    SizedBox(width: 10),
+                    Text('Cloud Sync (Mobile & Desktop)', style: TextStyle(color: Colors.white, fontSize: 13)),
                   ],
                 ),
               ),
@@ -567,6 +615,16 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 // Primary Action Button: Fill Players Now
                 ElevatedButton.icon(
                   onPressed: () {
+                    if (!db.isAuthenticated) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AuthModalDialog(
+                          initialActionPrompt: 'Login Required: Please sign in or register to manage squads and score matches.',
+                          onAuthSuccess: () => setState(() {}),
+                        ),
+                      );
+                      return;
+                    }
                     showDialog(
                       context: context,
                       builder: (ctx) => FillTeamSquadDialog(
@@ -681,6 +739,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
+            ] else if (!db.isAuthenticated) ...[
+              // LOGIN REQUIRED TO SCORE BANNER
+              _buildLoginRequiredToScoreBanner(context, db),
             ] else ...[
               // SPECTATOR LOCKED BANNER
               Container(
@@ -747,6 +808,66 @@ class _ScorerScreenState extends State<ScorerScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoginRequiredToScoreBanner(BuildContext context, MockDatabase db) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.6), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00F5A0).withValues(alpha: 0.08),
+            blurRadius: 16,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.lock_outline, color: Color(0xFF00F5A0), size: 28),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Login Required to Score Matches',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Match scoring, coin toss, and official ball-by-ball records require an authenticated user account. Please log in or register to begin live scoring.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+          ElevatedButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AuthModalDialog(
+                  initialActionPrompt: 'Login Required: Please sign in or register to score matches.',
+                  onAuthSuccess: () => setState(() {}),
+                ),
+              );
+            },
+            icon: const Icon(Icons.login, color: Colors.black, size: 18),
+            label: const Text('Log In / Register to Score', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00F5A0),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1337,43 +1458,69 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Scoring controls are locked. Official scorers can enter the Scoring Room with the Room ID and Passcode PIN to record deliveries.',
-                  style: TextStyle(color: Colors.white60, fontSize: 10),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showEnterRoomDialog(context, db, match),
-                        icon: const Icon(Icons.vpn_key, size: 14),
-                        label: const Text('ENTER SCORING ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF34D399),
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                const SizedBox(height: 6),
+                if (!db.isAuthenticated) ...[
+                  const Text(
+                    'Scoring is restricted to authenticated users. Log in or create an account to start scoring matches.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AuthModalDialog(
+                          initialActionPrompt: 'Login Required: Please sign in or register to score matches.',
+                          onAuthSuccess: () => setState(() {}),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.login, size: 14, color: Colors.black),
+                    label: const Text('LOG IN TO BEGIN SCORING', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00F5A0),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ] else ...[
+                  const Text(
+                    'Scoring controls are locked. Official scorers can enter the Scoring Room with the Room ID and Passcode PIN to record deliveries.',
+                    style: TextStyle(color: Colors.white60, fontSize: 10),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showEnterRoomDialog(context, db, match),
+                          icon: const Icon(Icons.vpn_key, size: 14),
+                          label: const Text('ENTER SCORING ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF34D399),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showCreateRoomDialog(context, db, match),
-                        icon: const Icon(Icons.add_circle_outline, size: 14),
-                        label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white38),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showCreateRoomDialog(context, db, match),
+                          icon: const Icon(Icons.add_circle_outline, size: 14),
+                          label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white38),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -1785,6 +1932,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
   // ==========================================
 
   void _showEnterRoomDialog(BuildContext context, MockDatabase db, MatchModel match) {
+    if (!db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to enter scoring room.',
+          onAuthSuccess: () => setState(() {}),
+        ),
+      );
+      return;
+    }
+
     final existingRoom = db.getScoringRoomForMatch(match.id);
     final roomController = TextEditingController(text: existingRoom?.id ?? 'ROOM-BPL-01');
     final passController = TextEditingController();
@@ -1898,6 +2056,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
   }
 
   void _showCreateRoomDialog(BuildContext context, MockDatabase db, MatchModel match) {
+    if (!db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to create scoring room.',
+          onAuthSuccess: () => setState(() {}),
+        ),
+      );
+      return;
+    }
+
     final generatedRoomId = 'ROOM-BPL-0${match.id.replaceAll(RegExp(r'[^0-9]'), '')}';
     final roomController = TextEditingController(text: generatedRoomId);
     final passController = TextEditingController(text: '1234');
@@ -2076,6 +2245,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
     String? fielderId,
     String? nextBatterId,
   }) {
+    if (!db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to record deliveries.',
+          onAuthSuccess: () => setState(() {}),
+        ),
+      );
+      return;
+    }
+
     final activeBowlerBeforeBall = inn.currentBowlerId;
     db.recordDelivery(
       inningsId: inn.id,

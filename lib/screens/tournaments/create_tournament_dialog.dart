@@ -3,6 +3,7 @@ import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../theme/neo_glass_theme.dart';
 import '../../widgets/app_animations.dart';
+import '../../widgets/auth_modal_dialog.dart';
 import '../scorer/scorer_screen.dart';
 import 'tournament_hub_screen.dart';
 
@@ -1574,6 +1575,19 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     final effectiveLocation = locationController.text.trim().isNotEmpty
         ? locationController.text.trim()
         : 'Main Cricket Ground';
+
+    if (!widget.db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in or register to organize tournaments.',
+          onAuthSuccess: () {
+            setState(() {});
+          },
+        ),
+      );
+      return;
+    }
 
     final created = widget.db.createTournament(
       name: nameController.text.trim(),
