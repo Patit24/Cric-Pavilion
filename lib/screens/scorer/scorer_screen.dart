@@ -15,6 +15,9 @@ import 'fill_team_squad_dialog.dart';
 import '../matches/create_direct_match_dialog.dart';
 import '../../widgets/auth_modal_dialog.dart';
 import '../../widgets/cloud_sync_dialog.dart';
+import 'extras_scoring_sheet.dart';
+import 'start_innings2_dialog.dart';
+import 'retire_batter_dialog.dart';
 
 class ScorerScreen extends StatefulWidget {
   final String? initialMatchId;
@@ -293,6 +296,18 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 case 'end_inn1_early':
                   _confirmEndInnings1Early(context, db, match, inn1, safeTeamAPlayers, safeTeamBPlayers);
                   break;
+                case 'retire_batter':
+                  if (currentInnings != null) {
+                    _showRetireBatterDialog(
+                      context: context,
+                      db: db,
+                      inn: currentInnings,
+                      striker: striker,
+                      nonStriker: nonStriker,
+                      battingTeamPlayers: battingTeamPlayers,
+                    );
+                  }
+                  break;
                 case 'reset_match':
                   _confirmResetMatch(context, db, match);
                   break;
@@ -381,6 +396,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         Icon(Icons.flag_circle, color: Color(0xFF34D399), size: 17),
                         SizedBox(width: 10),
                         Text('End Innings 1 & Start Chase', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                if (currentInnings != null && !currentInnings.isCompleted)
+                  const PopupMenuItem(
+                    value: 'retire_batter',
+                    child: Row(
+                      children: [
+                        Icon(Icons.medical_services_outlined, color: Colors.orangeAccent, size: 17),
+                        SizedBox(width: 10),
+                        Text('Retire Batter (Hurt / Out)', style: TextStyle(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -1693,7 +1719,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Top control strip: Undo & Swap Ends
+          // Top control strip: Undo, Swap Ends, Retire, Bowler
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1709,6 +1735,20 @@ class _ScorerScreenState extends State<ScorerScreen> {
               ),
               TextButton.icon(
                 onPressed: () {
+                  _showRetireBatterDialog(
+                    context: context,
+                    db: db,
+                    inn: currentInnings,
+                    striker: striker,
+                    nonStriker: nonStriker,
+                    battingTeamPlayers: battingTeamPlayers,
+                  );
+                },
+                icon: const Icon(Icons.medical_services_outlined, size: 14, color: Colors.orangeAccent),
+                label: const Text('Retire', style: TextStyle(color: Colors.orangeAccent, fontSize: 11)),
+              ),
+              TextButton.icon(
+                onPressed: () {
                   _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId);
                 },
                 icon: const Icon(Icons.person, size: 14, color: Color(0xFF34D399)),
@@ -1719,6 +1759,120 @@ class _ScorerScreenState extends State<ScorerScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+
+          // THIS OVER BALL-BY-BALL STRIP
+          Builder(builder: (context) {
+            final innDeliveries = db.deliveries
+                .where((d) => d.inningsId == currentInnings.id && !d.isUndone)
+                .toList();
+            int legalCount = 0;
+            final currentOverBallsReversed = <Delivery>[];
+            final ballsInCurrentOver = (currentInnings.legalBalls % 6 == 0 && currentInnings.legalBalls > 0)
+                ? 6
+                : (currentInnings.legalBalls % 6);
+            for (final d in innDeliveries.reversed) {
+              final isLegal = d.extrasType != ExtrasType.wide && d.extrasType != ExtrasType.noBall;
+              currentOverBallsReversed.add(d);
+              if (isLegal) {
+                legalCount++;
+                if (legalCount >= ballsInCurrentOver && ballsInCurrentOver > 0) break;
+              }
+            }
+            final currentOverBalls = (ballsInCurrentOver == 0 && currentInnings.legalBalls == 0)
+                ? innDeliveries
+                : currentOverBallsReversed.reversed.toList();
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF131D31),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'THIS OVER (${currentInnings.legalBalls ~/ 6 + 1}):',
+                    style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 8),
+                  if (currentOverBalls.isEmpty)
+                    const Text('Ready for first ball...', style: TextStyle(color: Colors.white38, fontSize: 10))
+                  else
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: currentOverBalls.map((d) {
+                            final isWicket = d.isWicket;
+                            final isFour = d.runsBatter == 4;
+                            final isSix = d.runsBatter == 6;
+                            final isDot = d.runsBatter == 0 && d.extrasRuns == 0 && !isWicket;
+                            final isWide = d.extrasType == ExtrasType.wide;
+                            final isNb = d.extrasType == ExtrasType.noBall;
+                            final isBye = d.extrasType == ExtrasType.bye || d.extrasType == ExtrasType.legBye;
+
+                            String ballText;
+                            Color badgeColor;
+                            Color textColor = Colors.white;
+
+                            if (isWicket) {
+                              ballText = 'W';
+                              badgeColor = Colors.red.shade700;
+                            } else if (isNb) {
+                              ballText = d.runsBatter > 0 ? 'Nb+${d.runsBatter}' : '${d.totalRuns}Nb';
+                              badgeColor = Colors.deepOrange.shade800;
+                            } else if (isWide) {
+                              ballText = '${d.totalRuns}Wd';
+                              badgeColor = Colors.amber.shade800;
+                            } else if (isBye) {
+                              ballText = '${d.totalRuns}B';
+                              badgeColor = Colors.teal.shade800;
+                            } else if (isSix) {
+                              ballText = '6';
+                              badgeColor = const Color(0xFF7C3AED);
+                            } else if (isFour) {
+                              ballText = '4';
+                              badgeColor = const Color(0xFF0284C7);
+                            } else if (isDot) {
+                              ballText = '•';
+                              badgeColor = const Color(0xFF1E293B);
+                              textColor = Colors.white60;
+                            } else {
+                              ballText = '${d.runsBatter}';
+                              badgeColor = const Color(0xFF1E293B);
+                            }
+
+                            return Container(
+                              margin: const EdgeInsets.only(right: 5),
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: badgeColor,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isWicket ? Colors.redAccent : Colors.white24,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                ballText,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 6),
 
           // Runs Keypad (0, 1, 2, 3, 4, 6) - Tactile Neo-Glass Keypad
@@ -1825,7 +1979,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                       ? () => _showOpeningCreaseDialog(context, db, currentInnings, battingTeamPlayers, bowlingTeamPlayers)
                       : bowler == null
                           ? () => _showBowlerSelectDialog(context, db, currentInnings, bowlingTeamPlayers, prevBowlerId)
-                          : () => _showExtrasDialog(context, db, currentInnings, bowlingTeamPlayers),
+                          : () => _showExtrasDialog(
+                              context,
+                              db,
+                              currentInnings,
+                              bowlingTeamPlayers,
+                              striker: striker,
+                              nonStriker: nonStriker,
+                              bowler: bowler,
+                            ),
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -2270,6 +2432,20 @@ class _ScorerScreenState extends State<ScorerScreen> {
     );
 
     final updated = db.inningsList.firstWhere((i) => i.id == inn.id);
+    final match = db.matches.firstWhere((m) => m.id == inn.matchId);
+
+    if (updated.inningsNumber == 1 && updated.isCompleted) {
+      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final teamAPlayers = db.players.where((p) => match.playingXIA.contains(p.id) || p.teamId == match.teamAId).toList();
+          final teamBPlayers = db.players.where((p) => match.playingXIB.contains(p.id) || p.teamId == match.teamBId).toList();
+          _showStartInnings2Modal(context, db, match, updated, teamAPlayers, teamBPlayers);
+        }
+      });
+      return;
+    }
+
     if (updated.currentBowlerId == null && !updated.isCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -2435,139 +2611,89 @@ class _ScorerScreenState extends State<ScorerScreen> {
     );
   }
 
-  void _showExtrasDialog(BuildContext context, MockDatabase db, Innings inn, List<Player> bowlingTeamPlayers) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xF50B1120),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: NeoGlassTheme.glassBorder, width: 1.2),
-            boxShadow: [
-              NeoGlassTheme.neoDarkShadow,
-              NeoGlassTheme.neoLightHighlight,
-            ],
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'RECORD EXTRAS',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: NeoGlassTheme.neonEmerald,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Wide (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                subtitle: const Text('Bowler charged 1 run, not a legal ball', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.arrow_forward, color: Colors.amber, size: 20),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _executeDelivery(
-                    context: context,
-                    db: db,
-                    inn: inn,
-                    bowlingPlayers: bowlingTeamPlayers,
-                    runsBatter: 0,
-                    extrasRuns: 1,
-                    extrasType: ExtrasType.wide,
-                  );
-                },
-              ),
-              const Divider(color: Colors.white12, height: 1),
-              ListTile(
-                title: const Text('No-Ball (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                subtitle: const Text('Bowler charged 1 run, free hit awarded', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.not_interested, color: Colors.redAccent, size: 20),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _executeDelivery(
-                    context: context,
-                    db: db,
-                    inn: inn,
-                    bowlingPlayers: bowlingTeamPlayers,
-                    runsBatter: 0,
-                    extrasRuns: 1,
-                    extrasType: ExtrasType.noBall,
-                  );
-                },
-              ),
-              const Divider(color: Colors.white12, height: 1),
-              ListTile(
-                title: const Text('Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                subtitle: const Text('Runs not charged to bowler, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.directions_run, color: Colors.blueAccent, size: 20),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _executeDelivery(
-                    context: context,
-                    db: db,
-                    inn: inn,
-                    bowlingPlayers: bowlingTeamPlayers,
-                    runsBatter: 0,
-                    extrasRuns: 1,
-                    extrasType: ExtrasType.bye,
-                  );
-                },
-              ),
-              const Divider(color: Colors.white12, height: 1),
-              ListTile(
-                title: const Text('Leg Bye (+1 Run)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                subtitle: const Text('Ball hit pad/body, counts as legal delivery', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: const Color(0xFF34D399).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.shield_outlined, color: Color(0xFF34D399), size: 20),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _executeDelivery(
-                    context: context,
-                    db: db,
-                    inn: inn,
-                    bowlingPlayers: bowlingTeamPlayers,
-                    runsBatter: 0,
-                    extrasRuns: 1,
-                    extrasType: ExtrasType.legBye,
-                  );
-                },
-              ),
-            ],
-          ),
+  void _showExtrasDialog(
+    BuildContext context,
+    MockDatabase db,
+    Innings inn,
+    List<Player> bowlingTeamPlayers, {
+    Player? striker,
+    Player? nonStriker,
+    Player? bowler,
+  }) {
+    ExtrasScoringSheet.show(
+      context,
+      innings: inn,
+      striker: striker,
+      nonStriker: nonStriker,
+      bowler: bowler,
+      onConfirmExtras: ({
+        required ExtrasType extrasType,
+        required int extrasRuns,
+        required int runsBatter,
+      }) {
+        _executeDelivery(
+          context: context,
+          db: db,
+          inn: inn,
+          bowlingPlayers: bowlingTeamPlayers,
+          runsBatter: runsBatter,
+          extrasRuns: extrasRuns,
+          extrasType: extrasType,
         );
+      },
+    );
+  }
+
+  void _showRetireBatterDialog({
+    required BuildContext context,
+    required MockDatabase db,
+    required Innings inn,
+    required Player? striker,
+    required Player? nonStriker,
+    required List<Player> battingTeamPlayers,
+  }) {
+    if (striker == null || nonStriker == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Both striker and non-striker must be selected before retiring a player.')),
+      );
+      return;
+    }
+
+    final availableDugout = CricketRulesEngine.getAvailableIncomingBatsmen(
+      teamPlayers: battingTeamPlayers,
+      deliveries: db.deliveries,
+      inningsId: inn.id,
+      currentStrikerId: striker.id,
+      currentNonStrikerId: nonStriker.id,
+    );
+
+    if (availableDugout.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No remaining players available in the squad dugout!'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    RetireBatterDialog.show(
+      context,
+      striker: striker,
+      nonStriker: nonStriker,
+      availableDugout: availableDugout,
+      onConfirmRetire: ({
+        required String retiringPlayerId,
+        required bool isHurt,
+        required String replacementPlayerId,
+      }) {
+        db.retireBatter(
+          inningsId: inn.id,
+          retiringPlayerId: retiringPlayerId,
+          isHurt: isHurt,
+          replacementPlayerId: replacementPlayerId,
+        );
+        setState(() {});
       },
     );
   }
@@ -2651,7 +2777,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
     List<Player> teamAPlayers,
     List<Player> teamBPlayers,
   ) {
-    final chasingTeamId = (inn1?.battingTeamId == match.teamAId) ? match.teamBId : match.teamAId;
+    if (inn1 == null) return;
+    final chasingTeamId = (inn1.battingTeamId == match.teamAId) ? match.teamBId : match.teamAId;
     final defendingTeamId = (chasingTeamId == match.teamAId) ? match.teamBId : match.teamAId;
 
     final chasingTeam = db.getTeam(chasingTeamId) ?? MockDatabase.emptyTeam;
@@ -2660,200 +2787,30 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final chasingPlayers = chasingTeamId == match.teamAId ? teamAPlayers : teamBPlayers;
     final defendingPlayers = defendingTeamId == match.teamAId ? teamAPlayers : teamBPlayers;
 
-    String? selectedStrikerId = chasingPlayers.isNotEmpty ? chasingPlayers[0].id : null;
-    String? selectedNonStrikerId = chasingPlayers.length > 1 ? chasingPlayers[1].id : selectedStrikerId;
-    String? selectedBowlerId = defendingPlayers.where((p) => p.role == PlayerRole.bowler).firstOrNull?.id ??
-        (defendingPlayers.isNotEmpty ? defendingPlayers[0].id : null);
-
-    final target = (inn1?.totalRuns ?? 0) + 1;
-
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (modalCtx, setModalState) {
-            final isSameBatter = selectedStrikerId != null &&
-                selectedNonStrikerId != null &&
-                selectedStrikerId == selectedNonStrikerId;
-
-            return Container(
-              decoration: BoxDecoration(
-                color: NeoGlassTheme.bgSurface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(color: NeoGlassTheme.glassBorder),
-                boxShadow: [NeoGlassTheme.neoDarkShadow],
-              ),
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 20,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.5)),
-                          ),
-                          child: const Icon(Icons.sports_cricket, color: NeoGlassTheme.neonEmerald, size: 22),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Start Innings 2 (Chase)',
-                                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                '${chasingTeam.name} needs $target runs in ${match.overs} overs to win',
-                                style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(modalCtx),
-                          icon: const Icon(Icons.close, color: Colors.white54),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Innings 1 Summary Card
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: NeoGlassTheme.bgCanvas,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Innings 1 Total', style: TextStyle(color: Colors.white60, fontSize: 10)),
-                              Text(
-                                '${defendingTeam.name}: ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} (${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} ov)',
-                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              gradient: NeoGlassTheme.neonGradient,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Target: $target',
-                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    const Text(
-                      'SELECT OPENING CREASE LINEUP FOR INNINGS 2',
-                      style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Striker
-                    Text('Opening Striker (${chasingTeam.name}):', style: const TextStyle(color: NeoGlassTheme.neonAmber, fontSize: 11, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    DropdownButtonFormField<String>(
-                      value: selectedStrikerId,
-                      isExpanded: true,
-                      dropdownColor: NeoGlassTheme.bgSurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Striker'),
-                      items: chasingPlayers.map((p) {
-                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
-                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setModalState(() => selectedStrikerId = val),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Non-Striker
-                    Text('Opening Non-Striker (${chasingTeam.name}):', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    DropdownButtonFormField<String>(
-                      value: selectedNonStrikerId,
-                      isExpanded: true,
-                      dropdownColor: NeoGlassTheme.bgSurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Non-Striker'),
-                      items: chasingPlayers.map((p) {
-                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
-                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setModalState(() => selectedNonStrikerId = val),
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (isSameBatter) ...[
-                      const Text('⚠️ Striker & Non-Striker must be different players.', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
-                      const SizedBox(height: 10),
-                    ],
-
-                    // Bowler
-                    Text('Opening Bowler (${defendingTeam.name}):', style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    DropdownButtonFormField<String>(
-                      value: selectedBowlerId,
-                      isExpanded: true,
-                      dropdownColor: NeoGlassTheme.bgSurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                      decoration: NeoGlassTheme.inputDecoration(hintText: 'Select Opening Bowler'),
-                      items: defendingPlayers.map((p) {
-                        final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
-                        return DropdownMenuItem(value: p.id, child: Text(pName, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setModalState(() => selectedBowlerId = val),
-                    ),
-                    const SizedBox(height: 18),
-
-                    NeoGlassButton(
-                      onPressed: (!isSameBatter && selectedStrikerId != null && selectedNonStrikerId != null && selectedBowlerId != null)
-                          ? () {
-                              Navigator.pop(modalCtx);
-                              db.startInnings2(
-                                matchId: match.id,
-                                strikerId: selectedStrikerId,
-                                nonStrikerId: selectedNonStrikerId,
-                                bowlerId: selectedBowlerId,
-                              );
-                              setState(() => selectedInningsNum = 2);
-                            }
-                          : null,
-                      gradient: NeoGlassTheme.neonGradient,
-                      icon: Icons.play_arrow,
-                      child: const Text('Start Innings 2 & Begin Scoring', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+      barrierDismissible: false,
+      builder: (ctx) => StartInnings2Dialog(
+        match: match,
+        inn1: inn1,
+        chasingTeam: chasingTeam,
+        defendingTeam: defendingTeam,
+        chasingPlayers: chasingPlayers,
+        defendingPlayers: defendingPlayers,
+        onConfirmLineup: ({
+          required String strikerId,
+          required String nonStrikerId,
+          required String bowlerId,
+        }) {
+          db.startInnings2(
+            matchId: match.id,
+            strikerId: strikerId,
+            nonStrikerId: nonStrikerId,
+            bowlerId: bowlerId,
+          );
+          setState(() => selectedInningsNum = 2);
+        },
+      ),
     );
   }
 }

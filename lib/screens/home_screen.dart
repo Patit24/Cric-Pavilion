@@ -352,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Container(
-      height: 145,
+      height: 152,
       margin: const EdgeInsets.only(top: 8, bottom: 4),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -370,11 +370,16 @@ class _HomeScreenState extends State<HomeScreen> {
           final isLive = m.status == MatchStatus.live;
           final isCompleted = m.status == MatchStatus.completed;
 
+          final activeInn = inn2 ?? inn1;
+          final matchDeliveries = activeInn != null
+              ? db.deliveries.where((d) => d.matchId == m.id && d.inningsId == activeInn.id && !d.isUndone).toList()
+              : <Delivery>[];
+          final recentBalls = matchDeliveries.reversed.take(4).toList().reversed.toList();
+
           String statusText;
           Color statusColor;
 
           if (isLive) {
-            final activeInn = inn2 ?? inn1;
             statusText = activeInn != null
                 ? 'CRR: ${activeInn.runRate.toStringAsFixed(1)} • ${activeInn.oversStr} ov'
                 : 'Match in progress';
@@ -490,11 +495,45 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
 
-                  // Result / Target Status String
-                  Text(
-                    statusText,
-                    style: TextStyle(color: statusColor, fontSize: 10.5, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
+                  // Result / Target Status String & Recent Balls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          statusText,
+                          style: TextStyle(color: statusColor, fontSize: 10.5, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (recentBalls.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: recentBalls.map((d) {
+                            final label = _getDeliveryLabel(d);
+                            final isW = d.isWicket;
+                            final isBdry = d.runsBatter == 4 || d.runsBatter == 6;
+                            return Container(
+                              margin: const EdgeInsets.only(left: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: isW
+                                    ? const Color(0xFFDC2626)
+                                    : (isBdry
+                                        ? (d.runsBatter == 6 ? const Color(0xFF7C3AED) : const Color(0xFF0284C7))
+                                        : const Color(0xFF374151)),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                label,
+                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -1697,6 +1736,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final winner = db.getTeam(pm.winnerId);
     final tourn = db.getTournament(pm.tournamentId);
 
+    final lastInn = inn2 ?? inn1;
+    final pastDeliveries = lastInn != null
+        ? db.deliveries.where((d) => d.matchId == pm.id && d.inningsId == lastInn.id && !d.isUndone).toList()
+        : <Delivery>[];
+    final closingBalls = pastDeliveries.reversed.take(6).toList().reversed.toList();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -1770,6 +1815,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          if (closingBalls.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Text('Recent Balls: ', style: TextStyle(color: Colors.white54, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 4),
+                Wrap(
+                  spacing: 4,
+                  children: closingBalls.map((d) => _buildBallBadge(_getDeliveryLabel(d))).toList(),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
@@ -1896,7 +1954,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getDeliveryLabel(Delivery d) {
     if (d.isWicket) return 'W';
     if (d.extrasType == ExtrasType.wide) return '${d.totalRuns}Wd';
-    if (d.extrasType == ExtrasType.noBall) return '${d.totalRuns}Nb';
+    if (d.extrasType == ExtrasType.noBall) {
+      return d.runsBatter > 0 ? 'Nb+${d.runsBatter}' : '${d.totalRuns}Nb';
+    }
     if (d.extrasType == ExtrasType.bye) return '${d.totalRuns}B';
     if (d.extrasType == ExtrasType.legBye) return '${d.totalRuns}Lb';
     return '${d.runsBatter}';

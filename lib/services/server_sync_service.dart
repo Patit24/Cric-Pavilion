@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,24 @@ class ServerSyncService {
   static DateTime? lastSyncTime;
   static String lastSyncStatus = 'Idle';
   static int syncCount = 0;
+  static Timer? _pollingTimer;
+
+  /// Starts automatic periodic background polling every 5 seconds
+  /// so mobile and desktop sync seamlessly without manual refreshes.
+  static void startAutoSyncPolling(MockDatabase db) {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      if (!isSyncing) {
+        await pullFromServer(db);
+      }
+    });
+  }
+
+  /// Stops automatic periodic sync
+  static void stopAutoSyncPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
 
   /// Resolves the base URL for the sync server.
   /// On Web, defaults to current host origin (e.g. http://192.168.1.5:8080 or http://localhost:8080).

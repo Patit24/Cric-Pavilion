@@ -40,6 +40,7 @@ class MockDatabase extends ChangeNotifier {
     // Attempt automatic sync with central server
     try {
       await ServerSyncService.syncWithServer(this);
+      ServerSyncService.startAutoSyncPolling(this);
     } catch (_) {}
     super.notifyListeners();
   }
@@ -2423,7 +2424,7 @@ class MockDatabase extends ChangeNotifier {
     final inn = inningsList.firstWhere((i) => i.id == inningsId);
     final match = matches.firstWhere((m) => m.id == inn.matchId);
 
-    // Hard 20-Over Cap check
+    // Hard Over Cap & All-Out check (10 wickets max or innings already completed)
     if (inn.isCompleted || inn.legalBalls >= match.overs * 6 || inn.wickets >= 10) {
       return;
     }
@@ -2443,7 +2444,7 @@ class MockDatabase extends ChangeNotifier {
     inn.oversStr = CricketRulesEngine.formatOvers(inn.legalBalls);
 
     // Striker & Bowler (Resilient against null IDs or non-existent fallback IDs)
-    final battingPlayers = players.where((p) => p.teamId == inn.battingTeamId).toList();
+    final battingPlayers = players.where((p) => p.teamId == inn.battingTeamId || (inn.inningsNumber == 1 ? match.playingXIA.contains(p.id) : match.playingXIB.contains(p.id))).toList();
     final bowlingPlayers = players.where((p) => p.teamId == inn.bowlingTeamId).toList();
 
     String strikerId = inn.currentStrikerId ?? '';
@@ -2527,7 +2528,8 @@ class MockDatabase extends ChangeNotifier {
 
     if (isLegal) bowlerCard.legalBalls++;
     bowlerCard.oversStr = CricketRulesEngine.formatOvers(bowlerCard.legalBalls);
-    bowlerCard.runsConceded += totalBallRuns;
+    final bowlerCharges = (extrasType == ExtrasType.bye || extrasType == ExtrasType.legBye) ? runsBatter : totalBallRuns;
+    bowlerCard.runsConceded += bowlerCharges;
     if (totalBallRuns == 0 && isLegal) bowlerCard.dots++;
     if (isWicket && dismissalType != DismissalType.runOut && dismissalType != DismissalType.retiredOut) {
       bowlerCard.wickets++;
@@ -2591,7 +2593,7 @@ class MockDatabase extends ChangeNotifier {
       }
       outCard.dismissalText = dismissalAnalysisText;
 
-      if (inn.wickets < 10 && nextBatterId != null) {
+      if (nextBatterId != null) {
         if (outPlayerId == inn.currentStrikerId) {
           inn.currentStrikerId = nextBatterId;
         } else {
@@ -2601,7 +2603,10 @@ class MockDatabase extends ChangeNotifier {
     }
 
     // Strike Rotation: odd runs swap ends
-    if (runsBatter % 2 != 0) {
+    final runsForRotation = runsBatter > 0
+        ? runsBatter
+        : ((extrasType == ExtrasType.bye || extrasType == ExtrasType.legBye) ? extrasRuns : (extrasType == ExtrasType.wide ? extrasRuns - 1 : 0));
+    if (runsForRotation % 2 != 0) {
       final temp = inn.currentStrikerId;
       inn.currentStrikerId = inn.currentNonStrikerId;
       inn.currentNonStrikerId = temp;
@@ -2639,17 +2644,32 @@ class MockDatabase extends ChangeNotifier {
         fielderId: fielderId,
         commentaryText: isWicket
             ? 'WICKET! ${players.where((p) => p.id == (dismissedPlayerId ?? strikerId)).firstOrNull?.fullName ?? "Batter"} is out ($dismissalAnalysisText).'
-            : runsBatter == 4
-                ? 'FOUR! Punched firmly to the boundary.'
-                : runsBatter == 6
-                    ? 'SIX! Clears the rope with huge elevation!'
-                    : 'Pushed into gaps for $runsBatter run(s).',
+            : extrasType == ExtrasType.noBall
+                ? (runsBatter > 0
+                    ? 'NO-BALL + $runsBatter RUNS! Free hit awarded.'
+                    : 'NO-BALL (+1 run). Free hit awarded.')
+                : extrasType == ExtrasType.wide
+                    ? (extrasRuns > 1
+                        ? 'WIDE + ${extrasRuns - 1} RUNS ($extrasRuns wides total).'
+                        : 'WIDE BALL (+1 run).')
+                    : extrasType == ExtrasType.bye
+                        ? '$extrasRuns BYE(S)!'
+                        : extrasType == ExtrasType.legBye
+                            ? '$extrasRuns LEG BYE(S)!'
+                            : runsBatter == 4
+                                ? 'FOUR! Punched firmly to the boundary.'
+                                : runsBatter == 6
+                                    ? 'SIX! Clears the rope with huge elevation!'
+                                    : 'Pushed into gaps for $runsBatter run(s).',
         timestamp: DateTime.now(),
       ),
     );
 
+    // Check all-out condition: 10 wickets fallen OR no more batters available in dugout (nextBatterId null on wicket)
+    final isAllOut = inn.wickets >= 10 || (isWicket && nextBatterId == null);
+
     // Innings 1 Completion Check
-    if (inn.inningsNumber == 1 && (inn.legalBalls >= match.overs * 6 || inn.wickets >= 10)) {
+    if (inn.inningsNumber == 1 && (inn.legalBalls >= match.overs * 6 || isAllOut)) {
       inn.isCompleted = true;
       startInnings2(matchId: match.id);
     }
@@ -2660,13 +2680,73 @@ class MockDatabase extends ChangeNotifier {
         inn.isCompleted = true;
         match.status = MatchStatus.completed;
         match.winnerId = inn.battingTeamId;
-        final wicketsLeft = 10 - inn.wickets;
+        final wicketsLeft = (10 - inn.wickets) > 0 ? (10 - inn.wickets) : 1;
         match.winMargin = '$wicketsLeft wickets';
-      } else if (inn.legalBalls >= match.overs * 6 || inn.wickets >= 10) {
+      } else if (inn.legalBalls >= match.overs * 6 || isAllOut) {
         inn.isCompleted = true;
         match.status = MatchStatus.completed;
         match.winnerId = inn.bowlingTeamId;
         final runsDefended = (inn.targetRuns! - 1) - inn.totalRuns;
+        match.winMargin = '$runsDefended runs';
+      }
+    }
+
+    notifyListeners();
+  }
+
+  /// Retires a batsman mid-innings (either Retired Hurt / Injured or Retired Out).
+  /// In cricket, when a player retires hurt or out, no ball delivery is counted!
+  void retireBatter({
+    required String inningsId,
+    required String retiringPlayerId,
+    required bool isHurt,
+    required String replacementPlayerId,
+  }) {
+    final inn = inningsList.firstWhere((i) => i.id == inningsId);
+    final match = matches.firstWhere((m) => m.id == inn.matchId);
+    final battingPlayers = players.where((p) => p.teamId == inn.battingTeamId || (inn.inningsNumber == 1 ? match.playingXIA.contains(p.id) : match.playingXIB.contains(p.id))).toList();
+    final maxWickets = (battingPlayers.length > 1) ? (battingPlayers.length - 1) : 10;
+
+    var card = battingScorecards.where((b) => b.inningsId == inningsId && b.playerId == retiringPlayerId).firstOrNull;
+    if (card == null) {
+      final p = players.where((p) => p.id == retiringPlayerId).firstOrNull;
+      card = BattingScorecard(
+        id: 'bat_${inningsId}_$retiringPlayerId',
+        inningsId: inningsId,
+        matchId: match.id,
+        playerId: retiringPlayerId,
+        playerName: p?.fullName.isNotEmpty == true ? p!.fullName : 'Batter',
+      );
+      battingScorecards.add(card);
+    }
+
+    if (isHurt) {
+      // Retired Hurt: Not dismissed, wickets does NOT increment
+      card.isOut = false;
+      card.dismissalText = 'retired hurt';
+    } else {
+      // Retired Out: Dismissed, wickets increments
+      card.isOut = true;
+      card.dismissalText = 'retired out';
+      inn.wickets++;
+    }
+
+    // Replace at crease without consuming any delivery balls
+    if (inn.currentStrikerId == retiringPlayerId) {
+      inn.currentStrikerId = replacementPlayerId;
+    } else if (inn.currentNonStrikerId == retiringPlayerId) {
+      inn.currentNonStrikerId = replacementPlayerId;
+    }
+
+    // Check if Retired Out triggered all-out
+    if (!isHurt && inn.wickets >= maxWickets) {
+      inn.isCompleted = true;
+      if (inn.inningsNumber == 1) {
+        startInnings2(matchId: match.id);
+      } else if (inn.inningsNumber == 2) {
+        match.status = MatchStatus.completed;
+        match.winnerId = inn.bowlingTeamId;
+        final runsDefended = (inn.targetRuns ?? 1) - 1 - inn.totalRuns;
         match.winMargin = '$runsDefended runs';
       }
     }

@@ -54,12 +54,13 @@ void main() {
 
     test('2. Multi-Device Sync: Mobile-scored match transfers and merges seamlessly into Desktop', () {
       // 1. Mobile user logs in and scores a friendly match
-      final mobileUser = dbMobile.registerUser(
+      final registered = dbMobile.registerUser(
         fullName: 'Mobile Scorer',
         email: 'mobile@cricpavilion.com',
         mobileNumber: '9222222221',
         password: 'password123',
       );
+      expect(registered, isTrue);
       final p1 = dbMobile.registerPermanentPlayer(fullName: 'Kohli', mobileNumber: '9222222222', role: PlayerRole.batsman);
       final p2 = dbMobile.registerPermanentPlayer(fullName: 'Rohit', mobileNumber: '9222222223', role: PlayerRole.batsman);
       final p3 = dbMobile.registerPermanentPlayer(fullName: 'Bumrah', mobileNumber: '9222222224', role: PlayerRole.bowler);
