@@ -127,7 +127,7 @@ void main() {
       expect(db.currentUser?.mobileNumber, equals('9123456789'));
     });
 
-    testWidgets('3. Closing AuthModalDialog before finishing OTP logs out unverified session', (tester) async {
+    testWidgets('3. Closing AuthModalDialog before finishing first-time setup logs out incomplete session', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1024, 1200);
       addTearDown(() {
@@ -138,18 +138,33 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Start first-time Google sign in (transitions to Mobile OTP step)
-      await tester.tap(find.text('Continue with Google'));
+      // Start first-time Mobile OTP sign in (transitions to Name & Email step)
+      await tester.ensureVisible(find.text('Mobile Number (OTP)'));
+      await tester.tap(find.text('Mobile Number (OTP)'));
       await tester.pumpAndSettle();
 
-      expect(find.text('FIRST-TIME SETUP • LINK MOBILE'), findsOneWidget);
-      expect(db.currentUser?.hasVerifiedMobile, isFalse);
+      await tester.enterText(find.widgetWithText(TextField, '10-digit Mobile Number'), '9988776655');
+      await tester.pumpAndSettle();
 
-      // User closes the modal without completing OTP verification
+      await tester.ensureVisible(find.text('Send Login OTP'));
+      await tester.tap(find.text('Send Login OTP'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Testing offline? Fill test OTP'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Verify OTP & Sign In'));
+      await tester.tap(find.text('Verify OTP & Sign In'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('FIRST-TIME SETUP • LINK GMAIL'), findsOneWidget);
+      expect(db.currentUser?.isProfileComplete, isFalse);
+
+      // User closes the modal without completing Name & Email setup
       await tester.tap(find.byIcon(Icons.close));
       await tester.pumpAndSettle();
 
-      // Unverified session MUST be cleared so they cannot bypass OTP!
+      // Incomplete session MUST be cleared so they cannot bypass setup!
       expect(db.isAuthenticated, isFalse);
       expect(db.currentUser, isNull);
     });

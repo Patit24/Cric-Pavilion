@@ -158,7 +158,7 @@ void main() {
       expect(find.text('RECOMMENDED'), findsOneWidget);
     });
 
-    testWidgets('First-time Google Sign-In prompts for Mobile OTP, then saves in database', (tester) async {
+    testWidgets('Google Sign-In completes authentication immediately without forcing Mobile OTP', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1024, 1200);
       addTearDown(() {
@@ -171,37 +171,14 @@ void main() {
 
       expect(db.isAuthenticated, isFalse);
 
-      // 1. Sign in with Google as first-time user
+      // Sign in with Google -> completes immediately without asking for phone number OTP
       await tester.tap(find.text('Continue with Google'));
       await tester.pumpAndSettle();
 
-      // User is authenticated, but mobile is not verified yet -> transitions to Mobile OTP step!
       expect(db.isAuthenticated, isTrue);
-      expect(find.text('FIRST-TIME SETUP • LINK MOBILE'), findsOneWidget);
-      expect(find.text('Send Verification OTP'), findsOneWidget);
-
-      // 2. Enter 10-digit mobile number
-      await tester.enterText(find.byType(TextField).last, '9876500001');
-      await tester.pumpAndSettle();
-
-      // 3. Tap Send OTP
-      await tester.tap(find.text('Send Verification OTP'));
-      await tester.pumpAndSettle();
-
-      // 4. Verification screen shown; tap offline test OTP
-      expect(find.text('Verify OTP & Save in Database'), findsOneWidget);
-      await tester.tap(find.text('Testing offline without mobile network? Fill test OTP'));
-      await tester.pumpAndSettle();
-
-      // 5. Tap Verify OTP
-      await tester.tap(find.text('Verify OTP & Save in Database'));
-      await tester.pumpAndSettle();
-
-      // Confirmed: Mobile number and email permanently saved in database!
       expect(db.currentUser?.email, equals('patitroy29@gmail.com'));
-      expect(db.currentUser?.mobileNumber, equals('9876500001'));
-      expect(db.currentUser?.isMobileVerified, isTrue);
-      expect(db.currentUser?.hasVerifiedMobile, isTrue);
+      expect(db.currentUser?.isGoogleOAuthUser, isTrue);
+      expect(find.text('FIRST-TIME SETUP • LINK MOBILE'), findsNothing);
     });
 
     testWidgets('Returning Google user signs in immediately WITHOUT OTP', (tester) async {

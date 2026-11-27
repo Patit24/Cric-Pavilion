@@ -70,7 +70,9 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     final db = context.read<MockDatabase>();
-    if (db.currentUser != null && !db.currentUser!.isProfileComplete) {
+    if (db.currentUser != null &&
+        !db.currentUser!.isGoogleOAuthUser &&
+        !db.currentUser!.isProfileComplete) {
       if (!db.currentUser!.hasVerifiedMobile) {
         _isMobileOtpStep = true;
         _mobileInputController.text = db.currentUser!.mobileNumber;
@@ -135,20 +137,8 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
       );
 
       setState(() => _isLoading = false);
-
-      // Condition: If user already has a saved & verified mobile number in database -> RETURNING USER!
-      if (user.hasVerifiedMobile) {
-        _completeAuthSuccess(db, isFirstTime: false);
-        return;
-      }
-
-      // FIRST-TIME USER: No mobile number saved in database -> Must enter mobile for OTP!
-      setState(() {
-        _isMobileOtpStep = true;
-        _is2faStep = false;
-        _otpSent = false;
-        _errorMessage = null;
-      });
+      FirestoreDatabaseService.pushUserProfile(user);
+      _completeAuthSuccess(db, isFirstTime: false);
       return;
     }
 
@@ -173,21 +163,10 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      // Condition: If user already has a saved & verified mobile number in database -> RETURNING USER!
-      if (user.hasVerifiedMobile) {
-        FirestoreDatabaseService.pushUserProfile(user);
-        _completeAuthSuccess(db, isFirstTime: false);
-        return;
-      }
-
-      // FIRST-TIME USER: No mobile number saved in database -> Must enter mobile for OTP!
-      setState(() {
-        _isMobileOtpStep = true;
-        _isCompleteEmailStep = false;
-        _is2faStep = false;
-        _otpSent = false;
-        _errorMessage = null;
-      });
+      // Google OAuth already verifies the user's account — complete sign-in immediately without forcing phone OTP
+      FirestoreDatabaseService.pushUserProfile(db.currentUser ?? user);
+      _completeAuthSuccess(db, isFirstTime: false);
+      return;
     } else if (result.isRedirecting) {
       if (!mounted) return;
       // Browser is redirecting to Google OAuth in the same tab — keep loading indicator without error

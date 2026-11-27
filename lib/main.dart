@@ -46,9 +46,7 @@ void main() async {
         photoUrl: redirectAuth.photoUrl,
       );
       await FirestoreDatabaseService.fetchAndMergeCurrentUser(db);
-      if (user.hasVerifiedMobile) {
-        FirestoreDatabaseService.pushUserProfile(user);
-      }
+      FirestoreDatabaseService.pushUserProfile(db.currentUser ?? user);
     }
   } catch (e) {
     debugPrint('Redirect auth completion notice: $e');
@@ -68,9 +66,7 @@ void main() async {
         photoUrl: fbUser.photoURL,
       );
       await FirestoreDatabaseService.fetchAndMergeCurrentUser(db);
-      if (user.hasVerifiedMobile) {
-        FirestoreDatabaseService.pushUserProfile(user);
-      }
+      FirestoreDatabaseService.pushUserProfile(db.currentUser ?? user);
     });
   }
 
