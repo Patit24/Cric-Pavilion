@@ -116,7 +116,8 @@ class DatabasePersistenceService {
   /// Loads saved state from permanent storage into MockDatabase.
   /// Returns true if saved data was found and restored; false otherwise.
   static Future<bool> loadDatabase(MockDatabase db) async {
-    isPersistenceEnabled = true;
+    // Keep isPersistenceEnabled = false until after reading prefs so no queued
+    // constructor microtask can overwrite saved localStorage before hydration!
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -124,7 +125,7 @@ class DatabasePersistenceService {
       final usersStr = prefs.getString(_keyUsers);
       if (usersStr != null && usersStr.isNotEmpty) {
         final List<dynamic> list = jsonDecode(usersStr);
-        db.users = list.map((item) => _userAccountFromMap(item as Map<String, dynamic>)).toList();
+        db.users = list.map((item) => _userAccountFromMap(Map<String, dynamic>.from(item as Map))).toList();
       }
 
       final currentUserId = prefs.getString(_keyCurrentUserId);
@@ -136,7 +137,7 @@ class DatabasePersistenceService {
       if (db.currentUser == null) {
         final activeJson = prefs.getString(_keyActiveUserJson);
         if (activeJson != null && activeJson.isNotEmpty) {
-          final map = jsonDecode(activeJson) as Map<String, dynamic>;
+          final map = Map<String, dynamic>.from(jsonDecode(activeJson) as Map);
           final restored = _userAccountFromMap(map);
           if (!db.users.any((u) => u.id == restored.id)) {
             db.users.add(restored);
@@ -216,6 +217,8 @@ class DatabasePersistenceService {
     } catch (e) {
       debugPrint('DatabasePersistenceService load error: $e');
       return false;
+    } finally {
+      isPersistenceEnabled = true;
     }
   }
 

@@ -152,7 +152,7 @@ class MockDatabase extends ChangeNotifier {
   bool isDemoDataLoaded = false;
 
   /// Clears all demo tournaments, demo auctions, and fake matches so user has a 100% clean slate!
-  void clearAllDemoData() {
+  void clearAllDemoData({bool notify = true}) {
     tournaments = [];
     teams = [];
     players = [];
@@ -187,7 +187,9 @@ class MockDatabase extends ChangeNotifier {
     authenticatedAuctioneerId = null;
     authenticatedOperatorId = null;
     authenticatedPlayerId = null;
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   /// Permanently removes all demo tournaments, demo auctions, fake demo matches,
@@ -918,7 +920,7 @@ class MockDatabase extends ChangeNotifier {
       isDemoDataLoaded = true;
     } else {
       _activeOverrideRole = null;
-      clearAllDemoData();
+      clearAllDemoData(notify: false);
     }
   }
 
