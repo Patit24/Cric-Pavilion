@@ -156,7 +156,7 @@ class GoogleAuthService {
                 success: false,
                 isPopupBlocked: true,
                 errorMessage:
-                    'Browser blocked the Google popup on $host. Please allow popups in your browser address bar and tap "Continue with Google" again, or sign in on https://cricpavilion-750c5.web.app.',
+                    'Google popup was blocked on $host (${popupErr is FirebaseAuthException ? popupErr.code : popupErr}). Please allow popups in your browser address bar and tap "Continue with Google" again, or open https://cricpavilion-750c5.web.app.',
               );
             }
           }
