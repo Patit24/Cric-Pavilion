@@ -731,6 +731,8 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                       if (_errorMessage!.toLowerCase().contains('billing') ||
                           _errorMessage!.toLowerCase().contains('region') ||
                           _errorMessage!.toLowerCase().contains('operation-not-allowed') ||
+                          _errorMessage!.toLowerCase().contains('authorized domains') ||
+                          _errorMessage!.toLowerCase().contains('captcha-check-failed') ||
                           _errorMessage!.toLowerCase().contains('sms')) ...[
                         const SizedBox(height: 8),
                         InkWell(

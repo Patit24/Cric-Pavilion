@@ -337,9 +337,15 @@ class GoogleAuthService {
       final errStr = e.toString().toLowerCase();
       final isBillingIssue = errStr.contains('billing-not-enabled') || errStr.contains('billing');
       final isRegionIssue = errStr.contains('operation-not-allowed') || errStr.contains('region');
+      final isHostnameIssue = errStr.contains('captcha-check-failed') ||
+          errStr.contains('hostname match not found') ||
+          errStr.contains('unauthorized-domain');
 
       String errorMessage;
-      if (isRegionIssue) {
+      if (isHostnameIssue) {
+        final host = kIsWeb && Uri.base.host.isNotEmpty ? Uri.base.host : 'this domain';
+        errorMessage = 'Firebase SMS reCAPTCHA: "$host" must be added to Firebase Console > Authentication > Settings > Authorized domains (or use https://cricpavilion-750c5.web.app). For testing now, use test code 123456.';
+      } else if (isRegionIssue) {
         errorMessage = 'Firebase SMS Region Policy: India (+91) must be enabled in Firebase Console > Authentication > Settings > SMS region policy. Or register this number under "Phone numbers for testing". For immediate verification, use test code 123456.';
       } else if (isBillingIssue) {
         errorMessage = 'Firebase Spark Plan: Real carrier SMS requires the Blaze plan in Firebase Console, or register this number under "Phone numbers for testing". For testing, use test code 123456.';
