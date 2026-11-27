@@ -69,6 +69,17 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    final db = context.read<MockDatabase>();
+    if (db.currentUser != null && !db.currentUser!.isProfileComplete) {
+      if (!db.currentUser!.hasVerifiedMobile) {
+        _isMobileOtpStep = true;
+        _mobileInputController.text = db.currentUser!.mobileNumber;
+      } else {
+        _isCompleteEmailStep = true;
+        _completeNameController.text =
+            (db.currentUser!.fullName == 'Cricketer') ? '' : db.currentUser!.fullName;
+      }
+    }
   }
 
   @override
@@ -175,6 +186,13 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
         _isCompleteEmailStep = false;
         _is2faStep = false;
         _otpSent = false;
+        _errorMessage = null;
+      });
+    } else if (result.isRedirecting) {
+      if (!mounted) return;
+      // Browser is redirecting to Google OAuth in the same tab — keep loading indicator without error
+      setState(() {
+        _isLoading = true;
         _errorMessage = null;
       });
     } else {
@@ -312,6 +330,21 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
 
     if (!mounted) return;
 
+    if (phoneResult.autoVerified) {
+      db.verifyUserMobileOtp(mobileNumber: norm, otp: '000000', bypassCodeCheck: true);
+      setState(() => _isLoading = false);
+      if (db.currentUser != null && !db.currentUser!.isProfileComplete) {
+        setState(() {
+          _isMobileOtpStep = false;
+          _isCompleteEmailStep = true;
+          _errorMessage = null;
+        });
+      } else {
+        _completeAuthSuccess(db, isFirstTime: true);
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = false;
       _otpSent = true;
@@ -396,6 +429,26 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
     final phoneResult = await GoogleAuthService.sendPhoneVerificationOtp(norm);
 
     if (!mounted) return;
+
+    if (phoneResult.autoVerified) {
+      db.verifyUserMobileOtp(mobileNumber: norm, otp: '000000', bypassCodeCheck: true);
+      setState(() => _isLoading = false);
+      if (db.currentUser != null && db.currentUser!.isProfileComplete) {
+        FirestoreDatabaseService.pushUserProfile(db.currentUser!);
+        _completeAuthSuccess(db, isFirstTime: false);
+      } else if (db.currentUser != null) {
+        setState(() {
+          _isCompleteEmailStep = true;
+          _isMobileOtpStep = false;
+          _completeNameController.text =
+              (db.currentUser!.fullName == 'Cricketer') ? '' : db.currentUser!.fullName;
+          _completeEmailController.text = db.currentUser!.email;
+          _errorMessage = null;
+        });
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = false;
       _mobileLoginOtpSent = true;

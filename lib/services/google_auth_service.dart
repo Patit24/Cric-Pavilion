@@ -9,12 +9,14 @@ class PhoneAuthResult {
   final String? message;
   final String? errorMessage;
   final bool isRealSms;
+  final bool autoVerified;
 
   PhoneAuthResult({
     required this.success,
     this.message,
     this.errorMessage,
     this.isRealSms = false,
+    this.autoVerified = false,
   });
 }
 
@@ -26,6 +28,7 @@ class GoogleAuthResult {
   final String? errorMessage;
   final bool isDevFallback;
   final bool isPopupBlocked;
+  final bool isRedirecting;
 
   GoogleAuthResult({
     required this.success,
@@ -35,25 +38,52 @@ class GoogleAuthResult {
     this.errorMessage,
     this.isDevFallback = false,
     this.isPopupBlocked = false,
+    this.isRedirecting = false,
   });
 }
 
-/// Robust Cross-Platform Google Sign-In Service
-/// Handles Web (Firebase Popup) and Mobile (GoogleSignIn authenticate + credential)
-/// with graceful local development fallback when OAuth client credentials or authorized domains are pending.
+/// Robust Cross-Platform Google Sign-In & Real-Time SMS OTP Service
+/// Handles Web (Firebase Popup with seamless Redirect fallback) and
+/// Native Mobile (in-app GoogleSignIn Credential Manager + Play Integrity SMS)
 class GoogleAuthService {
   static bool _initialized = false;
+
+  /// Web OAuth 2.0 Client ID from Firebase project (client_type: 3 in google-services.json)
+  static const String _webServerClientId =
+      '353831839667-ejs2v9lfgh8rvlmjld2f94ojddmdk415.apps.googleusercontent.com';
 
   static Future<void> initialize() async {
     if (_initialized) return;
     try {
       if (!kIsWeb) {
-        await GoogleSignIn.instance.initialize();
+        await GoogleSignIn.instance.initialize(
+          serverClientId: _webServerClientId,
+        );
       }
       _initialized = true;
     } catch (e) {
       debugPrint('GoogleAuthService initialization notice: $e');
     }
+  }
+
+  /// Checks if the web app just returned from a `signInWithRedirect` Google OAuth flow
+  static Future<GoogleAuthResult?> checkWebRedirectResult() async {
+    if (!kIsWeb) return null;
+    try {
+      final UserCredential cred = await FirebaseAuth.instance.getRedirectResult();
+      final User? user = cred.user ?? FirebaseAuth.instance.currentUser;
+      if (user != null && user.email != null && user.email!.isNotEmpty) {
+        return GoogleAuthResult(
+          success: true,
+          email: user.email!,
+          displayName: user.displayName ?? user.email!.split('@').first,
+          photoUrl: user.photoURL,
+        );
+      }
+    } catch (e) {
+      debugPrint('Web redirect result notice: $e');
+    }
+    return null;
   }
 
   /// Attempts native Google Sign In via Firebase Auth & GoogleSignIn plugin
@@ -66,25 +96,44 @@ class GoogleAuthService {
 
     try {
       if (kIsWeb) {
-        // Web: Use Firebase Auth signInWithPopup with GoogleAuthProvider
+        // Web: Use Firebase Auth signInWithPopup, with automatic signInWithRedirect fallback if popup is blocked
         final GoogleAuthProvider provider = GoogleAuthProvider();
         provider.addScope('email');
         provider.addScope('profile');
         provider.setCustomParameters({'prompt': 'select_account'});
 
-        final UserCredential credential = await FirebaseAuth.instance.signInWithPopup(provider);
-        final User? user = credential.user;
+        try {
+          final UserCredential credential = await FirebaseAuth.instance.signInWithPopup(provider);
+          final User? user = credential.user;
 
-        if (user != null && user.email != null) {
-          return GoogleAuthResult(
-            success: true,
-            email: user.email!,
-            displayName: user.displayName ?? user.email!.split('@').first,
-            photoUrl: user.photoURL,
-          );
+          if (user != null && user.email != null) {
+            return GoogleAuthResult(
+              success: true,
+              email: user.email!,
+              displayName: user.displayName ?? user.email!.split('@').first,
+              photoUrl: user.photoURL,
+            );
+          }
+        } catch (popupErr) {
+          final pErr = popupErr.toString().toLowerCase();
+          final shouldRedirect = pErr.contains('popup-blocked') ||
+              pErr.contains('popup_blocked') ||
+              pErr.contains('cancelled-popup-request') ||
+              pErr.contains('operation-not-supported-in-this-environment');
+
+          if (shouldRedirect) {
+            debugPrint('Popup blocked on web — seamlessly switching to signInWithRedirect');
+            await FirebaseAuth.instance.signInWithRedirect(provider);
+            return GoogleAuthResult(
+              success: false,
+              isRedirecting: true,
+              errorMessage: 'Redirecting to Google Sign-In...',
+            );
+          }
+          rethrow;
         }
       } else {
-        // Android / iOS / Desktop: GoogleSignIn.authenticate()
+        // Android / iOS / Desktop: In-app native GoogleSignIn (does not leave the app)
         final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
         final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
@@ -105,14 +154,12 @@ class GoogleAuthService {
     } catch (e) {
       debugPrint('Google Sign-In native flow message: $e');
 
-      // Check if it's an environment without OAuth keys, popup blocked, or test runner
       final errStr = e.toString().toLowerCase();
       final isPopupBlocked = errStr.contains('popup-blocked') ||
           errStr.contains('popup_blocked') ||
           errStr.contains('popup-closed-by-user') ||
           errStr.contains('popup_closed_by_user') ||
-          errStr.contains('cancelled-popup-request') ||
-          errStr.contains('popup');
+          errStr.contains('cancelled-popup-request');
 
       final isTestRunnerFallback = errStr.contains('no-app') ||
           errStr.contains('unimplemented');
@@ -131,7 +178,7 @@ class GoogleAuthService {
         success: false,
         isPopupBlocked: isPopupBlocked,
         errorMessage: isPopupBlocked
-            ? 'Browser blocked the Google popup window. Please allow popups in your browser address bar and try again, or sign in via Mobile OTP.'
+            ? 'Google sign-in window was closed. Please try again or sign in via Mobile OTP.'
             : e.toString(),
       );
     }
@@ -242,7 +289,21 @@ class GoogleAuthService {
         await FirebaseAuth.instance.verifyPhoneNumber(
           phoneNumber: e164,
           timeout: const Duration(seconds: 60),
-          verificationCompleted: (PhoneAuthCredential credential) async {},
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            try {
+              await FirebaseAuth.instance.signInWithCredential(credential);
+              if (!completer.isCompleted) {
+                completer.complete(PhoneAuthResult(
+                  success: true,
+                  isRealSms: true,
+                  autoVerified: true,
+                  message: 'Mobile number auto-verified in real time via SMS!',
+                ));
+              }
+            } catch (e) {
+              debugPrint('Auto-verification sign-in error: $e');
+            }
+          },
           verificationFailed: (FirebaseAuthException e) {
             debugPrint('Firebase phone verification failed: ${e.code} - ${e.message}');
             if (!completer.isCompleted) {

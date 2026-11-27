@@ -12,7 +12,20 @@
           "package_name": "com.cricpavilion.app.cricket_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "353831839667-kpmkija3u7cukh5vip7sr156o0vidj5n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cricpavilion.app.cricket_app",
+            "certificate_hash": "0952a99a268d0f1066a2590d21472b6229f63809"
+          }
+        },
+        {
+          "client_id": "353831839667-ejs2v9lfgh8rvlmjld2f94ojddmdk415.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBXI5Vr0XXRvJu3ayRRQx2mztzd2xAF4x4"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "353831839667-ejs2v9lfgh8rvlmjld2f94ojddmdk415.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "353831839667-3cqr6r16tp95u11v69nn75j16e0f35nf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cricpavilion.app.cricketApp"
+              }
+            }
+          ]
         }
       }
     }

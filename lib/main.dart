@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/mock_database.dart';
+import 'services/google_auth_service.dart';
+import 'services/firestore_database_service.dart';
 import 'theme/neo_glass_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/scorer/scorer_screen.dart';
@@ -30,6 +32,24 @@ void main() async {
   final db = MockDatabase(loadDemoSeed: false);
   await db.initPersistence();
   db.purgeAllDemoData();
+
+  // Complete any pending Web Google Sign-In Redirect flow seamlessly
+  try {
+    final redirectAuth = await GoogleAuthService.checkWebRedirectResult();
+    if (redirectAuth != null && redirectAuth.success && redirectAuth.email != null) {
+      final user = db.signInWithGoogle(
+        email: redirectAuth.email!,
+        displayName: redirectAuth.displayName ?? redirectAuth.email!.split('@').first,
+        photoUrl: redirectAuth.photoUrl,
+      );
+      await FirestoreDatabaseService.fetchAndMergeCurrentUser(db);
+      if (user.hasVerifiedMobile) {
+        FirestoreDatabaseService.pushUserProfile(user);
+      }
+    }
+  } catch (e) {
+    debugPrint('Redirect auth completion notice: $e');
+  }
 
   runApp(
     MultiProvider(
@@ -64,6 +84,24 @@ class MainNavigationShell extends StatefulWidget {
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final db = context.read<MockDatabase>();
+      if (db.currentUser != null && !db.currentUser!.isProfileComplete) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const AuthModalDialog(
+            initialActionPrompt: 'Complete your first-time mobile OTP verification',
+          ),
+        );
+      }
+    });
+  }
 
   void _onTabTapped(int index) {
     setState(() => _currentIndex = index);
