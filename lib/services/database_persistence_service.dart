@@ -24,22 +24,44 @@ class DatabasePersistenceService {
   static bool isPersistenceEnabled = false;
   static bool isPersisting = false;
 
+  /// Immediately saves only the user accounts and active login session.
+  /// Called synchronously-triggered on login, OTP verification, and logout
+  /// so a browser refresh immediately after auth never loses the session.
+  static Future<void> saveCurrentUserSession(MockDatabase db) async {
+    if (!isPersistenceEnabled) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = jsonEncode(db.users.map((u) => _userAccountToMap(u)).toList());
+      await prefs.setString(_keyUsers, usersJson);
+      if (db.currentUser != null) {
+        await prefs.setString(_keyCurrentUserId, db.currentUser!.id);
+      } else {
+        await prefs.remove(_keyCurrentUserId);
+      }
+      await prefs.setBool(_keyHasPersistedData, true);
+    } catch (e) {
+      if (!e.toString().contains('MissingPluginException')) {
+        debugPrint('DatabasePersistenceService saveCurrentUserSession error: $e');
+      }
+    }
+  }
+
   /// Saves the complete state of MockDatabase to permanent storage.
   static Future<void> saveDatabase(MockDatabase db) async {
     if (!isPersistenceEnabled) return;
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // 1. Users
+      // 1. Users & Current User ID (saved first so login session is always durable)
       final usersJson = jsonEncode(db.users.map((u) => _userAccountToMap(u)).toList());
       await prefs.setString(_keyUsers, usersJson);
 
-      // Current User ID
       if (db.currentUser != null) {
         await prefs.setString(_keyCurrentUserId, db.currentUser!.id);
       } else {
         await prefs.remove(_keyCurrentUserId);
       }
+      await prefs.setBool(_keyHasPersistedData, true);
 
       // 2. Matches
       final matchesJson = jsonEncode(db.matches.map((m) => _matchToMap(m)).toList());

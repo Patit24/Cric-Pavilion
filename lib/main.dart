@@ -33,9 +33,11 @@ void main() async {
   await db.initPersistence();
   db.purgeAllDemoData();
 
-  // Complete any pending Web Google Sign-In Redirect flow seamlessly
+  // Complete any pending Web Google Sign-In Redirect flow (without overwriting an existing restored session)
   try {
-    final redirectAuth = await GoogleAuthService.checkWebRedirectResult();
+    final redirectAuth = await GoogleAuthService.checkWebRedirectResult(
+      onlyIfRedirected: db.currentUser != null,
+    );
     if (redirectAuth != null && redirectAuth.success && redirectAuth.email != null) {
       final user = db.signInWithGoogle(
         email: redirectAuth.email!,

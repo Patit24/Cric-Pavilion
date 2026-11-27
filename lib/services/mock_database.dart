@@ -486,6 +486,7 @@ class MockDatabase extends ChangeNotifier {
 
     // Bridge with Firebase Auth for Firestore security rules write permission
     FirestoreDatabaseService.ensureFirebaseAuthForUser(user);
+    DatabasePersistenceService.saveCurrentUserSession(this);
 
     notifyListeners();
   }
@@ -685,6 +686,7 @@ class MockDatabase extends ChangeNotifier {
       performedBy: currentUser!.fullName,
     );
     FirestoreDatabaseService.pushUserProfile(currentUser!);
+    DatabasePersistenceService.saveCurrentUserSession(this);
     notifyListeners();
     return true;
   }
@@ -701,6 +703,7 @@ class MockDatabase extends ChangeNotifier {
     if (FirestoreDatabaseService.isFirebaseAvailable) {
       GoogleAuthService.signOut();
     }
+    DatabasePersistenceService.saveCurrentUserSession(this);
 
     logAudit(
       category: 'auth',
@@ -4835,6 +4838,7 @@ class MockDatabase extends ChangeNotifier {
       performedBy: currentUser!.fullName,
     );
     FirestoreDatabaseService.pushUserProfile(currentUser!);
+    DatabasePersistenceService.saveCurrentUserSession(this);
     notifyListeners();
     return true;
   }

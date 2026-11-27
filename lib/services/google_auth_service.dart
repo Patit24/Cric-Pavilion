@@ -67,12 +67,22 @@ class GoogleAuthService {
   }
 
   /// Checks if the web app just returned from a `signInWithRedirect` Google OAuth flow
-  static Future<GoogleAuthResult?> checkWebRedirectResult() async {
+  static Future<GoogleAuthResult?> checkWebRedirectResult({bool onlyIfRedirected = false}) async {
     if (!kIsWeb) return null;
     try {
       final UserCredential cred = await FirebaseAuth.instance.getRedirectResult();
-      final User? user = cred.user ?? FirebaseAuth.instance.currentUser;
-      if (user != null && user.email != null && user.email!.isNotEmpty) {
+      User? user = cred.user;
+      if (user == null && !onlyIfRedirected) {
+        final current = FirebaseAuth.instance.currentUser;
+        if (current != null &&
+            current.providerData.any((p) => p.providerId == 'google.com')) {
+          user = current;
+        }
+      }
+      if (user != null &&
+          user.email != null &&
+          user.email!.isNotEmpty &&
+          !user.email!.endsWith('@sync.cricpavilion.app')) {
         return GoogleAuthResult(
           success: true,
           email: user.email!,
