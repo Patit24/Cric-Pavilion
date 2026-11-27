@@ -55,7 +55,19 @@ class FirestoreDatabaseService {
       if (db.currentUser != null) {
         await ensureFirebaseAuthForUser(db.currentUser);
       } else {
+        // Try to restore a previously-logged-in user first
         await restoreUserFromFirebaseAuth(db);
+        // If still no user (true guest), sign in anonymously so public
+        // Firestore collections (matches, innings, deliveries) can stream
+        // live scores without requiring the user to log in.
+        if (_auth?.currentUser == null) {
+          try {
+            await _auth?.signInAnonymously();
+            debugPrint('[FirestoreDatabaseService] Signed in anonymously for public live-score access');
+          } catch (e) {
+            debugPrint('[FirestoreDatabaseService] Anonymous sign-in notice: $e');
+          }
+        }
       }
 
       // 2. Perform initial pull from Cloud Firestore to hydrate local state
@@ -94,11 +106,21 @@ class FirestoreDatabaseService {
       _lastActiveUser = user;
     }
 
-    if (_auth!.currentUser != null) {
+    // If we have an active non-anonymous session that already matches, reuse it
+    final currentFbUser = _auth!.currentUser;
+    if (currentFbUser != null && !currentFbUser.isAnonymous) {
       return true;
     }
+
     final target = user ?? _lastActiveUser;
     if (target == null) return false;
+
+    // Sign out any anonymous session before logging in as a real user
+    if (currentFbUser != null && currentFbUser.isAnonymous) {
+      try {
+        await _auth!.signOut();
+      } catch (_) {}
+    }
 
     final safeId = target.id.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
     final email = target.email.isNotEmpty
@@ -591,8 +613,14 @@ class FirestoreDatabaseService {
   static Future<void> _pushMissingLocalRecords(MockDatabase db) async {
     if (!isFirebaseAvailable || _firestore == null) return;
 
+    // Skip push for anonymous/guest sessions — only authenticated users can write
+    if (db.currentUser == null) return;
+
     final isAuth = await ensureFirebaseAuthForUser(db.currentUser);
     if (!isAuth) return;
+
+    // Also skip if the current Firebase Auth session is anonymous (no real user logged in)
+    if (_auth?.currentUser?.isAnonymous == true) return;
 
     try {
       // Push Tournaments
