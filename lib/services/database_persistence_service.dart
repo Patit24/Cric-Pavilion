@@ -11,6 +11,7 @@ class DatabasePersistenceService {
   static const String _keyHasPersistedData = 'cricpavilion_persisted_active';
   static const String _keyUsers = 'cricpavilion_db_users';
   static const String _keyCurrentUserId = 'cricpavilion_db_current_user_id';
+  static const String _keyActiveUserJson = 'cricpavilion_active_user_json';
   static const String _keyMatches = 'cricpavilion_db_matches';
   static const String _keyTournaments = 'cricpavilion_db_tournaments';
   static const String _keyTeams = 'cricpavilion_db_teams';
@@ -35,8 +36,10 @@ class DatabasePersistenceService {
       await prefs.setString(_keyUsers, usersJson);
       if (db.currentUser != null) {
         await prefs.setString(_keyCurrentUserId, db.currentUser!.id);
+        await prefs.setString(_keyActiveUserJson, jsonEncode(_userAccountToMap(db.currentUser!)));
       } else {
         await prefs.remove(_keyCurrentUserId);
+        await prefs.remove(_keyActiveUserJson);
       }
       await prefs.setBool(_keyHasPersistedData, true);
     } catch (e) {
@@ -58,8 +61,10 @@ class DatabasePersistenceService {
 
       if (db.currentUser != null) {
         await prefs.setString(_keyCurrentUserId, db.currentUser!.id);
+        await prefs.setString(_keyActiveUserJson, jsonEncode(_userAccountToMap(db.currentUser!)));
       } else {
         await prefs.remove(_keyCurrentUserId);
+        await prefs.remove(_keyActiveUserJson);
       }
       await prefs.setBool(_keyHasPersistedData, true);
 
@@ -114,21 +119,34 @@ class DatabasePersistenceService {
     isPersistenceEnabled = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final hasData = prefs.getBool(_keyHasPersistedData) ?? false;
-      if (!hasData) return false;
 
-      // 1. Users
+      // Always restore Users & Active Session first (even if _keyHasPersistedData wasn't set yet)
       final usersStr = prefs.getString(_keyUsers);
       if (usersStr != null && usersStr.isNotEmpty) {
         final List<dynamic> list = jsonDecode(usersStr);
         db.users = list.map((item) => _userAccountFromMap(item as Map<String, dynamic>)).toList();
       }
 
-      // Current User
       final currentUserId = prefs.getString(_keyCurrentUserId);
       if (currentUserId != null && currentUserId.isNotEmpty) {
         db.currentUser = db.users.where((u) => u.id == currentUserId).firstOrNull;
       }
+
+      // Direct fallback from _keyActiveUserJson if currentUser wasn't matched in users list
+      if (db.currentUser == null) {
+        final activeJson = prefs.getString(_keyActiveUserJson);
+        if (activeJson != null && activeJson.isNotEmpty) {
+          final map = jsonDecode(activeJson) as Map<String, dynamic>;
+          final restored = _userAccountFromMap(map);
+          if (!db.users.any((u) => u.id == restored.id)) {
+            db.users.add(restored);
+          }
+          db.currentUser = db.users.where((u) => u.id == restored.id).firstOrNull ?? restored;
+        }
+      }
+
+      final hasData = prefs.getBool(_keyHasPersistedData) ?? false;
+      if (!hasData) return db.currentUser != null;
 
       // 2. Matches
       final matchesStr = prefs.getString(_keyMatches);

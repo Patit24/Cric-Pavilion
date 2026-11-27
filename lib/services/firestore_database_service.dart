@@ -51,9 +51,11 @@ class FirestoreDatabaseService {
     try {
       lastSyncStatus = 'Connecting to Cloud Firestore...';
 
-      // 1. Ensure user authentication if a user is currently logged in locally
+      // 1. Ensure user authentication or restore logged-in user from Firebase Auth + Firestore
       if (db.currentUser != null) {
         await ensureFirebaseAuthForUser(db.currentUser);
+      } else {
+        await restoreUserFromFirebaseAuth(db);
       }
 
       // 2. Perform initial pull from Cloud Firestore to hydrate local state
@@ -741,8 +743,10 @@ class FirestoreDatabaseService {
   /// Pushes authenticated user's profile to Firestore `/users/{firebaseUid}`
   /// so mobile verification status and contact info sync across all devices.
   static Future<void> pushUserProfile(UserAccount user) async {
-    if (!isFirebaseAvailable || _firestore == null || _auth?.currentUser == null) return;
+    if (!isFirebaseAvailable || _firestore == null) return;
     try {
+      final isAuth = await ensureFirebaseAuthForUser(user);
+      if (!isAuth || _auth?.currentUser == null) return;
       final uid = _auth!.currentUser!.uid;
       final cleanEmail = user.email.trim().toLowerCase();
       if (cleanEmail.isEmpty || !cleanEmail.contains('@') || !cleanEmail.contains('.')) {
@@ -808,6 +812,47 @@ class FirestoreDatabaseService {
     } catch (e) {
       debugPrint('[FirestoreDatabaseService] fetchAndMergeCurrentUser error: $e');
       return false;
+    }
+  }
+
+  /// Restores the logged-in user from FirebaseAuth + Firestore `/users/{uid}`
+  /// if local storage was empty or cleared on page refresh.
+  static Future<void> restoreUserFromFirebaseAuth(MockDatabase db) async {
+    if (db.currentUser != null || !isFirebaseAvailable || _firestore == null || _auth == null) return;
+    try {
+      User? fbUser = _auth!.currentUser;
+      fbUser ??= await _auth!
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 1), onTimeout: () => _auth!.currentUser);
+      if (fbUser == null) return;
+
+      final doc = await _firestore!.collection(colUsers).doc(fbUser.uid).get();
+      if (doc.exists && doc.data() != null) {
+        final restored = DatabasePersistenceService.userAccountFromMap(doc.data()!);
+        if (!db.users.any((u) => u.id == restored.id || (restored.email.isNotEmpty && u.email.toLowerCase() == restored.email.toLowerCase()))) {
+          db.users.add(restored);
+        }
+        db.currentUser = db.users.where((u) => u.id == restored.id || (restored.email.isNotEmpty && u.email.toLowerCase() == restored.email.toLowerCase())).firstOrNull ?? restored;
+        _lastActiveUser = db.currentUser;
+        await DatabasePersistenceService.saveCurrentUserSession(db);
+        db.notifyListeners();
+        return;
+      }
+
+      // Fallback if user has Google profile in FirebaseAuth without a /users doc yet
+      final email = fbUser.email ?? '';
+      if (email.isNotEmpty &&
+          !email.endsWith('@sync.cricpavilion.app') &&
+          fbUser.providerData.any((p) => p.providerId == 'google.com')) {
+        db.signInWithGoogle(
+          email: email,
+          displayName: fbUser.displayName ?? email.split('@').first,
+          photoUrl: fbUser.photoURL,
+        );
+      }
+    } catch (e) {
+      debugPrint('[FirestoreDatabaseService] restoreUserFromFirebaseAuth notice: $e');
     }
   }
 
