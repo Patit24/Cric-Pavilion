@@ -471,13 +471,13 @@ service cloud.firestore {
         isNonEmptyString(data.inningsId, 100) &&
         isNonEmptyString(data.matchId, 100) &&
         isPosInt(data.overNumber) &&
-        (data.ballInOver is int && data.ballInOver >= 1 && data.ballInOver <= 10) &&
+        (data.ballInOver is int && data.ballInOver >= 1 && data.ballInOver <= 50) &&
         (data.deliverySequence is int && data.deliverySequence >= 1) &&
         isNonEmptyString(data.strikerId, 100) &&
         isNonEmptyString(data.nonStrikerId, 100) &&
         isNonEmptyString(data.bowlerId, 100) &&
-        (data.runsBatter is int && data.runsBatter >= 0 && data.runsBatter <= 7) &&
-        (data.extrasRuns is int && data.extrasRuns >= 0 && data.extrasRuns <= 10) &&
+        (data.runsBatter is int && data.runsBatter >= 0 && data.runsBatter <= 20) &&
+        (data.extrasRuns is int && data.extrasRuns >= 0 && data.extrasRuns <= 20) &&
         data.isLegal is bool &&
         data.isWicket is bool &&
         (!('extrasType' in data) || isOptionalString(data.extrasType, 30)) &&

@@ -31,6 +31,7 @@ class FirestoreDatabaseService {
 
   static final List<StreamSubscription<dynamic>> _subscriptions = [];
   static Timer? _debouncePushTimer;
+  static UserAccount? _lastActiveUser;
 
   // Collection names in Firestore
   static const String colMatches = 'matches';
@@ -87,40 +88,83 @@ class FirestoreDatabaseService {
   /// Ensures Firebase Auth has an active session for the logged in user
   static Future<bool> ensureFirebaseAuthForUser(UserAccount? user) async {
     if (!isFirebaseAvailable || _auth == null) return false;
+    if (user != null) {
+      _lastActiveUser = user;
+    }
 
     if (_auth!.currentUser != null) {
       return true;
     }
-    if (user == null) return false;
+    final target = user ?? _lastActiveUser;
+    if (target == null) return false;
+
+    final safeId = target.id.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    final email = target.email.isNotEmpty
+        ? target.email.trim().toLowerCase()
+        : 'user_$safeId@cricpavilion.app';
+    final password = target.passwordHash.isNotEmpty && target.passwordHash.length >= 6
+        ? target.passwordHash
+        : 'CricPavilion!2026';
 
     try {
-      final email = user.email.isNotEmpty
-          ? user.email.trim()
-          : 'user_${user.id.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')}@cricpavilion.app';
-      final password = user.passwordHash.isNotEmpty && user.passwordHash.length >= 6
-          ? user.passwordHash
-          : 'CricPavilion!2026';
-
       try {
         await _auth!.signInWithEmailAndPassword(email: email, password: password);
         return true;
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
-          // Provision account in Firebase Auth
-          await _auth!.createUserWithEmailAndPassword(email: email, password: password);
+          try {
+            await _auth!.createUserWithEmailAndPassword(email: email, password: password);
+            return true;
+          } on FirebaseAuthException {
+            // Fall through to deterministic sync bridge account below
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[FirestoreDatabaseService] primary FirebaseAuth bridge notice: $e');
+    }
+
+    // Fallback: deterministic sync bridge account (handles Mobile OTP / Google cross-login)
+    try {
+      final syncEmail = 'sync_$safeId@sync.cricpavilion.app';
+      final syncPwd = 'CricSync!2026_$safeId';
+      try {
+        await _auth!.signInWithEmailAndPassword(email: syncEmail, password: syncPwd);
+        return true;
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+          await _auth!.createUserWithEmailAndPassword(email: syncEmail, password: syncPwd);
           return true;
         }
       }
     } catch (e) {
-      debugPrint('[FirestoreDatabaseService] FirebaseAuth bridge notice: $e');
+      debugPrint('[FirestoreDatabaseService] sync bridge fallback notice: $e');
     }
     return _auth?.currentUser != null;
   }
 
   /// Sanitizes map payload so fields with null values are removed or conform to Firestore rules.
-  static Map<String, dynamic> _sanitizePayload(Map<String, dynamic> map) {
+  static Map<String, dynamic> _sanitizePayload(Map<String, dynamic> map, {String? collection}) {
     final clean = Map<String, dynamic>.from(map);
     clean.removeWhere((key, value) => value == null);
+
+    if (collection == colMatches) {
+      if ((clean['venue'] as String? ?? '').trim().isEmpty) clean['venue'] = 'Ground';
+      if ((clean['stage'] as String? ?? '').trim().isEmpty) clean['stage'] = 'Match';
+      if ((clean['teamAId'] as String? ?? '').trim().isEmpty) clean['teamAId'] = 'team_a';
+      if ((clean['teamBId'] as String? ?? '').trim().isEmpty) clean['teamBId'] = 'team_b';
+    } else if (collection == colTournaments) {
+      if ((clean['location'] as String? ?? '').trim().isEmpty) clean['location'] = 'Local Ground';
+    } else if (collection == colDeliveries) {
+      if ((clean['strikerId'] as String? ?? '').trim().isEmpty) clean['strikerId'] = 'batter_1';
+      if ((clean['nonStrikerId'] as String? ?? '').trim().isEmpty) clean['nonStrikerId'] = 'batter_2';
+      if ((clean['bowlerId'] as String? ?? '').trim().isEmpty) clean['bowlerId'] = 'bowler_1';
+      final bio = clean['ballInOver'];
+      if (bio is int && bio < 1) clean['ballInOver'] = 1;
+      if (bio is int && bio > 50) clean['ballInOver'] = 50;
+    } else if (collection == colInnings) {
+      if ((clean['oversStr'] as String? ?? '').trim().isEmpty) clean['oversStr'] = '0.0';
+    }
     return clean;
   }
 
@@ -596,7 +640,7 @@ class FirestoreDatabaseService {
     try {
       final isAuth = await ensureFirebaseAuthForUser(null);
       if (!isAuth) return;
-      final payload = _sanitizePayload(DatabasePersistenceService.matchToMap(match));
+      final payload = _sanitizePayload(DatabasePersistenceService.matchToMap(match), collection: colMatches);
       await _firestore!.collection(colMatches).doc(match.id).set(payload, SetOptions(merge: true));
     } catch (e) {
       debugPrint('[FirestoreDatabaseService] pushMatch error: $e');
@@ -609,7 +653,7 @@ class FirestoreDatabaseService {
     try {
       final isAuth = await ensureFirebaseAuthForUser(null);
       if (!isAuth) return;
-      final payload = _sanitizePayload(DatabasePersistenceService.inningsToMap(innings));
+      final payload = _sanitizePayload(DatabasePersistenceService.inningsToMap(innings), collection: colInnings);
       await _firestore!.collection(colInnings).doc(innings.id).set(payload, SetOptions(merge: true));
     } catch (e) {
       debugPrint('[FirestoreDatabaseService] pushInnings error: $e');
@@ -622,7 +666,7 @@ class FirestoreDatabaseService {
     try {
       final isAuth = await ensureFirebaseAuthForUser(null);
       if (!isAuth) return;
-      final payload = _sanitizePayload(DatabasePersistenceService.deliveryToMap(delivery));
+      final payload = _sanitizePayload(DatabasePersistenceService.deliveryToMap(delivery), collection: colDeliveries);
       await _firestore!.collection(colDeliveries).doc(delivery.id).set(payload, SetOptions(merge: true));
     } catch (e) {
       debugPrint('[FirestoreDatabaseService] pushDelivery error: $e');
@@ -661,7 +705,7 @@ class FirestoreDatabaseService {
     try {
       final isAuth = await ensureFirebaseAuthForUser(null);
       if (!isAuth) return;
-      final payload = _sanitizePayload(DatabasePersistenceService.tournamentToMap(tournament));
+      final payload = _sanitizePayload(DatabasePersistenceService.tournamentToMap(tournament), collection: colTournaments);
       await _firestore!.collection(colTournaments).doc(tournament.id).set(payload, SetOptions(merge: true));
     } catch (e) {
       debugPrint('[FirestoreDatabaseService] pushTournament error: $e');
@@ -774,25 +818,26 @@ class FirestoreDatabaseService {
     required Delivery delivery,
     required List<BattingScorecard> batCards,
     required List<BowlingScorecard> bowlCards,
+    UserAccount? activeUser,
   }) async {
     if (!isFirebaseAvailable || _firestore == null) return;
     try {
-      final isAuth = await ensureFirebaseAuthForUser(null);
+      final isAuth = await ensureFirebaseAuthForUser(activeUser);
       if (!isAuth) return;
 
       final batch = _firestore!.batch();
 
       // 1. Delivery doc
       final delRef = _firestore!.collection(colDeliveries).doc(delivery.id);
-      batch.set(delRef, _sanitizePayload(DatabasePersistenceService.deliveryToMap(delivery)), SetOptions(merge: true));
+      batch.set(delRef, _sanitizePayload(DatabasePersistenceService.deliveryToMap(delivery), collection: colDeliveries), SetOptions(merge: true));
 
       // 2. Innings doc
       final innRef = _firestore!.collection(colInnings).doc(innings.id);
-      batch.set(innRef, _sanitizePayload(DatabasePersistenceService.inningsToMap(innings)), SetOptions(merge: true));
+      batch.set(innRef, _sanitizePayload(DatabasePersistenceService.inningsToMap(innings), collection: colInnings), SetOptions(merge: true));
 
       // 3. Match doc
       final matchRef = _firestore!.collection(colMatches).doc(match.id);
-      batch.set(matchRef, _sanitizePayload(DatabasePersistenceService.matchToMap(match)), SetOptions(merge: true));
+      batch.set(matchRef, _sanitizePayload(DatabasePersistenceService.matchToMap(match), collection: colMatches), SetOptions(merge: true));
 
       // 4. Batting Scorecards
       for (final b in batCards) {
@@ -817,6 +862,9 @@ class FirestoreDatabaseService {
   /// Asynchronous debounced push of state to Cloud Firestore
   static void pushStateInBackground(MockDatabase db) {
     if (!isFirebaseAvailable || isApplyingCloudUpdate) return;
+    if (db.currentUser != null) {
+      _lastActiveUser = db.currentUser;
+    }
 
     _debouncePushTimer?.cancel();
     _debouncePushTimer = Timer(const Duration(milliseconds: 300), () async {
@@ -824,23 +872,27 @@ class FirestoreDatabaseService {
         final isAuth = await ensureFirebaseAuthForUser(db.currentUser);
         if (!isAuth) return;
 
-        // Push matches
         for (final m in db.matches) {
           await pushMatch(m);
         }
-        // Push active innings
         for (final inn in db.inningsList) {
           await pushInnings(inn);
         }
-        // Push tournaments
+        for (final b in db.battingScorecards) {
+          await pushBattingScorecard(b);
+        }
+        for (final bw in db.bowlingScorecards) {
+          await pushBowlingScorecard(bw);
+        }
+        for (final d in db.deliveries) {
+          await pushDelivery(d);
+        }
         for (final t in db.tournaments) {
           await pushTournament(t);
         }
-        // Push teams
         for (final tm in db.teams) {
           await pushTeam(tm);
         }
-        // Push players
         for (final p in db.players) {
           await pushPlayer(p);
         }

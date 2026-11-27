@@ -2841,6 +2841,7 @@ class MockDatabase extends ChangeNotifier {
         delivery: lastDel,
         batCards: bCards,
         bowlCards: bwCards,
+        activeUser: currentUser,
       );
     } catch (_) {}
 
