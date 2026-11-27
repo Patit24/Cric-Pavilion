@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../theme/neo_glass_theme.dart';
 import '../../widgets/app_animations.dart';
+import '../../widgets/auth_modal_dialog.dart';
 import '../scorer/full_scorecard_dialog.dart';
 import '../scorer/scorer_screen.dart';
 
@@ -290,6 +291,54 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> with SingleTicker
   }
 
   Widget _buildScorecardTab(BuildContext context, MockDatabase db, MatchModel match, Innings? inn1, Innings? inn2) {
+    if (!db.isAuthenticated) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: NeoGlassCard(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock_outline, color: NeoGlassTheme.neonEmerald, size: 40),
+                const SizedBox(height: 12),
+                const Text(
+                  'Login Required for Full Scoreboard',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Live scores are free to watch. Please sign in to view the detailed batting & bowling scoreboard.',
+                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 18),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => const AuthModalDialog(
+                        initialActionPrompt: 'Login Required: Please sign in to view the full scoreboard.',
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.login, size: 18),
+                  label: const Text('Sign In to View Scoreboard', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF009270),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(

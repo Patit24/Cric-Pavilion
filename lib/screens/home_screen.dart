@@ -295,6 +295,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openFullScorecard(BuildContext context, MockDatabase db, MatchModel match) {
+    if (!db.isAuthenticated) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AuthModalDialog(
+          initialActionPrompt: 'Login Required: Please sign in to view the full scoreboard.',
+          onAuthSuccess: () {
+            if (!context.mounted) return;
+            showDialog(
+              context: context,
+              builder: (ctx2) => FullScorecardDialog(match: match, db: db),
+            );
+          },
+        ),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => FullScorecardDialog(match: match, db: db),
+    );
+  }
+
   void _openQuickMatch(BuildContext context, MockDatabase db) {
     if (!db.isAuthenticated) {
       showDialog(
@@ -1405,12 +1428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => FullScorecardDialog(match: match, db: db),
-                          );
-                        },
+                        onPressed: () => _openFullScorecard(context, db, match),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Color(0xFF374151)),
@@ -1832,12 +1850,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => FullScorecardDialog(match: pm, db: db),
-                );
-              },
+              onPressed: () => _openFullScorecard(context, db, pm),
               icon: const Icon(Icons.table_chart, size: 14, color: Color(0xFF009270)),
               label: const Text('View Full Scorecard →', style: TextStyle(color: Color(0xFF009270), fontSize: 11.5, fontWeight: FontWeight.bold)),
             ),
