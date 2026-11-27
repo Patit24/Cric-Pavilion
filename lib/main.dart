@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'services/mock_database.dart';
 import 'services/google_auth_service.dart';
@@ -51,6 +52,26 @@ void main() async {
     }
   } catch (e) {
     debugPrint('Redirect auth completion notice: $e');
+  }
+
+  // Listen for asynchronous Firebase Auth hydration on Web/Mobile
+  if (FirestoreDatabaseService.isFirebaseAvailable) {
+    FirebaseAuth.instance.authStateChanges().listen((User? fbUser) async {
+      if (fbUser == null || db.currentUser != null) return;
+      final email = fbUser.email ?? '';
+      if (email.isEmpty || email.endsWith('@sync.cricpavilion.app')) return;
+      if (!fbUser.providerData.any((p) => p.providerId == 'google.com')) return;
+
+      final user = db.signInWithGoogle(
+        email: email,
+        displayName: fbUser.displayName ?? email.split('@').first,
+        photoUrl: fbUser.photoURL,
+      );
+      await FirestoreDatabaseService.fetchAndMergeCurrentUser(db);
+      if (user.hasVerifiedMobile) {
+        FirestoreDatabaseService.pushUserProfile(user);
+      }
+    });
   }
 
   runApp(

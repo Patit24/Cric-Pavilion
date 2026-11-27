@@ -73,7 +73,12 @@ class GoogleAuthService {
       final UserCredential cred = await FirebaseAuth.instance.getRedirectResult();
       User? user = cred.user;
       if (user == null && !onlyIfRedirected) {
-        final current = FirebaseAuth.instance.currentUser;
+        // Wait briefly for Firebase Web IndexedDB auth state to hydrate on page load
+        User? current = FirebaseAuth.instance.currentUser;
+        current ??= await FirebaseAuth.instance
+            .authStateChanges()
+            .first
+            .timeout(const Duration(seconds: 2), onTimeout: () => FirebaseAuth.instance.currentUser);
         if (current != null &&
             current.providerData.any((p) => p.providerId == 'google.com')) {
           user = current;
@@ -132,13 +137,28 @@ class GoogleAuthService {
               pErr.contains('operation-not-supported-in-this-environment');
 
           if (shouldRedirect) {
-            debugPrint('Popup blocked on web — seamlessly switching to signInWithRedirect');
-            await FirebaseAuth.instance.signInWithRedirect(provider);
-            return GoogleAuthResult(
-              success: false,
-              isRedirecting: true,
-              errorMessage: 'Redirecting to Google Sign-In...',
-            );
+            final host = Uri.base.host.toLowerCase();
+            final isSameSiteAuthHost = host.endsWith('.web.app') ||
+                host.endsWith('.firebaseapp.com') ||
+                host == 'localhost' ||
+                host == '127.0.0.1';
+
+            if (isSameSiteAuthHost) {
+              debugPrint('Popup blocked on Firebase host — seamlessly switching to signInWithRedirect');
+              await FirebaseAuth.instance.signInWithRedirect(provider);
+              return GoogleAuthResult(
+                success: false,
+                isRedirecting: true,
+                errorMessage: 'Redirecting to Google Sign-In...',
+              );
+            } else {
+              return GoogleAuthResult(
+                success: false,
+                isPopupBlocked: true,
+                errorMessage:
+                    'Browser blocked the Google popup on $host. Please allow popups in your browser address bar and tap "Continue with Google" again, or sign in on https://cricpavilion-750c5.web.app.',
+              );
+            }
           }
           rethrow;
         }
