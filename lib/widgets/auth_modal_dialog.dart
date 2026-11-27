@@ -491,9 +491,14 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
       return;
     }
 
-    // Returning user with both Gmail & verified mobile -> sign in immediately!
-    if (db.currentUser!.isProfileComplete) {
-      FirestoreDatabaseService.pushUserProfile(db.currentUser!);
+    // Returning user (already has complete profile OR verified player in Firestore) -> sign in immediately without re-asking Name & Email!
+    final isAlreadyRegisteredPlayer = db.players.any(
+      (p) => MockDatabase.normalizeMobile(p.mobileNumber) == norm && p.isMobileVerified,
+    );
+    if (db.currentUser!.isProfileComplete || isAlreadyRegisteredPlayer) {
+      if (db.currentUser!.isProfileComplete) {
+        FirestoreDatabaseService.pushUserProfile(db.currentUser!);
+      }
       _completeAuthSuccess(db, isFirstTime: false);
       return;
     }

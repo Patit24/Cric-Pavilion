@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:cricket_app/models/models.dart';
 import 'package:cricket_app/services/mock_database.dart';
 import 'package:cricket_app/widgets/auth_modal_dialog.dart';
 
@@ -170,6 +171,49 @@ void main() {
       expect(db.verifyUserMobileOtp(mobileNumber: '9988776655', otp: otp), isTrue);
       expect(db.currentUser?.isMobileVerified, isTrue);
       expect(db.currentUser?.isProfileComplete, isTrue);
+    });
+
+    testWidgets('5. Cross-device returning mobile user (verified Player in Firestore) skips Name & Email after OTP', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1024, 1200);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Simulate a player already registered & verified on another device (synced via Firestore players)
+      final p = db.registerPermanentPlayer(
+        fullName: 'Cross Device Player',
+        mobileNumber: '9876501122',
+        role: PlayerRole.allRounder,
+      );
+      p.isMobileVerified = true;
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Mobile Number (OTP)'));
+      await tester.tap(find.text('Mobile Number (OTP)'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextField, '10-digit Mobile Number'), '9876501122');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Send Login OTP'));
+      await tester.tap(find.text('Send Login OTP'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Testing offline? Fill test OTP'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Verify OTP & Sign In'));
+      await tester.tap(find.text('Verify OTP & Sign In'));
+      await tester.pumpAndSettle();
+
+      // Should NOT ask for Name & Email again, and should restore fullName from Player!
+      expect(find.text('FIRST-TIME SETUP • LINK GMAIL'), findsNothing);
+      expect(db.isAuthenticated, isTrue);
+      expect(db.currentUser?.fullName, equals('Cross Device Player'));
     });
   });
 }

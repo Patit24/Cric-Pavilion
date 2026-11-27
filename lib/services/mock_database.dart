@@ -614,6 +614,10 @@ class MockDatabase extends ChangeNotifier {
     var existingPlayer = players.where((p) => normalizeMobile(p.mobileNumber) == norm).firstOrNull;
     if (existingPlayer != null) {
       user.linkedPlayerId = existingPlayer.id;
+      if ((user.fullName.isEmpty || user.fullName == 'Cricketer') &&
+          existingPlayer.fullName.trim().isNotEmpty) {
+        user.fullName = existingPlayer.fullName.trim();
+      }
       existingPlayer.isMobileVerified = true;
     } else if (user.fullName.isNotEmpty && user.fullName != 'Cricketer') {
       final newPlayer = registerPermanentPlayer(
