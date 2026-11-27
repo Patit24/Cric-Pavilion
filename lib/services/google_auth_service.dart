@@ -138,13 +138,11 @@ class GoogleAuthService {
 
           if (shouldRedirect) {
             final host = Uri.base.host.toLowerCase();
-            final isSameSiteAuthHost = host.endsWith('.web.app') ||
-                host.endsWith('.firebaseapp.com') ||
-                host == 'localhost' ||
-                host == '127.0.0.1';
+            final isSameSiteAuthHost =
+                host == 'cricpavilion-750c5.firebaseapp.com';
 
             if (isSameSiteAuthHost) {
-              debugPrint('Popup blocked on Firebase host — seamlessly switching to signInWithRedirect');
+              debugPrint('Popup blocked on authDomain host — seamlessly switching to signInWithRedirect');
               await FirebaseAuth.instance.signInWithRedirect(provider);
               return GoogleAuthResult(
                 success: false,
@@ -156,7 +154,7 @@ class GoogleAuthService {
                 success: false,
                 isPopupBlocked: true,
                 errorMessage:
-                    'Google popup was blocked on $host (${popupErr is FirebaseAuthException ? popupErr.code : popupErr}). Please allow popups in your browser address bar and tap "Continue with Google" again, or open https://cricpavilion-750c5.web.app.',
+                    'Google popup was blocked on $host (${popupErr is FirebaseAuthException ? popupErr.code : popupErr}). Please allow popups in your browser address bar and tap "Continue with Google" again, or open https://cricpavilion-750c5.firebaseapp.com.',
               );
             }
           }

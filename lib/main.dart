@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,21 +23,9 @@ import 'widgets/privacy_policy_dialog.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    FirebaseOptions options = DefaultFirebaseOptions.currentPlatform;
-    if (kIsWeb &&
-        (Uri.base.host == 'cricpavilion-750c5.web.app' ||
-            Uri.base.host == 'cricpavilion-750c5.firebaseapp.com')) {
-      options = FirebaseOptions(
-        apiKey: options.apiKey,
-        appId: options.appId,
-        messagingSenderId: options.messagingSenderId,
-        projectId: options.projectId,
-        authDomain: Uri.base.host,
-        storageBucket: options.storageBucket,
-        measurementId: options.measurementId,
-      );
-    }
-    await Firebase.initializeApp(options: options);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase initialization notice: $e');
   }
