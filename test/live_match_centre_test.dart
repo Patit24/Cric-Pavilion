@@ -131,5 +131,39 @@ void main() {
       expect(find.text('COMPLETED'), findsOneWidget);
       expect(find.textContaining('Royal Strikers won by 15 runs'), findsOneWidget);
     });
+
+    test('Man of the Match is automatically assigned when match ends & Google user profile is complete', () {
+      final pA1 = db.registerPermanentPlayer(fullName: 'Star Batter', mobileNumber: '9000000011');
+      final pA2 = db.registerPermanentPlayer(fullName: 'Partner Batter', mobileNumber: '9000000012');
+      final pB1 = db.registerPermanentPlayer(fullName: 'Star Bowler', mobileNumber: '9000000013');
+      final pB2 = db.registerPermanentPlayer(fullName: 'Other Bowler', mobileNumber: '9000000014');
+
+      final match = db.createDirectMatch(
+        matchName: 'Final',
+        teamAName: 'Alpha XI',
+        teamBName: 'Beta XI',
+        overs: 5,
+        venue: 'Wankhede',
+        playingXIA: [pA1.id, pA2.id],
+        playingXIB: [pB1.id, pB2.id],
+        strikerId: pA1.id,
+        nonStrikerId: pA2.id,
+        bowlerId: pB1.id,
+      );
+      final inn1 = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 1);
+      db.recordDelivery(inningsId: inn1.id, runsBatter: 6);
+      db.recordDelivery(inningsId: inn1.id, runsBatter: 6);
+      db.endInningsEarly(inn1.id);
+
+      final inn2 = db.inningsList.firstWhere((i) => i.matchId == match.id && i.inningsNumber == 2);
+      db.endInningsEarly(inn2.id);
+
+      expect(match.status, MatchStatus.completed);
+      expect(match.playerOfTheMatchId, pA1.id);
+      expect(match.playerOfTheMatchName, 'Star Batter');
+
+      final gUser = db.signInWithGoogle(email: 'google.persist@gmail.com', displayName: 'Google Persist');
+      expect(gUser.isProfileComplete, isTrue);
+    });
   });
 }

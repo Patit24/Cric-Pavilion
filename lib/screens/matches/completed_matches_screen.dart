@@ -358,6 +358,18 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                               fontSize: 12,
                                             ),
                                           ),
+                                          if ((m.playerOfTheMatchName ?? '').isNotEmpty) ...[
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              '🏆 Man of the Match: ${m.playerOfTheMatchName}',
+                                              style: const TextStyle(
+                                                color: Colors.amberAccent,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 11,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                           const SizedBox(height: 2),
                                           Text(
                                             '📍 ${m.venue}',

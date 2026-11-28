@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final filterTitle = _getFilterTitle(db);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111827), // Cricbuzz Dark Slate
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF009270), // Cricbuzz Signature Green
         elevation: 1,
@@ -835,7 +835,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? '${liveMatches.length} LIVE IN $filterTitle'.toUpperCase()
                               : '${liveMatches.length} MATCHES LIVE NOW',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF0F172A),
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.6,
@@ -947,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? 'MATCH RESULTS • ${filterTitle.toUpperCase()}'
                           : 'MATCH RESULTS',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF0F172A),
                         fontSize: 12.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.6,
@@ -962,10 +962,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           'View All Results',
-                          style: TextStyle(color: Color(0xFF00F5A0), fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Color(0xFF009270), fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(width: 2),
-                        Icon(Icons.chevron_right, size: 14, color: Color(0xFF00F5A0)),
+                        Icon(Icons.chevron_right, size: 14, color: Color(0xFF009270)),
                       ],
                     ),
                   ),
@@ -999,7 +999,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? 'UPCOMING FIXTURES • ${filterTitle.toUpperCase()}'
                           : 'UPCOMING FIXTURES',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF0F172A),
                         fontSize: 12.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.6,
@@ -1813,6 +1813,35 @@ class _HomeScreenState extends State<HomeScreen> {
             winner != null ? '${winner.name} won by ${pm.winMargin ?? "runs"}' : 'Match Completed',
             style: const TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold),
           ),
+          if ((pm.playerOfTheMatchName ?? '').isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF064E3B).withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.emoji_events, color: Colors.amberAccent, size: 13),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      'Man of the Match: ${pm.playerOfTheMatchName}',
+                      style: const TextStyle(
+                        color: Color(0xFF00F5A0),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(8),

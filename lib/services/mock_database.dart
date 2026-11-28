@@ -2830,12 +2830,14 @@ class MockDatabase extends ChangeNotifier {
         match.winnerId = inn.battingTeamId;
         final wicketsLeft = (10 - inn.wickets) > 0 ? (10 - inn.wickets) : 1;
         match.winMargin = '$wicketsLeft wickets';
+        _assignManOfTheMatch(match);
       } else if (inn.legalBalls >= match.overs * 6 || isAllOut) {
         inn.isCompleted = true;
         match.status = MatchStatus.completed;
         match.winnerId = inn.bowlingTeamId;
         final runsDefended = (inn.targetRuns! - 1) - inn.totalRuns;
         match.winMargin = '$runsDefended runs';
+        _assignManOfTheMatch(match);
       }
     }
 
@@ -2911,6 +2913,7 @@ class MockDatabase extends ChangeNotifier {
         match.winnerId = inn.bowlingTeamId;
         final runsDefended = (inn.targetRuns ?? 1) - 1 - inn.totalRuns;
         match.winMargin = '$runsDefended runs';
+        _assignManOfTheMatch(match);
       }
     }
 
@@ -3023,8 +3026,62 @@ class MockDatabase extends ChangeNotifier {
           match.winMargin = '${(inn.targetRuns! - 1) - inn.totalRuns} runs';
         }
       }
+      _assignManOfTheMatch(match);
     }
+    FirestoreDatabaseService.pushMatch(match);
     notifyListeners();
+  }
+
+  /// Automatically computes and assigns Man of the Match from match scorecards
+  void _assignManOfTheMatch(MatchModel match) {
+    if ((match.playerOfTheMatchName ?? '').trim().isNotEmpty) return;
+
+    final Map<String, double> points = {};
+    final Map<String, String> names = {};
+
+    for (final b in battingScorecards.where((c) => c.matchId == match.id)) {
+      names[b.playerId] = b.playerName;
+      double p = b.runs * 1.0 + b.fours * 1.0 + b.sixes * 2.0;
+      if (b.runs >= 100) {
+        p += 15.0;
+      } else if (b.runs >= 50) {
+        p += 10.0;
+      }
+      points[b.playerId] = (points[b.playerId] ?? 0.0) + p;
+    }
+
+    for (final bw in bowlingScorecards.where((c) => c.matchId == match.id)) {
+      names[bw.playerId] = bw.playerName;
+      final p = bw.wickets * 20.0 + bw.maidens * 5.0 + bw.dots * 0.5;
+      points[bw.playerId] = (points[bw.playerId] ?? 0.0) + p;
+    }
+
+    if (points.isEmpty) return;
+
+    // Slight tie-breaker bonus for players on the winning team
+    if (match.winnerId != null) {
+      for (final pid in points.keys.toList()) {
+        final pl = players.where((x) => x.id == pid).firstOrNull;
+        if (pl != null && pl.teamId == match.winnerId) {
+          points[pid] = points[pid]! + 5.0;
+        }
+      }
+    }
+
+    String? bestId;
+    double bestScore = -1.0;
+    points.forEach((pid, score) {
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = pid;
+      }
+    });
+
+    if (bestId != null) {
+      match.playerOfTheMatchId = bestId;
+      match.playerOfTheMatchName = names[bestId!] ??
+          players.where((p) => p.id == bestId).firstOrNull?.fullName;
+    }
   }
 
   void swapEnds(String inningsId) {

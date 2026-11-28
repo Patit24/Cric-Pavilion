@@ -864,7 +864,10 @@ class UserAccount {
   bool get hasVerifiedMobile => isMobileVerified && mobileNumber.trim().isNotEmpty;
 
   /// Returns true if the user has BOTH a valid Gmail/email and a verified mobile number
-  bool get isProfileComplete => hasVerifiedMobile && email.trim().contains('@') && email.trim().contains('.');
+  bool get isProfileComplete =>
+      (hasVerifiedMobile || isGoogleOAuthUser) &&
+      email.trim().contains('@') &&
+      email.trim().contains('.');
 }
 
 class JoinAuctionValidationResult {
