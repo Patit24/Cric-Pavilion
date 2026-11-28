@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../theme/neo_glass_theme.dart';
 
 /// Interactive modal sheet allowing the scorer to record No-Balls with batsman runs,
 /// Wide balls with additional runs, Byes, and Leg-Byes with exact run attribution.
@@ -115,7 +116,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: GlassTokens.inkPrimary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: Color(0xFF00F5A0), width: 1.5)),
       ),
@@ -130,7 +131,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: GlassTokens.glassHairline,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -155,17 +156,17 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                     children: [
                       Text(
                         'RECORD EXTRAS & BATSMAN RUNS',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 0.8),
+                        style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 13.5, letterSpacing: 0.8),
                       ),
                       Text(
                         'Select extra type and any runs scored off the delivery',
-                        style: TextStyle(color: Colors.white60, fontSize: 10.5),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                  icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -192,7 +193,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
                 ),
@@ -233,7 +234,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
                 ),
@@ -246,7 +247,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                         SizedBox(width: 6),
                         Text(
                           'Additional Runs Ran / Fumble to Boundary:',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -272,7 +273,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.4)),
                 ),
@@ -285,7 +286,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                         const SizedBox(width: 6),
                         Text(
                           '${_selectedType == ExtrasType.bye ? "Byes" : "Leg-Byes"} Runs Ran:',
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -311,7 +312,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0B1120),
+                color: GlassTokens.bgIcyWhite,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.4)),
               ),
@@ -321,7 +322,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('TOTAL BALL SCORE:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                      const Text('TOTAL BALL SCORE:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                       Text(
                         '+$totalRuns RUNS',
                         style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 16, fontWeight: FontWeight.w900),
@@ -331,7 +332,7 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
                   const SizedBox(height: 4),
                   Text(
                     breakdownText,
-                    style: const TextStyle(color: Colors.white60, fontSize: 11),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -376,15 +377,15 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.25) : const Color(0xFF1E293B),
+            color: isSelected ? color.withValues(alpha: 0.25) : GlassTokens.bgLightBlue,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isSelected ? color : Colors.white12, width: isSelected ? 1.5 : 1),
+            border: Border.all(color: isSelected ? color : GlassTokens.glassHairline, width: isSelected ? 1.5 : 1),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? color : Colors.white70,
+              color: isSelected ? color : GlassTokens.inkSecondary,
               fontSize: 10.5,
               fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
             ),
@@ -403,9 +404,9 @@ class _ExtrasScoringSheetState extends State<ExtrasScoringSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00F5A0) : const Color(0xFF0F172A),
+            color: isSelected ? const Color(0xFF00F5A0) : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : Colors.white24),
+            border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline),
           ),
           alignment: Alignment.center,
           child: Text(

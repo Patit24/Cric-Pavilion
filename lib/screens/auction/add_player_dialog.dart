@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class AddPlayerDialog extends StatefulWidget {
   final MockDatabase db;
@@ -34,7 +35,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0xFF334155)),
@@ -53,7 +54,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
           const Expanded(
             child: Text(
               'Add Player to Auction Pool',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+              style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -66,19 +67,19 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
           children: [
             const Text(
               'Add player name, contact mobile, position, and base price to the draft lot.',
-              style: TextStyle(color: Colors.white60, fontSize: 11),
+              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: nameController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Player Full Name *',
-                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                 hintText: 'e.g. Rohit Sharma',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
@@ -87,15 +88,15 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             TextField(
               controller: mobileController,
               keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Mobile Number *',
-                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                 hintText: 'e.g. 9876543210',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                 prefixIcon: const Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
@@ -103,15 +104,15 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: photoController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Player Photo URL (Optional)',
-                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                 hintText: 'https://...',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                 prefixIcon: const Icon(Icons.image, size: 16, color: Colors.amber),
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
@@ -119,7 +120,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             const SizedBox(height: 12),
 
             // Role selection chips
-            const Text('Player Role *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+            const Text('Player Role *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -136,15 +137,15 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             TextField(
               controller: basePriceController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 labelText: 'Base Price (₹) *',
-                labelStyle: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                 hintText: 'e.g. 500 or 500000',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                 prefixIcon: const Icon(Icons.monetization_on, size: 16, color: Colors.amber),
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
@@ -160,7 +161,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: GlassTokens.bgLightBlue,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                     ),
@@ -177,16 +178,16 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                   child: DropdownButtonFormField<String>(
                     value: selectedBatting,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: GlassTokens.bgLightBlue,
                     decoration: InputDecoration(
                       labelText: 'Batting Style',
-                      labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
+                      fillColor: GlassTokens.bgLightBlue,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     items: const [
                       DropdownMenuItem(value: 'Right Hand Bat', child: Text('Right Hand')),
                       DropdownMenuItem(value: 'Left Hand Bat', child: Text('Left Hand')),
@@ -199,16 +200,16 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                   child: DropdownButtonFormField<String>(
                     value: selectedBowling,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: GlassTokens.bgLightBlue,
                     decoration: InputDecoration(
                       labelText: 'Bowling Style',
-                      labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
+                      fillColor: GlassTokens.bgLightBlue,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     items: const [
                       DropdownMenuItem(value: 'Right Arm Fast', child: Text('RA Fast')),
                       DropdownMenuItem(value: 'Right Arm Medium', child: Text('RA Medium')),
@@ -228,7 +229,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
+          child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
         ),
         ElevatedButton(
           onPressed: () {
@@ -273,9 +274,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
       label: Text(label),
       selected: isSelected,
       selectedColor: const Color(0xFF059669),
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: GlassTokens.bgLightBlue,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.white70,
+        color: isSelected ? Colors.white : GlassTokens.inkSecondary,
         fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
         fontSize: 10.5,
       ),

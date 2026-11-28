@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/mock_database.dart';
+import '../theme/neo_glass_theme.dart';
 
 class ActivityAuditDialog extends StatefulWidget {
   final MockDatabase db;
@@ -22,10 +23,10 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFF1E293B)),
+        side: const BorderSide(color: GlassTokens.bgLightBlue),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -58,7 +59,7 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                         Text(
                           'SYSTEM AUDIT & ACTIVITY LOG',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: GlassTokens.inkPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
@@ -67,14 +68,14 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                         ),
                         Text(
                           'Real-time transaction & operational history',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -96,12 +97,12 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.black : Colors.white70,
+                            color: isSelected ? Colors.black : GlassTokens.inkSecondary,
                           ),
                         ),
                         selected: isSelected,
                         selectedColor: const Color(0xFF34D399),
-                        backgroundColor: const Color(0xFF1E293B),
+                        backgroundColor: GlassTokens.bgLightBlue,
                         onSelected: (val) => setState(() => selectedCategory = cat),
                       ),
                     );
@@ -123,22 +124,22 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E293B),
+                                  color: GlassTokens.bgLightBlue,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white12),
+                                  border: Border.all(color: GlassTokens.glassHairline),
                                 ),
-                                child: const Icon(Icons.history_toggle_off, color: Colors.white38, size: 24),
+                                child: const Icon(Icons.history_toggle_off, color: GlassTokens.inkMuted, size: 24),
                               ),
                               const SizedBox(height: 12),
                               const Text(
                                 'No Activities Recorded Yet',
-                                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
                               const Text(
                                 'Actions like organizing a tournament, bidding in auctions, or scoring deliveries will be recorded here.',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white54, fontSize: 11),
+                                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                               ),
                             ],
                           ),
@@ -167,9 +168,9 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                           return Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
+                              color: GlassTokens.bgLightBlue,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white12),
+                              border: Border.all(color: GlassTokens.glassHairline),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +197,7 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                                     ),
                                     Text(
                                       _formatTime(log.timestamp),
-                                      style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                      style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10),
                                     ),
                                   ],
                                 ),
@@ -204,7 +205,7 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                                 Text(
                                   log.action,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: GlassTokens.inkPrimary,
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -212,17 +213,17 @@ class _ActivityAuditDialogState extends State<ActivityAuditDialog> {
                                 const SizedBox(height: 2),
                                 Text(
                                   log.details,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                 ),
                                 if (log.performedBy.isNotEmpty) ...[
                                   const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      const Icon(Icons.person_outline, size: 11, color: Colors.white38),
+                                      const Icon(Icons.person_outline, size: 11, color: GlassTokens.inkMuted),
                                       const SizedBox(width: 4),
                                       Text(
                                         'By: ${log.performedBy} (${log.role})',
-                                        style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                        style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10),
                                       ),
                                     ],
                                   ),

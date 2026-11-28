@@ -4,6 +4,7 @@ import '../../services/mock_database.dart';
 import '../../widgets/add_existing_player_dialog.dart';
 import '../../widgets/auth_modal_dialog.dart';
 import '../scorer/scorer_screen.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class CreateDirectMatchDialog extends StatefulWidget {
   final MockDatabase db;
@@ -69,7 +70,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: GlassTokens.bgLightBlue,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -88,7 +89,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               Expanded(
                 child: Text(
                   'Add Player to ${isTeamA ? _teamANameController.text : _teamBNameController.text}',
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -111,39 +112,39 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                     child: Text(localError!, style: const TextStyle(color: Colors.redAccent, fontSize: 11)),
                   ),
                 ],
-                const Text('Player Full Name *', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Player Full Name *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: nameCtrl,
                   autofocus: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     hintText: 'e.g. Virat Sharma',
-                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Role', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Role', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: GlassTokens.inkPrimary,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white24),
+                    border: Border.all(color: GlassTokens.glassHairline),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<PlayerRole>(
                       value: role,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: GlassTokens.bgLightBlue,
                       isExpanded: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       items: const [
                         DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
                         DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
@@ -159,20 +160,20 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Mobile Number (Optional)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Mobile Number (Optional)', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: mobileCtrl,
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     hintText: '10 digits or leave blank',
-                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
                   ),
                 ),
@@ -193,7 +194,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -292,7 +293,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: GlassTokens.bgLightBlue,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -308,46 +309,46 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                 child: const Icon(Icons.edit, color: Color(0xFF00F5A0), size: 18),
               ),
               const SizedBox(width: 10),
-              const Text('Edit Player', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('Edit Player', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Player Full Name *', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+              const Text('Player Full Name *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               TextField(
                 controller: nameController,
                 autofocus: true,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   hintText: 'Enter player name',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                  hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white24)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00F5A0))),
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('Role', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+              const Text('Role', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<PlayerRole>(
                     value: selectedRole,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: GlassTokens.bgLightBlue,
                     isExpanded: true,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     items: const [
                       DropdownMenuItem(value: PlayerRole.batsman, child: Text('Batter')),
                       DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowler')),
@@ -367,7 +368,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -517,7 +518,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -548,17 +549,17 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       children: [
                         Text(
                           'Direct 2-Team Match',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Standalone match with permanent scorecards & stats',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -581,7 +582,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       const Expanded(
                         child: Text(
                           'Login Required: You must be logged in to create and score matches.',
-                          style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.w600),
                         ),
                       ),
                       ElevatedButton(
@@ -634,11 +635,11 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       child: OutlinedButton(
                         onPressed: () => setState(() => _currentStep--),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white38),
+                          side: const BorderSide(color: GlassTokens.inkMuted),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: const Text('Back', style: TextStyle(color: Colors.white, fontSize: 13)),
+                        child: const Text('Back', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13)),
                       ),
                     ),
                   if (_currentStep > 0) const SizedBox(width: 10),
@@ -706,17 +707,17 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
         decoration: BoxDecoration(
           color: isCurrent
               ? const Color(0xFF00F5A0).withValues(alpha: 0.2)
-              : (isDone ? const Color(0xFF009270).withValues(alpha: 0.2) : const Color(0xFF1E293B)),
+              : (isDone ? const Color(0xFF009270).withValues(alpha: 0.2) : GlassTokens.bgLightBlue),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isCurrent ? const Color(0xFF00F5A0) : (isDone ? const Color(0xFF009270) : Colors.white12),
+            color: isCurrent ? const Color(0xFF00F5A0) : (isDone ? const Color(0xFF009270) : GlassTokens.glassHairline),
           ),
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: isCurrent ? const Color(0xFF00F5A0) : (isDone ? Colors.white70 : Colors.white38),
+              color: isCurrent ? const Color(0xFF00F5A0) : (isDone ? GlassTokens.inkSecondary : GlassTokens.inkMuted),
               fontSize: 11,
               fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
             ),
@@ -732,35 +733,35 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Match Title & Location', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('Match Title & Location', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             TextField(
               controller: _matchNameController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: const InputDecoration(
                 hintText: 'e.g. Sunday Derby / Friendly Cup',
                 filled: true,
-                fillColor: Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
-            const Text('Venue / Ground', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('Venue / Ground', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             TextField(
               controller: _venueController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: const InputDecoration(
                 hintText: 'e.g. Eden Gardens, Kolkata',
                 filled: true,
-                fillColor: Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 14),
-            const Text('Match Format (Overs Per Innings)', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('Match Format (Overs Per Innings)', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               children: [5, 8, 10, 15, 20].map((ov) {
@@ -773,9 +774,9 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF00F5A0) : const Color(0xFF1E293B),
+                          color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : Colors.white24),
+                          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline),
                         ),
                         child: Center(
                           child: Text(
@@ -794,19 +795,19 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text('Competing Teams', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('Competing Teams', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _teamANameController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Team 1 Name',
                       labelStyle: TextStyle(color: Color(0xFF00F5A0), fontSize: 11),
                       filled: true,
-                      fillColor: Color(0xFF1E293B),
+                      fillColor: GlassTokens.bgLightBlue,
                       contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
@@ -814,17 +815,17 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('VS', style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: Text('VS', style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
                 Expanded(
                   child: TextField(
                     controller: _teamBNameController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Team 2 Name',
                       labelStyle: TextStyle(color: Color(0xFF00D9F5), fontSize: 11),
                       filled: true,
-                      fillColor: Color(0xFF1E293B),
+                      fillColor: GlassTokens.bgLightBlue,
                       contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
@@ -887,14 +888,14 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: GlassTokens.bgLightBlue,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: GlassTokens.glassHairline),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('🪙 Toss Winner', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text('🪙 Toss Winner', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -909,7 +910,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _tossWinnerIndex == 0 ? const Color(0xFF00F5A0) : const Color(0xFF0F172A),
+                              color: _tossWinnerIndex == 0 ? const Color(0xFF00F5A0) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
@@ -937,7 +938,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _tossWinnerIndex == 1 ? const Color(0xFF00D9F5) : const Color(0xFF0F172A),
+                              color: _tossWinnerIndex == 1 ? const Color(0xFF00D9F5) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
@@ -956,7 +957,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text('Elected Decision', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const Text('Elected Decision', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -971,14 +972,14 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _tossDecision == 'bat' ? Colors.white : const Color(0xFF0F172A),
+                              color: _tossDecision == 'bat' ? Colors.white : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
                               child: Text(
                                 '🏏 Elected to BAT',
                                 style: TextStyle(
-                                  color: _tossDecision == 'bat' ? Colors.black : Colors.white70,
+                                  color: _tossDecision == 'bat' ? Colors.black : GlassTokens.inkSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -999,14 +1000,14 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _tossDecision == 'bowl' ? Colors.white : const Color(0xFF0F172A),
+                              color: _tossDecision == 'bowl' ? Colors.white : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
                               child: Text(
                                 '⚾ Elected to BOWL',
                                 style: TextStyle(
-                                  color: _tossDecision == 'bowl' ? Colors.black : Colors.white70,
+                                  color: _tossDecision == 'bowl' ? Colors.black : GlassTokens.inkSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -1026,7 +1027,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: GlassTokens.bgLightBlue,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0x6600F5A0), width: 1.2),
               ),
@@ -1039,7 +1040,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                       const SizedBox(width: 8),
                       const Text(
                         'Select Crease Lineup (Innings 1)',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       const Spacer(),
                       Container(
@@ -1058,18 +1059,18 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   const SizedBox(height: 12),
 
                   // 1. Striker Dropdown
-                  const Text('1. Opening Striker (* Facing Ball 0.1):', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('1. Opening Striker (* Facing Ball 0.1):', style: TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: _directStrikerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                     ),
                     items: battingPlayers.map((p) {
                       final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
@@ -1080,18 +1081,18 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   const SizedBox(height: 10),
 
                   // 2. Non-Striker Dropdown
-                  const Text('2. Opening Non-Striker (Runner at Crease):', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('2. Opening Non-Striker (Runner at Crease):', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: _directNonStrikerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                     ),
                     items: battingPlayers.map((p) {
                       final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
@@ -1112,13 +1113,13 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   DropdownButtonFormField<String>(
                     value: _directBowlerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                     ),
                     items: bowlingPlayers.map((p) {
                       final pName = p.fullName.isNotEmpty ? p.fullName : p.displayName;
@@ -1145,7 +1146,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   Expanded(
                     child: Text(
                       'Ready to begin live ball-by-ball scoring. All records are permanently saved to player profiles.',
-                      style: TextStyle(color: Colors.white, fontSize: 11.5),
+                      style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5),
                     ),
                   ),
                 ],
@@ -1168,7 +1169,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: GlassTokens.bgLightBlue,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: themeColor.withValues(alpha: 0.4)),
       ),
@@ -1184,7 +1185,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               const SizedBox(width: 8),
               Text(
                 '(${players.length} players)',
-                style: const TextStyle(color: Colors.white54, fontSize: 11),
+                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
               ),
               const Spacer(),
               ElevatedButton.icon(
@@ -1207,7 +1208,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
               alignment: Alignment.center,
               child: const Text(
                 'No players in squad. Tap "+ Add Player" to add.',
-                style: TextStyle(color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic),
+                style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontStyle: FontStyle.italic),
               ),
             )
           else
@@ -1216,9 +1217,9 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                 margin: const EdgeInsets.only(bottom: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Row(
                   children: [
@@ -1233,11 +1234,11 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                         children: [
                           Text(
                             p.fullName,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                           Text(
                             p.roleString,
-                            style: const TextStyle(color: Colors.white54, fontSize: 10),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                           ),
                         ],
                       ),
@@ -1251,11 +1252,11 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
+                            color: GlassTokens.inkPrimary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.white24, width: 0.8),
+                            border: Border.all(color: GlassTokens.glassHairline, width: 0.8),
                           ),
-                          child: const Icon(Icons.edit_outlined, color: Colors.white70, size: 14),
+                          child: const Icon(Icons.edit_outlined, color: GlassTokens.inkSecondary, size: 14),
                         ),
                       ),
                     ),

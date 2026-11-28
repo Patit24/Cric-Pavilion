@@ -5,6 +5,7 @@ import '../screens/tournaments/create_tournament_dialog.dart';
 import '../screens/matches/create_direct_match_dialog.dart';
 import 'auth_modal_dialog.dart';
 import 'mobile_otp_verification_dialog.dart';
+import '../theme/neo_glass_theme.dart';
 
 class OrganizeHubModal extends StatelessWidget {
   const OrganizeHubModal({super.key});
@@ -64,7 +65,7 @@ class OrganizeHubModal extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: GlassTokens.inkPrimary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: Color(0x3300F5A0), width: 1.5)),
       ),
@@ -79,7 +80,7 @@ class OrganizeHubModal extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: GlassTokens.glassHairline,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -104,17 +105,17 @@ class OrganizeHubModal extends StatelessWidget {
                   children: [
                     Text(
                       'Organize / Host',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       'Choose a cricket workflow to begin',
-                      style: TextStyle(color: Colors.white60, fontSize: 12),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -174,9 +175,9 @@ class OrganizeHubModal extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: GlassTokens.bgLightBlue,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: GlassTokens.glassHairline),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -204,7 +205,7 @@ class OrganizeHubModal extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                         ),
                         Container(
@@ -223,13 +224,13 @@ class OrganizeHubModal extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(color: Colors.white60, fontSize: 11.5, height: 1.3),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5, height: 1.3),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 14),
+              const Icon(Icons.arrow_forward_ios, color: GlassTokens.inkMuted, size: 14),
             ],
           ),
         ),

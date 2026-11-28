@@ -59,7 +59,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           backgroundColor: NeoGlassTheme.bgSurface,
           elevation: 0,
           shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
-          title: const Text('Tournament Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+          title: const Text('Tournament Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: GlassTokens.inkPrimary)),
           actions: const [
             RoleSwitcherChip(compact: true),
             SizedBox(width: 8),
@@ -78,7 +78,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 const Text(
                   'Organize a tournament to set up your teams, schedule matches, and begin live ball-by-ball scoring.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -127,11 +127,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
             ),
             Row(
               children: [
-                const Icon(Icons.location_on, size: 10, color: Colors.white70),
+                const Icon(Icons.location_on, size: 10, color: GlassTokens.inkSecondary),
                 const SizedBox(width: 3),
                 Text(
                   '${activeTourn.location} • ${activeTourn.overs} Overs',
-                  style: const TextStyle(fontSize: 10, color: Colors.white70),
+                  style: const TextStyle(fontSize: 10, color: GlassTokens.inkSecondary),
                 ),
               ],
             ),
@@ -143,12 +143,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           if (canScore)
             IconButton(
               tooltip: 'Edit Format & Tournament',
-              icon: const Icon(Icons.tune, color: Colors.amberAccent, size: 20),
+              icon: const Icon(Icons.tune, color: Color(0xFFD97706), size: 20),
               onPressed: () => _showEditTournamentDialog(context, db, activeTourn),
             ),
           IconButton(
             tooltip: 'Organize New Tournament',
-            icon: const Icon(Icons.add_circle, color: Colors.white, size: 22),
+            icon: const Icon(Icons.add_circle, color: GlassTokens.inkPrimary, size: 22),
             onPressed: () {
               showDialog(
                 context: context,
@@ -180,7 +180,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       indicatorColor: NeoGlassTheme.neonEmerald,
                       indicatorWeight: 3,
                       labelColor: NeoGlassTheme.neonEmerald,
-                      unselectedLabelColor: Colors.white60,
+                      unselectedLabelColor: GlassTokens.inkSecondary,
                       labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       tabs: const [
                         Tab(text: 'Matches', icon: Icon(Icons.sports_cricket, size: 16)),
@@ -229,7 +229,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
   // =========================================================================
   Widget _buildTournamentSwitcher(MockDatabase db, Tournament activeTourn) {
     return Container(
-      color: const Color(0xFF1F2937),
+      color: GlassTokens.glassFillMid,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -243,9 +243,9 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   selected: isSelected,
                   label: Text('${t.shortName} (${t.overs} Ov)'),
                   selectedColor: const Color(0xFF009270),
-                  backgroundColor: const Color(0xFF111827),
+                  backgroundColor: GlassTokens.bgIcyWhite,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
+                    color: isSelected ? Colors.white : GlassTokens.inkSecondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
                   ),
@@ -289,7 +289,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
-          colors: [Color(0xFF064E3B), Color(0xFF0F172A)],
+          colors: [Color(0xFF064E3B), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -350,7 +350,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       child: Center(
                         child: Text(
                           activeTourn.shortName.length > 3 ? activeTourn.shortName.substring(0, 3) : activeTourn.shortName,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 13),
                         ),
                       ),
                     ),
@@ -361,13 +361,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         children: [
                           Text(
                             activeTourn.name,
-                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.w900),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             '${activeTourn.location} • Match Format: ${activeTourn.overs} Overs',
-                            style: const TextStyle(color: Colors.white70, fontSize: 10),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                           ),
                         ],
                       ),
@@ -396,7 +396,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       const SizedBox(width: 4),
                       Text(
                         '• PIN: ${activeTourn.passcode}',
-                        style: const TextStyle(color: Colors.amberAccent, fontSize: 9, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFFD97706), fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -415,16 +415,16 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: canScore ? const Color(0xFF059669).withValues(alpha: 0.3) : Colors.white10,
+                        color: canScore ? const Color(0xFF059669).withValues(alpha: 0.3) : GlassTokens.glassHairline,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: canScore ? const Color(0xFF34D399) : Colors.white30),
+                        border: Border.all(color: canScore ? const Color(0xFF34D399) : GlassTokens.inkMuted),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             canScore ? Icons.verified_user : Icons.visibility,
                             size: 12,
-                            color: canScore ? const Color(0xFF34D399) : Colors.white70,
+                            color: canScore ? const Color(0xFF34D399) : GlassTokens.inkSecondary,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -434,7 +434,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                     ? 'Scorer Access Authorized'
                                     : 'Public Spectator (View Only)',
                             style: TextStyle(
-                              color: canScore ? const Color(0xFF34D399) : Colors.white70,
+                              color: canScore ? const Color(0xFF34D399) : GlassTokens.inkSecondary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -461,17 +461,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         children: [
                           OutlinedButton.icon(
                             onPressed: () => _showEditTournamentDialog(context, db, activeTourn),
-                            icon: const Icon(Icons.tune, size: 11, color: Colors.amberAccent),
-                            label: const Text('Edit Format', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.tune, size: 11, color: Color(0xFFD97706)),
+                            label: const Text('Edit Format', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.amberAccent),
+                              side: const BorderSide(color: Color(0xFFD97706)),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             ),
                           ),
                           OutlinedButton.icon(
                             onPressed: () => _showScheduleMatchDialog(context, db, activeTourn),
-                            icon: const Icon(Icons.calendar_today, size: 11, color: Colors.white),
-                            label: const Text('+ Match', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.calendar_today, size: 11, color: GlassTokens.inkPrimary),
+                            label: const Text('+ Match', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 10, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Color(0xFF34D399)),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -479,10 +479,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                           ),
                           OutlinedButton.icon(
                             onPressed: () => _showAddTeamDialog(context, db, activeTourn),
-                            icon: const Icon(Icons.group_add, size: 11, color: Colors.white),
-                            label: const Text('+ Team', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.group_add, size: 11, color: GlassTokens.inkPrimary),
+                            label: const Text('+ Team', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 10, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.white38),
+                              side: const BorderSide(color: GlassTokens.inkMuted),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             ),
                           ),
@@ -515,7 +515,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       children: [
         // Sub-filter tabs (CricHeroes style: Live, Upcoming, Past)
         Container(
-          color: const Color(0xFF1E293B),
+          color: GlassTokens.bgLightBlue,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Row(
             children: [
@@ -539,11 +539,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.event_busy, size: 42, color: Colors.white38),
+                        const Icon(Icons.event_busy, size: 42, color: GlassTokens.inkMuted),
                         const SizedBox(height: 10),
                         Text(
                           'No ${_matchFilter.toUpperCase()} matches found for ${tourn.shortName}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         if (canScore)
@@ -578,14 +578,14 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF009270) : const Color(0xFF0F172A),
+          color: isSelected ? const Color(0xFF009270) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white24),
+          border: Border.all(color: isSelected ? const Color(0xFF34D399) : GlassTokens.glassHairline),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
+            color: isSelected ? Colors.white : GlassTokens.inkSecondary,
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
@@ -604,12 +604,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     final isCompleted = m.status == MatchStatus.completed;
 
     return Card(
-      color: const Color(0xFF1F2937),
+      color: GlassTokens.glassFillMid,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: isLive ? const Color(0xFF10B981) : const Color(0xFF374151),
+          color: isLive ? const Color(0xFF10B981) : Color(0xFFCBD5E1),
           width: isLive ? 1.5 : 1,
         ),
       ),
@@ -625,7 +625,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 Expanded(
                   child: Text(
                     m.stage,
-                    style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -636,12 +636,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? Colors.white10
+                          ? GlassTokens.glassHairline
                           : const Color(0xFF0284C7).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: isCompleted
-                            ? Colors.white30
+                            ? GlassTokens.inkMuted
                             : const Color(0xFF38BDF8),
                       ),
                     ),
@@ -649,7 +649,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       isCompleted ? 'RESULT' : 'UPCOMING',
                       style: TextStyle(
                         color: isCompleted
-                            ? Colors.white70
+                            ? GlassTokens.inkSecondary
                             : const Color(0xFF38BDF8),
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
@@ -668,13 +668,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 Expanded(
                   child: Text(
                     teamA.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (inn1 != null)
                   Text(
                     '${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)',
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w900),
                   ),
               ],
             ),
@@ -688,13 +688,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 Expanded(
                   child: Text(
                     teamB.name,
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (inn2 != null)
                   Text(
                     '${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)',
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w900),
                   ),
               ],
             ),
@@ -708,7 +708,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       ? 'Live ball-by-ball scoring active'
                       : dateFormat.format(m.dateTime),
               style: TextStyle(
-                color: isCompleted ? Colors.amberAccent : (isLive ? const Color(0xFF34D399) : Colors.white54),
+                color: isCompleted ? Color(0xFFD97706) : (isLive ? const Color(0xFF34D399) : GlassTokens.inkSecondary),
                 fontSize: 11,
                 fontWeight: isCompleted || isLive ? FontWeight.bold : FontWeight.normal,
               ),
@@ -781,7 +781,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     label: const Text('View Scorecard', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white30),
+                      side: const BorderSide(color: GlassTokens.inkMuted),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
@@ -803,7 +803,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       children: [
         // Category Filter Chips (CricHeroes Style)
         Container(
-          color: const Color(0xFF1E293B),
+          color: GlassTokens.bgLightBlue,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -855,14 +855,14 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF009270) : const Color(0xFF0F172A),
+          color: isSelected ? const Color(0xFF009270) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? const Color(0xFF34D399) : Colors.white24),
+          border: Border.all(color: isSelected ? const Color(0xFF34D399) : GlassTokens.glassHairline),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
+            color: isSelected ? Colors.white : GlassTokens.inkSecondary,
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
@@ -921,18 +921,18 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(4)),
-                          child: const Text('ORANGE CAP LEADER', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                          child: const Text('ORANGE CAP LEADER', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.w900)),
                         ),
                         const SizedBox(width: 6),
-                        Text(leader.teamShortName, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                        Text(leader.teamShortName, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(leader.playerName, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                    Text(leader.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 3),
                     Text(
                       'SR: ${leader.strikeRate.toStringAsFixed(1)} • 4s: ${leader.fours} • 6s: ${leader.sixes} • HS: ${leader.highScore}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -940,8 +940,8 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${leader.runs}', style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
-                  const Text('RUNS', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                  Text('${leader.runs}', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 26, fontWeight: FontWeight.w900)),
+                  const Text('RUNS', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -959,7 +959,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: rank % 2 == 0 ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+              color: rank % 2 == 0 ? GlassTokens.bgLightBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             margin: const EdgeInsets.only(bottom: 4),
@@ -967,7 +967,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               children: [
                 SizedBox(
                   width: 22,
-                  child: Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
                 CircleAvatar(radius: 12, backgroundImage: NetworkImage(b.photoUrl)),
                 const SizedBox(width: 8),
@@ -976,15 +976,15 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(b.playerName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                      Text(b.teamShortName, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                      Text(b.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                      Text(b.teamShortName, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                     ],
                   ),
                 ),
-                Expanded(flex: 2, child: Text('${b.matches}/${b.innings}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text('${b.matches}/${b.innings}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text('${b.runs}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text(b.strikeRate.toStringAsFixed(1), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                Expanded(flex: 2, child: Text('${b.fours}/${b.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text(b.strikeRate.toStringAsFixed(1), textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                Expanded(flex: 2, child: Text('${b.fours}/${b.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
               ],
             ),
           );
@@ -1043,18 +1043,18 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(4)),
-                          child: const Text('PURPLE CAP LEADER', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                          child: const Text('PURPLE CAP LEADER', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.w900)),
                         ),
                         const SizedBox(width: 6),
-                        Text(leader.teamShortName, style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                        Text(leader.teamShortName, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(leader.playerName, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                    Text(leader.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 3),
                     Text(
                       'Overs: ${leader.oversStr} • Econ: ${leader.economy.toStringAsFixed(1)} • BBI: ${leader.bestBowling}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -1062,8 +1062,8 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${leader.wickets}', style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
-                  const Text('WICKETS', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                  Text('${leader.wickets}', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 26, fontWeight: FontWeight.w900)),
+                  const Text('WICKETS', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -1081,7 +1081,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: rank % 2 == 0 ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+              color: rank % 2 == 0 ? GlassTokens.bgLightBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             margin: const EdgeInsets.only(bottom: 4),
@@ -1089,7 +1089,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               children: [
                 SizedBox(
                   width: 22,
-                  child: Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
                 CircleAvatar(radius: 12, backgroundImage: NetworkImage(bo.photoUrl)),
                 const SizedBox(width: 8),
@@ -1098,15 +1098,15 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(bo.playerName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                      Text(bo.teamShortName, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                      Text(bo.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                      Text(bo.teamShortName, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                     ],
                   ),
                 ),
-                Expanded(flex: 2, child: Text(bo.oversStr, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text(bo.oversStr, textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text('${bo.wickets}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFC084FC), fontSize: 12, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text(bo.economy.toStringAsFixed(1), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                Expanded(flex: 2, child: Text(bo.bestBowling, textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text(bo.economy.toStringAsFixed(1), textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                Expanded(flex: 2, child: Text(bo.bestBowling, textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
               ],
             ),
           );
@@ -1132,22 +1132,22 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: rank % 2 == 0 ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+              color: rank % 2 == 0 ? GlassTokens.bgLightBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             margin: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold))),
+                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold))),
                 CircleAvatar(radius: 12, backgroundImage: NetworkImage(f.photoUrl)),
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 4,
-                  child: Text(f.playerName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                  child: Text(f.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                 ),
-                Expanded(flex: 2, child: Text(f.teamShortName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text(f.teamShortName, textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text('${f.catches}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('${f.stumpings}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text('${f.stumpings}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text('${f.totalDismissals}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
               ],
             ),
@@ -1174,17 +1174,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: GlassTokens.bgLightBlue,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF374151)),
+            border: Border.all(color: Color(0xFFCBD5E1)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatCounter('TOTAL FOURS', '$totalFours', const Color(0xFF38BDF8)),
-              Container(width: 1, height: 35, color: Colors.white24),
+              Container(width: 1, height: 35, color: GlassTokens.glassHairline),
               _buildStatCounter('TOTAL SIXES', '$totalSixes', const Color(0xFFF59E0B)),
-              Container(width: 1, height: 35, color: Colors.white24),
+              Container(width: 1, height: 35, color: GlassTokens.glassHairline),
               _buildStatCounter('BOUNDARY RUNS', '${(totalFours * 4) + (totalSixes * 6)}', const Color(0xFF34D399)),
             ],
           ),
@@ -1198,17 +1198,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: rank % 2 == 0 ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+              color: rank % 2 == 0 ? GlassTokens.bgLightBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             margin: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold))),
+                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold))),
                 CircleAvatar(radius: 12, backgroundImage: NetworkImage(b.photoUrl)),
                 const SizedBox(width: 8),
-                Expanded(flex: 4, child: Text(b.playerName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                Expanded(flex: 2, child: Text(b.teamShortName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 4, child: Text(b.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                Expanded(flex: 2, child: Text(b.teamShortName, textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text('${b.fours}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold))),
                 Expanded(flex: 2, child: Text('${b.sixes}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 11, fontWeight: FontWeight.bold))),
                 Expanded(flex: 2, child: Text('${b.totalBoundaries}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold))),
@@ -1237,13 +1237,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: rank % 2 == 0 ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
+              color: rank % 2 == 0 ? GlassTokens.bgLightBlue : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             margin: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold))),
+                SizedBox(width: 22, child: Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold))),
                 CircleAvatar(radius: 12, backgroundImage: NetworkImage(m.photoUrl)),
                 const SizedBox(width: 8),
                 Expanded(
@@ -1251,14 +1251,14 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(m.playerName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                      Text(m.teamShortName, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                      Text(m.playerName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                      Text(m.teamShortName, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                     ],
                   ),
                 ),
-                Expanded(flex: 2, child: Text(m.roleString, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 10))),
-                Expanded(flex: 2, child: Text('${m.runs}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                Expanded(flex: 2, child: Text('${m.wickets}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                Expanded(flex: 2, child: Text(m.roleString, textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10))),
+                Expanded(flex: 2, child: Text('${m.runs}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                Expanded(flex: 2, child: Text('${m.wickets}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                 Expanded(flex: 2, child: Text(m.points.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w900))),
               ],
             ),
@@ -1272,18 +1272,18 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
+        color: GlassTokens.inkPrimary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
       ),
       child: Row(
         children: [
           const SizedBox(width: 22),
           const SizedBox(width: 32),
-          Expanded(flex: 4, child: Text(titles[0], style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(titles[1], textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(titles[2], textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(titles[3], textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(titles[4], textAlign: TextAlign.right, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+          Expanded(flex: 4, child: Text(titles[0], style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text(titles[1], textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text(titles[2], textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text(titles[3], textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text(titles[4], textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -1294,7 +1294,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       children: [
         Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -1306,11 +1306,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.analytics_outlined, size: 48, color: Colors.white38),
+            const Icon(Icons.analytics_outlined, size: 48, color: GlassTokens.inkMuted),
             const SizedBox(height: 12),
             Text(
               message,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ],
@@ -1336,19 +1336,19 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
-                child: const Icon(Icons.leaderboard_outlined, size: 28, color: Colors.white38),
+                child: const Icon(Icons.leaderboard_outlined, size: 28, color: GlassTokens.inkMuted),
               ),
               const SizedBox(height: 14),
-              const Text('No Standings Yet', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('No Standings Yet', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               const Text(
                 'Add teams in the Teams tab and schedule matches to compute tournament standings and Net Run Rate (NRR).',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white60, fontSize: 12),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -1361,7 +1361,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       children: [
         // Standings Card Table
         Card(
-          color: const Color(0xFF1E293B),
+          color: GlassTokens.bgLightBlue,
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Column(
@@ -1370,17 +1370,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
                 child: const Row(
                   children: [
-                    Expanded(flex: 5, child: Text('Team', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('P', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('W', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('L', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('PTS', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('NRR', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 5, child: Text('Team', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('P', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('W', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('L', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('PTS', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('NRR', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
               ),
@@ -1407,14 +1407,14 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                               width: 18,
                               height: 18,
                               decoration: BoxDecoration(
-                                color: isTop4 ? const Color(0xFF009270) : Colors.white10,
+                                color: isTop4 ? const Color(0xFF009270) : GlassTokens.glassHairline,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Center(
                                 child: Text(
                                   '$rank',
                                   style: TextStyle(
-                                    color: isTop4 ? Colors.white : Colors.white60,
+                                    color: isTop4 ? Colors.white : GlassTokens.inkSecondary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1427,18 +1427,18 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                             Expanded(
                               child: Text(
                                 s.teamName,
-                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Expanded(flex: 1, child: Text('${s.matchesPlayed}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                      Expanded(flex: 1, child: Text('${s.matchesPlayed}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                       Expanded(flex: 1, child: Text('${s.won}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold))),
                       Expanded(flex: 1, child: Text('${s.lost}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 11))),
                       Expanded(flex: 2, child: Text('${s.points}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text(s.netRunRate.toStringAsFixed(3), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                      Expanded(flex: 2, child: Text(s.netRunRate.toStringAsFixed(3), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                     ],
                   ),
                 );
@@ -1452,20 +1452,20 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: GlassTokens.inkPrimary,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: GlassTokens.glassHairline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text('POINTS SYSTEM & QUALIFICATION RULES', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.w900)),
               SizedBox(height: 6),
-              Text('• Win: 2 points  • Tie / No Result: 1 point  • Loss: 0 points', style: TextStyle(color: Colors.white70, fontSize: 11)),
+              Text('• Win: 2 points  • Tie / No Result: 1 point  • Loss: 0 points', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
               SizedBox(height: 4),
-              Text('• Standard ICC NRR = (Runs Scored / Overs Faced) - (Runs Conceded / Overs Bowled)', style: TextStyle(color: Colors.white54, fontSize: 10)),
+              Text('• Standard ICC NRR = (Runs Scored / Overs Faced) - (Runs Conceded / Overs Bowled)', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
               SizedBox(height: 4),
-              Text('• Top 4 teams qualify for Playoffs / Semifinals', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+              Text('• Top 4 teams qualify for Playoffs / Semifinals', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -1487,9 +1487,9 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.group_off, size: 48, color: Colors.white38),
+              const Icon(Icons.group_off, size: 48, color: GlassTokens.inkMuted),
               const SizedBox(height: 12),
-              const Text('No teams added to this tournament yet.', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+              const Text('No teams added to this tournament yet.', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               if (canScore)
                 ElevatedButton.icon(
@@ -1509,13 +1509,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         // Teams Header Strip with Add Team Action
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: const Color(0xFF1E293B),
+          color: GlassTokens.bgLightBlue,
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   'Tournament Teams (${tournTeams.length})',
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ),
               if (canScore)
@@ -1550,7 +1550,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               final isReady = squad.length >= 2 && !squad.any((p) => p.fullName.trim().isEmpty || p.mobileNumber.trim().isEmpty);
 
               return Card(
-                color: const Color(0xFF1E293B),
+                color: GlassTokens.bgLightBlue,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -1577,7 +1577,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                               child: Center(
                                 child: Text(
                                   t.shortName.isNotEmpty ? t.shortName.substring(0, min(2, t.shortName.length)) : 'T',
-                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.w900),
                                 ),
                               ),
                             ),
@@ -1589,10 +1589,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: Colors.amberAccent.withValues(alpha: 0.15),
+                                    color: Color(0xFFD97706).withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Icon(Icons.edit, size: 13, color: Colors.amberAccent),
+                                  child: const Icon(Icons.edit, size: 13, color: Color(0xFFD97706)),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -1617,7 +1617,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                           children: [
                             Text(
                               t.name,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1625,7 +1625,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                             const SizedBox(height: 2),
                             Text(
                               t.shortName,
-                              style: const TextStyle(color: Colors.white54, fontSize: 11),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                             ),
                           ],
                         ),
@@ -1648,7 +1648,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                               child: Text(
                                 isReady ? 'Squad: ${squad.length} Players' : '⚠️ ${squad.length} Players (Need Phone)',
                                 style: TextStyle(
-                                  color: isReady ? const Color(0xFF34D399) : Colors.amberAccent,
+                                  color: isReady ? const Color(0xFF34D399) : Color(0xFFD97706),
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -1659,7 +1659,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                             const SizedBox(height: 4),
                             const Text(
                               'Tap to View / Edit Squad',
-                              style: TextStyle(color: Colors.white38, fontSize: 9),
+                              style: TextStyle(color: GlassTokens.inkMuted, fontSize: 9),
                             ),
                           ],
                         ),
@@ -1685,7 +1685,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: GlassTokens.bgLightBlue,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
         return StatefulBuilder(
@@ -1708,7 +1708,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         child: Center(
                           child: Text(
                             team.shortName.isNotEmpty ? team.shortName.substring(0, min(2, team.shortName.length)) : 'T',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -1717,8 +1717,8 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(team.name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                            Text('Squad Roster (${currentSquad.length} Players)', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            Text(team.name, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                            Text('Squad Roster (${currentSquad.length} Players)', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                           ],
                         ),
                       ),
@@ -1736,10 +1736,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           ),
                         ),
-                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: Colors.white70)),
+                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close, color: GlassTokens.inkSecondary)),
                     ],
                   ),
-                  const Divider(color: Colors.white12),
+                  const Divider(color: GlassTokens.glassHairline),
 
                   // Player List
                   Expanded(
@@ -1748,17 +1748,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.person_off, size: 40, color: Colors.white38),
+                                const Icon(Icons.person_off, size: 40, color: GlassTokens.inkMuted),
                                 const SizedBox(height: 8),
                                 const Text(
                                   'No players added to this squad yet.',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                                 ),
                                 const SizedBox(height: 6),
                                 const Text(
                                   'Each team needs at least 2 players with full name & mobile number before scoring.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white38, fontSize: 11),
+                                  style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                                 ),
                                 if (canScore) ...[
                                   const SizedBox(height: 12),
@@ -1777,7 +1777,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                           )
                         : ListView.separated(
                             itemCount: currentSquad.length,
-                            separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                            separatorBuilder: (_, __) => const Divider(color: GlassTokens.glassHairline),
                             itemBuilder: (c, idx) {
                               final p = currentSquad[idx];
                               final hasPhone = p.mobileNumber.trim().isNotEmpty;
@@ -1787,7 +1787,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                 contentPadding: EdgeInsets.zero,
                                 leading: CircleAvatar(
                                   radius: 16,
-                                  backgroundColor: const Color(0xFF0F172A),
+                                  backgroundColor: Colors.white,
                                   child: Icon(
                                     p.role == PlayerRole.bowler
                                         ? Icons.sports_baseball
@@ -1798,24 +1798,24 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                 ),
                                 title: Text(
                                   p.fullName,
-                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Row(
                                   children: [
                                     Text(
                                       '${p.roleString} • ',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                     ),
                                     Icon(
                                       Icons.phone,
                                       size: 10,
-                                      color: hasPhone ? const Color(0xFF34D399) : Colors.amberAccent,
+                                      color: hasPhone ? const Color(0xFF34D399) : Color(0xFFD97706),
                                     ),
                                     const SizedBox(width: 3),
                                     Text(
                                       hasPhone ? p.mobileNumber : 'Missing Phone *',
                                       style: TextStyle(
-                                        color: hasPhone ? const Color(0xFF34D399) : Colors.amberAccent,
+                                        color: hasPhone ? const Color(0xFF34D399) : Color(0xFFD97706),
                                         fontSize: 10,
                                         fontWeight: hasPhone ? FontWeight.normal : FontWeight.bold,
                                       ),
@@ -1827,7 +1827,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.edit, size: 15, color: Colors.amberAccent),
+                                            icon: const Icon(Icons.edit, size: 15, color: Color(0xFFD97706)),
                                             onPressed: () {
                                               Navigator.pop(ctx);
                                               _showEditPlayerDialog(context, db, p);
@@ -1871,16 +1871,16 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlg) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: const [
-                Icon(Icons.tune, color: Colors.amberAccent, size: 20),
+                Icon(Icons.tune, color: Color(0xFFD97706), size: 20),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Edit Tournament Format',
-                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1893,10 +1893,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Tournament Full Name',
-                      labelStyle: TextStyle(color: Colors.white70),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1905,10 +1905,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       Expanded(
                         child: TextField(
                           controller: shortCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Short Code (e.g. BPL)',
-                            labelStyle: TextStyle(color: Colors.white70),
+                            labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                           ),
                         ),
                       ),
@@ -1916,17 +1916,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       Expanded(
                         child: TextField(
                           controller: locCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Ground / City',
-                            labelStyle: TextStyle(color: Colors.white70),
+                            labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Text('MATCH FORMAT (OVERS)', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                  const Text('MATCH FORMAT (OVERS)', style: TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -1934,10 +1934,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     children: presetOvers.map((ov) {
                       final isSel = selectedOvers == ov;
                       return ChoiceChip(
-                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                         selected: isSel,
-                        selectedColor: Colors.amberAccent,
-                        backgroundColor: const Color(0xFF0F172A),
+                        selectedColor: Color(0xFFD97706),
+                        backgroundColor: Colors.white,
                         onSelected: (_) {
                           setDlg(() {
                             selectedOvers = ov;
@@ -1951,11 +1951,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   TextField(
                     controller: oversCtrl,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Custom Match Overs (type any number)',
-                      labelStyle: TextStyle(color: Colors.white70),
-                      prefixIcon: Icon(Icons.timer, size: 16, color: Colors.amberAccent),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
+                      prefixIcon: Icon(Icons.timer, size: 16, color: Color(0xFFD97706)),
                     ),
                     onChanged: (val) {
                       final parsed = int.tryParse(val.trim());
@@ -1972,10 +1972,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       Expanded(
                         child: TextField(
                           controller: roomCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Room ID',
-                            labelStyle: TextStyle(color: Colors.white70),
+                            labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                           ),
                         ),
                       ),
@@ -1983,10 +1983,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       Expanded(
                         child: TextField(
                           controller: pinCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Host PIN',
-                            labelStyle: TextStyle(color: Colors.white70),
+                            labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                           ),
                         ),
                       ),
@@ -1996,7 +1996,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   final finalOvers = int.tryParse(oversCtrl.text.trim()) ?? selectedOvers;
@@ -2025,7 +2025,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.amberAccent, foregroundColor: Colors.black),
+                style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD97706), foregroundColor: Colors.black),
                 child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
@@ -2058,7 +2058,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlg) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
@@ -2067,11 +2067,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   backgroundColor: selectedColor,
                   child: Text(
                     shortCtrl.text.isNotEmpty ? shortCtrl.text.substring(0, 1) : 'T',
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text('Edit Team Details', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                const Text('Edit Team Details', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
               ],
             ),
             content: SingleChildScrollView(
@@ -2081,8 +2081,8 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Team Name', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Team Name', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                     onChanged: (val) {
                       if (val.trim().isNotEmpty && shortCtrl.text.isEmpty) {
                         final parts = val.trim().split(' ');
@@ -2096,11 +2096,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   const SizedBox(height: 10),
                   TextField(
                     controller: shortCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Short Code (e.g. KKR)', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Short Code (e.g. KKR)', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                   ),
                   const SizedBox(height: 14),
-                  const Text('TEAM PRIMARY COLOR', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('TEAM PRIMARY COLOR', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -2123,7 +2123,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                                 ? [BoxShadow(color: c.withValues(alpha: 0.6), blurRadius: 8, spreadRadius: 1)]
                                 : null,
                           ),
-                          child: isSelected ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+                          child: isSelected ? const Icon(Icons.check, size: 16, color: GlassTokens.inkPrimary) : null,
                         ),
                       );
                     }).toList(),
@@ -2139,7 +2139,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 },
                 child: const Text('Delete Team', style: TextStyle(color: Colors.redAccent)),
               ),
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   if (nameCtrl.text.trim().isEmpty) {
@@ -2178,7 +2178,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
@@ -2189,10 +2189,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
         ),
         content: Text(
           'Are you sure you want to delete "${team.name}"? All associated squad players will also be removed.',
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
           ElevatedButton(
             onPressed: () {
               db.deleteTeam(team.id);
@@ -2222,7 +2222,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlg) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
@@ -2231,7 +2231,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 Expanded(
                   child: Text(
                     'Add Player to ${team.shortName}',
-                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -2244,10 +2244,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Player Full Name *',
-                      labelStyle: TextStyle(color: Colors.white70),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. Sourav Roy',
                     ),
                   ),
@@ -2255,16 +2255,16 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   TextField(
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Mobile Number * (Mandatory for Scoring)',
-                      labelStyle: TextStyle(color: Colors.white70),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. 9876543210',
                       prefixIcon: Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text('PLAYER ROLE', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('PLAYER ROLE', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -2281,10 +2281,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       if (r == PlayerRole.wicketKeeper) label = 'Wicketkeeper';
 
                       return ChoiceChip(
-                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                         selected: isSel,
                         selectedColor: const Color(0xFF34D399),
-                        backgroundColor: const Color(0xFF0F172A),
+                        backgroundColor: Colors.white,
                         onSelected: (_) => setDlg(() => selectedRole = r),
                       );
                     }).toList(),
@@ -2293,7 +2293,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   final name = nameCtrl.text.trim();
@@ -2346,13 +2346,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlg) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: const [
-                Icon(Icons.edit, color: Colors.amberAccent, size: 20),
+                Icon(Icons.edit, color: Color(0xFFD97706), size: 20),
                 SizedBox(width: 8),
-                Text('Edit Player Details', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                Text('Edit Player Details', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
               ],
             ),
             content: SingleChildScrollView(
@@ -2362,25 +2362,25 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Player Full Name *',
-                      labelStyle: TextStyle(color: Colors.white70),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Mobile Number *',
-                      labelStyle: TextStyle(color: Colors.white70),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
                       prefixIcon: Icon(Icons.phone, size: 16, color: Color(0xFF34D399)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text('PLAYER ROLE', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('PLAYER ROLE', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -2397,10 +2397,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                       if (r == PlayerRole.wicketKeeper) label = 'Wicketkeeper';
 
                       return ChoiceChip(
-                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                        label: Text(label, style: TextStyle(color: isSel ? Colors.black : GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                         selected: isSel,
-                        selectedColor: Colors.amberAccent,
-                        backgroundColor: const Color(0xFF0F172A),
+                        selectedColor: Color(0xFFD97706),
+                        backgroundColor: Colors.white,
                         onSelected: (_) => setDlg(() => selectedRole = r),
                       );
                     }).toList(),
@@ -2422,7 +2422,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 },
                 child: const Text('Remove Player', style: TextStyle(color: Colors.redAccent)),
               ),
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   final name = nameCtrl.text.trim();
@@ -2484,7 +2484,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlg) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: const [
@@ -2493,7 +2493,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 Expanded(
                   child: Text(
                     'Schedule Tournament Match',
-                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -2508,9 +2508,9 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     value: teamAId,
                     isExpanded: true,
                     isDense: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Team A', labelStyle: TextStyle(color: Colors.white70)),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Team A', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                     items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name, overflow: TextOverflow.ellipsis))).toList(),
                     onChanged: (val) => setDlg(() => teamAId = val!),
                   ),
@@ -2519,26 +2519,26 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     value: teamBId,
                     isExpanded: true,
                     isDense: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Team B', labelStyle: TextStyle(color: Colors.white70)),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Team B', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                     items: tournTeams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name, overflow: TextOverflow.ellipsis))).toList(),
                     onChanged: (val) => setDlg(() => teamBId = val!),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: stageController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Match Stage / Number', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Match Stage / Number', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: venueController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(labelText: 'Ground / Venue', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+                    decoration: const InputDecoration(labelText: 'Ground / Venue', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
                   ),
                   const SizedBox(height: 12),
-                  const Text('MATCH OVERS', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('MATCH OVERS', style: TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -2546,10 +2546,10 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                     children: presetOvers.map((ov) {
                       final isSel = matchOvers == ov;
                       return ChoiceChip(
-                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                        label: Text(ov == 50 ? 'ODI (50)' : 'T$ov ($ov Ov)', style: TextStyle(color: isSel ? Colors.black : GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                         selected: isSel,
-                        selectedColor: Colors.amberAccent,
-                        backgroundColor: const Color(0xFF0F172A),
+                        selectedColor: Color(0xFFD97706),
+                        backgroundColor: Colors.white,
                         onSelected: (_) {
                           setDlg(() {
                             matchOvers = ov;
@@ -2563,11 +2563,11 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                   TextField(
                     controller: oversController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: const InputDecoration(
                       labelText: 'Custom Overs',
-                      labelStyle: TextStyle(color: Colors.white70),
-                      prefixIcon: Icon(Icons.timer, size: 16, color: Colors.amberAccent),
+                      labelStyle: TextStyle(color: GlassTokens.inkSecondary),
+                      prefixIcon: Icon(Icons.timer, size: 16, color: Color(0xFFD97706)),
                     ),
                     onChanged: (val) {
                       final parsed = int.tryParse(val.trim());
@@ -2580,7 +2580,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   if (teamAId == teamBId) {
@@ -2627,27 +2627,27 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Add Team to Tournament', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+        title: const Text('Add Team to Tournament', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: const InputDecoration(labelText: 'Team Full Name (e.g. Siliguri Strikers)', labelStyle: TextStyle(color: Colors.white70)),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+              decoration: const InputDecoration(labelText: 'Team Full Name (e.g. Siliguri Strikers)', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: shortCtrl,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: const InputDecoration(labelText: 'Short Code (e.g. SS)', labelStyle: TextStyle(color: Colors.white70)),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
+              decoration: const InputDecoration(labelText: 'Short Code (e.g. SS)', labelStyle: TextStyle(color: GlassTokens.inkSecondary)),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
           ElevatedButton(
             onPressed: () {
               if (nameCtrl.text.trim().isEmpty) return;
@@ -2682,12 +2682,12 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             title: Row(
               children: const [
                 Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 20),
                 SizedBox(width: 8),
-                Text('Unlock Tournament Scorer Mode', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                Text('Unlock Tournament Scorer Mode', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
               ],
             ),
             content: Column(
@@ -2696,17 +2696,17 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               children: [
                 Text(
                   'Enter the Tournament ID/Room ID and Passcode PIN set by the tournament organizer to unlock full ball-by-ball scoring control for all matches in ${tourn.name}.',
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: roomController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Tournament / Room ID',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -2714,13 +2714,13 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
                 TextField(
                   controller: passController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Host Passcode / PIN',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                     hintText: 'e.g. ${tourn.passcode}',
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -2731,7 +2731,7 @@ class _TournamentHubScreenState extends State<TournamentHubScreen> with SingleTi
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   final ok = db.unlockTournamentScoring(

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/firestore_database_service.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../utils/web_share_helper.dart';
 import '../../widgets/app_animations.dart';
 
@@ -26,16 +27,16 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
   final Set<int> _expandedOvers = {};
   int? _latestSeenOverKey;
 
-  // Light broadcast palette
-  static const Color _bgPage = Color(0xFFF3F5F8);
-  static const Color _bgCard = Colors.white;
-  static const Color _border = Color(0xFFE2E8F0);
-  static const Color _inkPrimary = Color(0xFF0F172A);
-  static const Color _inkSecondary = Color(0xFF475569);
-  static const Color _inkMuted = Color(0xFF64748B);
-  static const Color _emerald = Color(0xFF009270);
-  static const Color _emeraldDark = Color(0xFF065F46);
-  static const Color _liveRed = Color(0xFFDC2626);
+  // Light Glassmorphism 2026 palette
+  static const Color _bgPage = GlassTokens.bgIcyWhite;
+  static const Color _bgCard = GlassTokens.glassFillHigh;
+  static const Color _border = GlassTokens.glassHairline;
+  static const Color _inkPrimary = GlassTokens.inkPrimary;
+  static const Color _inkSecondary = GlassTokens.inkSecondary;
+  static const Color _inkMuted = GlassTokens.inkMuted;
+  static const Color _emerald = GlassTokens.mintGreen;
+  static const Color _emeraldDark = Color(0xFF0F766E);
+  static const Color _liveRed = GlassTokens.coral;
 
   @override
   void initState() {

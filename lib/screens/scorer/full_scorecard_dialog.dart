@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class FullScorecardDialog extends StatelessWidget {
   final MatchModel match;
@@ -22,7 +23,7 @@ class FullScorecardDialog extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('${match.stage} • Official Scorecard'),
-          backgroundColor: const Color(0xFF0F172A),
+          backgroundColor: Colors.white,
           foregroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.close),
@@ -59,7 +60,7 @@ class FullScorecardDialog extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: GlassTokens.inkPrimary,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -68,8 +69,8 @@ class FullScorecardDialog extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(batTeam.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(title, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+                  Text(batTeam.name, style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(title, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                 ],
               ),
               Text(

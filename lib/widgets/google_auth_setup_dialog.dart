@@ -95,7 +95,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
     showDialog(
       context: context,
       builder: (confirmCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Color(0xFFEF4444)),
@@ -109,12 +109,12 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
         ),
         content: const Text(
           'Disabling Google Authenticator will remove the extra layer of security from your account.',
-          style: TextStyle(color: Colors.white70, fontSize: 13),
+          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(confirmCtx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -180,7 +180,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                       const Text(
                         'Google Authenticator',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: GlassTokens.inkPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
@@ -192,7 +192,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                             ? 'Two-Factor Authentication (2FA) is Active'
                             : 'Set up RFC 6238 TOTP 2-Factor Authentication',
                         style: TextStyle(
-                          color: widget.user.isGoogleAuthEnabled ? const Color(0xFF00F5A0) : Colors.white60,
+                          color: widget.user.isGoogleAuthEnabled ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
@@ -201,7 +201,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -245,12 +245,12 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                   children: [
                     const Text(
                       'Account Protected with 2FA',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       'Every sign-in requires your password plus the 6-digit dynamic code from Google Authenticator.',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+                      style: TextStyle(color: GlassTokens.inkPrimary.withValues(alpha: 0.8), fontSize: 11),
                     ),
                   ],
                 ),
@@ -314,9 +314,9 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: GlassTokens.inkPrimary,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: GlassTokens.glassHairline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,15 +324,15 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Account Name:', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                  const Text('Account Name:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                   Text(
                     'CricPavilion (${widget.user.email})',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
-              const Divider(color: Colors.white10, height: 16),
-              const Text('Your Secret Key (Base32):', style: TextStyle(color: Colors.white54, fontSize: 11)),
+              const Divider(color: GlassTokens.glassHairline, height: 16),
+              const Text('Your Secret Key (Base32):', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -383,7 +383,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
           keyboardType: TextInputType.number,
           maxLength: 6,
           style: const TextStyle(
-            color: Colors.white,
+            color: GlassTokens.inkPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w900,
             letterSpacing: 8,
@@ -448,7 +448,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: GlassTokens.inkPrimary,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
           ),
@@ -461,14 +461,14 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                   SizedBox(width: 6),
                   Text(
                     'Save Your Backup Recovery Codes',
-                    style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
               const Text(
                 'If you lose access to your phone or Google Authenticator app, each code can be used once to sign in.',
-                style: TextStyle(color: Colors.white70, fontSize: 11),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -482,7 +482,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                       decoration: BoxDecoration(
                         color: Colors.black38,
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white24),
+                        border: Border.all(color: GlassTokens.glassHairline),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -497,7 +497,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(Icons.copy, size: 12, color: Colors.white38),
+                          const Icon(Icons.copy, size: 12, color: GlassTokens.inkMuted),
                         ],
                       ),
                     ),
@@ -543,7 +543,7 @@ class _GoogleAuthSetupDialogState extends State<GoogleAuthSetupDialog> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
           ),
         ),
       ],

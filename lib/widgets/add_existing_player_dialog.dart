@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../services/mock_database.dart';
 import '../screens/players/player_profile_screen.dart';
+import '../theme/neo_glass_theme.dart';
 
 class AddExistingPlayerDialog extends StatefulWidget {
   final String teamId;
@@ -193,7 +194,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
     final player = _lookupResult?.player;
 
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
@@ -232,17 +233,17 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                       children: [
                         Text(
                           widget.isPlayingXIContext ? 'Add Player to Playing XI' : 'Add Player to Squad',
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const Text(
                           'Direct input: Auto-links registered or registers new',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -252,26 +253,26 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
               // 1. Player Full Name Input
               const Text(
                 'Player Full Name *',
-                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               TextField(
                 controller: _nameController,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'e.g. Virat Sharma',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                  hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 13),
                   prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF00F5A0), size: 18),
                   filled: true,
-                  fillColor: const Color(0xFF1E293B),
+                  fillColor: GlassTokens.bgLightBlue,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white24),
+                    borderSide: const BorderSide(color: GlassTokens.glassHairline),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white24),
+                    borderSide: const BorderSide(color: GlassTokens.glassHairline),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -284,7 +285,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
               // 2. Player Mobile Number Input (10 Digits)
               const Text(
                 'Player Mobile Number (10 Digits) *',
-                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Row(
@@ -292,30 +293,30 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: GlassTokens.bgLightBlue,
                       borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                      border: Border.all(color: Colors.white24),
+                      border: Border.all(color: GlassTokens.glassHairline),
                     ),
-                    child: const Text('+91', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                    child: const Text('+91', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                   ),
                   Expanded(
                     child: TextField(
                       controller: _mobileController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'e.g. 9830112233',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                        hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 13),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B),
+                        fillColor: GlassTokens.bgLightBlue,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         border: const OutlineInputBorder(
                           borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.white24),
+                          borderSide: BorderSide(color: GlassTokens.glassHairline),
                         ),
                         enabledBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.white24),
+                          borderSide: BorderSide(color: GlassTokens.glassHairline),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
@@ -339,7 +340,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
               // 3. Playing Role Selection
               const Text(
                 'Playing Role',
-                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Wrap(
@@ -351,16 +352,16 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                     label: Text(
                       role.name.toUpperCase(),
                       style: TextStyle(
-                        color: isSelected ? Colors.black : Colors.white70,
+                        color: isSelected ? Colors.black : GlassTokens.inkSecondary,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 11,
                       ),
                     ),
                     selected: isSelected,
                     selectedColor: const Color(0xFF00F5A0),
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: GlassTokens.bgLightBlue,
                     side: BorderSide(
-                      color: isSelected ? const Color(0xFF00F5A0) : Colors.white24,
+                      color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline,
                     ),
                     onSelected: (val) {
                       if (val) setState(() => _selectedRole = role);
@@ -400,13 +401,13 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _battingStyle,
-                        dropdownColor: const Color(0xFF0F172A),
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                         decoration: const InputDecoration(
                           labelText: 'Batting',
-                          labelStyle: TextStyle(color: Colors.white70, fontSize: 11),
+                          labelStyle: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           filled: true,
-                          fillColor: Color(0xFF1E293B),
+                          fillColor: GlassTokens.bgLightBlue,
                           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           border: OutlineInputBorder(),
                         ),
@@ -423,13 +424,13 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _bowlingStyle,
-                        dropdownColor: const Color(0xFF0F172A),
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                         decoration: const InputDecoration(
                           labelText: 'Bowling',
-                          labelStyle: TextStyle(color: Colors.white70, fontSize: 11),
+                          labelStyle: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           filled: true,
-                          fillColor: Color(0xFF1E293B),
+                          fillColor: GlassTokens.bgLightBlue,
                           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           border: OutlineInputBorder(),
                         ),
@@ -456,7 +457,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF00F5A0), width: 1.2),
                     boxShadow: [
@@ -489,7 +490,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                           const Spacer(),
                           Text(
                             player.permanentPlayerCode,
-                            style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                            style: const TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 11),
                           ),
                         ],
                       ),
@@ -507,11 +508,11 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                               children: [
                                 Text(
                                   player.fullName,
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 Text(
                                   '${player.roleString} • ${player.battingStyle}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                 ),
                               ],
                             ),
@@ -526,13 +527,13 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                               );
                             },
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.white24),
+                              side: const BorderSide(color: GlassTokens.glassHairline),
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                             ),
-                            child: const Text('Stats', style: TextStyle(color: Colors.white, fontSize: 11)),
+                            child: const Text('Stats', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 11)),
                           ),
                         ],
                       ),
@@ -540,7 +541,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                         const SizedBox(height: 6),
                         const Text(
                           '⚠️ Already a member of this squad.',
-                          style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.w600),
                         ),
                       ] else if (_lookupResult!.hasTournamentConflict) ...[
                         const SizedBox(height: 6),
@@ -557,7 +558,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF38BDF8), width: 0.8),
                   ),
@@ -578,11 +579,11 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                           children: [
                             Text(
                               'New Player: Auto-Registration',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                             Text(
                               'Not registered yet. Adding will automatically create permanent database record with unique ID.',
-                              style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                             ),
                           ],
                         ),
@@ -643,9 +644,9 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                  color: GlassTokens.bgLightBlue.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,7 +656,7 @@ class _AddExistingPlayerDialogState extends State<AddExistingPlayerDialog> {
                     Expanded(
                       child: Text(
                         '📱 Once this match is scored, the player can log into Cricpavilion using their mobile number (+91 ${_mobileController.text.trim().isNotEmpty ? _mobileController.text.trim() : "XXXXXXXXXX"}) or Google to watch match results, full scorecards, and track their personal career stats.',
-                        style: const TextStyle(color: Colors.white60, fontSize: 10.5, height: 1.35),
+                        style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5, height: 1.35),
                       ),
                     ),
                   ],

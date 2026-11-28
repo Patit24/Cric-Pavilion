@@ -1,41 +1,50 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'glass_components.dart';
 
-/// Ultra-modern Neomorphic + Glassmorphism Combined Design System
+export 'glass_components.dart';
+
+/// 2026 Light Glassmorphism Design System
+/// Inspired by Apple Vision Pro, modern fintech dashboards & sports broadcast UI.
 class NeoGlassTheme {
   // ==========================================
-  // COLOR PALETTE (Cyber Emerald & Electric Cyan)
+  // COLOR PALETTE (Light Glassmorphism)
   // ==========================================
-  static const Color bgCanvas = Color(0xFF070B14);
-  static const Color bgSurface = Color(0xFF0B1120);
-  static const Color bgCard = Color(0xFF0F172A);
+  static const Color bgCanvas = GlassTokens.bgIcyWhite;   // #F5F8FC
+  static const Color bgSurface = Colors.white;
+  static const Color bgCard = GlassTokens.glassFillHigh;
 
-  // Vibrant Accents
-  static const Color neonEmerald = Color(0xFF00F5A0);
-  static const Color neonCyan = Color(0xFF00D9F5);
-  static const Color neonViolet = Color(0xFF8B5CF6);
-  static const Color neonAmber = Color(0xFFFBBF24);
-  static const Color neonRose = Color(0xFFF43F5E);
+  // Brand & Semantic Accents
+  static const Color neonEmerald = GlassTokens.mintGreen;    // #39C9A5
+  static const Color neonCyan = GlassTokens.electricBlue;    // #477BFF
+  static const Color neonViolet = GlassTokens.indigo;        // #6657E8
+  static const Color neonAmber = GlassTokens.amber;          // #F59E0B
+  static const Color neonRose = GlassTokens.coral;           // #FF7777
+
+  // Typography Inks
+  static const Color inkPrimary = GlassTokens.inkPrimary;    // #17233C
+  static const Color inkSecondary = GlassTokens.inkSecondary;// #72809A
+  static const Color inkMuted = GlassTokens.inkMuted;        // #A0AABD
 
   // Glass Specular & Border Colors
-  static final Color glassBorder = Colors.white.withValues(alpha: 0.14);
-  static final Color glassHighlight = Colors.white.withValues(alpha: 0.28);
-  static final Color glassFill = Colors.white.withValues(alpha: 0.05);
+  static const Color glassBorder = GlassTokens.glassHairline;
+  static const Color glassHighlight = GlassTokens.glassBorder;
+  static const Color glassFill = GlassTokens.glassFillMid;
 
-  // Neomorphic Dual Shadows (Depth + Light Highlight)
-  static final BoxShadow neoDarkShadow = BoxShadow(
-    color: Colors.black.withValues(alpha: 0.65),
-    offset: const Offset(4, 7),
-    blurRadius: 16,
+  // Soft Ambient Glass Shadows
+  static const BoxShadow neoDarkShadow = BoxShadow(
+    color: Color(0x1017233C),
+    offset: Offset(0, 8),
+    blurRadius: 24,
   );
 
-  static final BoxShadow neoLightHighlight = BoxShadow(
-    color: Colors.white.withValues(alpha: 0.07),
-    offset: const Offset(-2, -2),
-    blurRadius: 6,
+  static const BoxShadow neoLightHighlight = BoxShadow(
+    color: Color(0x80FFFFFF),
+    offset: Offset(0, -1),
+    blurRadius: 4,
   );
 
-  static BoxShadow neoGlowShadow(Color color, {double opacity = 0.25, double blur = 14}) {
+  static BoxShadow neoGlowShadow(Color color, {double opacity = 0.18, double blur = 16}) {
     return BoxShadow(
       color: color.withValues(alpha: opacity),
       offset: const Offset(0, 4),
@@ -44,11 +53,8 @@ class NeoGlassTheme {
   }
 
   // Linear Gradients
-  static const LinearGradient neonGradient = LinearGradient(
-    colors: [neonEmerald, neonCyan],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static const LinearGradient neonGradient = GlassTokens.accentGradient;
+  static const LinearGradient mintGradient = GlassTokens.mintGradient;
 
   static const LinearGradient amberGoldGradient = LinearGradient(
     colors: [Color(0xFFF59E0B), Color(0xFFFBBF24)],
@@ -58,9 +64,8 @@ class NeoGlassTheme {
 
   static const LinearGradient glassCardGradient = LinearGradient(
     colors: [
-      Color(0x1F2A3F60),
-      Color(0x0F111D33),
-      Color(0x080B1220),
+      Color(0xCCFFFFFF),
+      Color(0xA6F5F8FC),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -68,15 +73,15 @@ class NeoGlassTheme {
 
   static const LinearGradient glassHeroGradient = LinearGradient(
     colors: [
-      Color(0x3300F5A0),
-      Color(0x1800D9F5),
-      Color(0xF00B1120),
+      Color(0xD9FFFFFF),
+      Color(0xCCEAF2FF),
+      Color(0xCCF1EEFF),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Consistent Neo-Glass input decoration for forms and dialogs
+  /// Consistent Light Glass input decoration for forms and dialogs
   static InputDecoration inputDecoration({
     required String hintText,
     String? labelText,
@@ -84,87 +89,80 @@ class NeoGlassTheme {
     Color? iconColor,
     Widget? suffixIcon,
   }) {
-    return InputDecoration(
-      labelText: labelText,
-      labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+    return GlassInput.decoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: iconColor ?? neonEmerald, size: 18) : null,
+      labelText: labelText,
+      prefixIcon: prefixIcon,
+      iconColor: iconColor ?? GlassTokens.electricBlue,
       suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: const Color(0x660F172A),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: glassBorder),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: glassBorder),
-      ),
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(14)),
-        borderSide: BorderSide(color: neonEmerald, width: 1.5),
-      ),
     );
   }
 
-  // App Global ThemeData
+  // App Global Light Glassmorphism ThemeData
   static ThemeData get themeData {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: bgCanvas,
-      colorScheme: const ColorScheme.dark(
-        primary: neonEmerald,
-        secondary: neonCyan,
-        tertiary: neonViolet,
-        surface: bgSurface,
-        onSurface: Colors.white,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: GlassTokens.bgIcyWhite,
+      colorScheme: const ColorScheme.light(
+        primary: GlassTokens.electricBlue,
+        secondary: GlassTokens.indigo,
+        tertiary: GlassTokens.mintGreen,
+        error: GlassTokens.coral,
+        surface: Colors.white,
+        onSurface: GlassTokens.inkPrimary,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: GlassTokens.inkPrimary),
+        bodyMedium: TextStyle(color: GlassTokens.inkPrimary),
+        bodySmall: TextStyle(color: GlassTokens.inkSecondary),
+        titleLarge: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w700),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: bgSurface,
+        backgroundColor: GlassTokens.glassFillHigh,
         elevation: 0,
-        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: GlassTokens.inkPrimary,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        color: bgCard,
+        color: GlassTokens.glassFillHigh,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: glassBorder),
+          side: const BorderSide(color: GlassTokens.glassHairline),
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: bgSurface,
-        modalBackgroundColor: bgSurface,
+        backgroundColor: Color(0xF2FFFFFF),
+        modalBackgroundColor: Color(0xF2FFFFFF),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
       dialogTheme: const DialogThemeData(
-        backgroundColor: bgSurface,
+        backgroundColor: Color(0xF2FFFFFF),
         surfaceTintColor: Colors.transparent,
       ),
       popupMenuTheme: PopupMenuThemeData(
-        color: const Color(0xFF0F172A),
+        color: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Color(0xFF1E293B)),
+          side: const BorderSide(color: GlassTokens.glassHairline),
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0x22FFFFFF),
+        color: GlassTokens.glassHairline,
         thickness: 1,
       ),
     );
   }
 }
 
-/// Reusable Glassmorphism + Neomorphism Tactile Card
+/// Reusable Light Glassmorphism Card (preserves NeoGlassCard API)
 class NeoGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -191,25 +189,23 @@ class NeoGlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sigma = GlassTokens.blurSigma(context);
     Widget cardContent = Container(
       margin: margin,
       decoration: BoxDecoration(
-        gradient: gradient ?? NeoGlassTheme.glassCardGradient,
+        color: gradient == null ? GlassTokens.glassFillHigh : null,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: borderColor ?? NeoGlassTheme.glassBorder,
+          color: borderColor ?? GlassTokens.glassBorder,
           width: borderWidth,
         ),
-        boxShadow: [
-          NeoGlassTheme.neoDarkShadow,
-          NeoGlassTheme.neoLightHighlight,
-          if (glowColor != null) NeoGlassTheme.neoGlowShadow(glowColor!),
-        ],
+        boxShadow: GlassTokens.softShadow(glow: glowColor),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
           child: Padding(
             padding: padding,
             child: child,
@@ -229,7 +225,7 @@ class NeoGlassCard extends StatelessWidget {
   }
 }
 
-/// Tactile Neo-Glass Interactive Button
+/// Tactile Light Glass Interactive Button
 class NeoGlassButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget child;
@@ -254,68 +250,20 @@ class NeoGlassButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveGradient = isSecondary
-        ? null
-        : (gradient ?? NeoGlassTheme.neonGradient);
-
-    final effectiveColor = isSecondary
-        ? (color ?? const Color(0xFF1E293B))
-        : null;
-
-    final border = Border.all(
-      color: isSecondary
-          ? (color?.withValues(alpha: 0.5) ?? NeoGlassTheme.glassBorder)
-          : Colors.white.withValues(alpha: 0.35),
-      width: 1.2,
-    );
-
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: padding,
-        decoration: BoxDecoration(
-          color: effectiveColor,
-          gradient: effectiveGradient,
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: border,
-          boxShadow: [
-            NeoGlassTheme.neoDarkShadow,
-            NeoGlassTheme.neoLightHighlight,
-            if (!isSecondary)
-              NeoGlassTheme.neoGlowShadow(NeoGlassTheme.neonEmerald, opacity: 0.3),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSecondary ? Colors.white : Colors.black87,
-              ),
-              const SizedBox(width: 8),
-            ],
-            DefaultTextStyle(
-              style: TextStyle(
-                color: isSecondary ? Colors.white : Colors.black87,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
-              ),
-              child: child,
-            ),
-          ],
-        ),
-      ),
+    return GlassButton(
+      onPressed: onPressed,
+      icon: icon,
+      color: color,
+      gradient: gradient,
+      padding: padding,
+      borderRadius: borderRadius,
+      isSecondary: isSecondary,
+      child: child,
     );
   }
 }
 
-/// Translucent Neo-Glass Capsule Badge / Pill
+/// Translucent Light Glass Capsule Badge / Pill
 class NeoGlassBadge extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -326,58 +274,22 @@ class NeoGlassBadge extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
-    this.color = NeoGlassTheme.neonEmerald,
+    this.color = GlassTokens.electricBlue,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withValues(alpha: 0.65),
-          width: 1.2,
-        ),
-        boxShadow: [
-          NeoGlassTheme.neoGlowShadow(color, opacity: 0.25, blur: 10),
-          NeoGlassTheme.neoDarkShadow,
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.6,
-            ),
-          ),
-        ],
-      ),
+    return GlassBadge(
+      label: label,
+      icon: icon,
+      color: color,
+      onTap: onTap,
     );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: content,
-      );
-    }
-    return content;
   }
 }
 
-/// Frosted Neo-Glass Dialog Wrapper with Backdrop Blur
+/// Frosted Light Glass Dialog Wrapper with Backdrop Blur
 class NeoGlassDialog extends StatelessWidget {
   final Widget child;
   final EdgeInsets insetPadding;
@@ -396,32 +308,12 @@ class NeoGlassDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return GlassModal(
       insetPadding: insetPadding,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xE60B1120),
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: NeoGlassTheme.glassBorder, width: 1.2),
-          boxShadow: [
-            NeoGlassTheme.neoDarkShadow,
-            NeoGlassTheme.neoLightHighlight,
-            if (glowColor != null) NeoGlassTheme.neoGlowShadow(glowColor!),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Padding(
-              padding: padding,
-              child: child,
-            ),
-          ),
-        ),
-      ),
+      padding: padding,
+      borderRadius: borderRadius,
+      glowColor: glowColor,
+      child: child,
     );
   }
 }

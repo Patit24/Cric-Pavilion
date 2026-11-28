@@ -196,12 +196,12 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                       children: const [
                         Text(
                           'Host New Player Auction',
-                          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.w900),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Draft setup, team budgets & player pool',
-                          style: TextStyle(color: Colors.white54, fontSize: 10.5),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -220,16 +220,16 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.flash_on, size: 11, color: Colors.amberAccent),
+                          Icon(Icons.flash_on, size: 11, color: Color(0xFFD97706)),
                           SizedBox(width: 4),
-                          Text('Sample', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('Sample', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54, size: 18),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 18),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -240,13 +240,13 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
 
               // Tab Bar
               Container(
-                decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: GlassTokens.inkPrimary, borderRadius: BorderRadius.circular(12)),
                 child: TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.amber,
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.amber,
-                  unselectedLabelColor: Colors.white60,
+                  unselectedLabelColor: GlassTokens.inkSecondary,
                   labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   tabs: [
                     const Tab(icon: Icon(Icons.tune, size: 14), text: '1. Rules'),
@@ -271,14 +271,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                         children: [
                           TextField(
                             controller: titleController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                             decoration: InputDecoration(
                               labelText: 'Auction Title *',
-                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                               hintText: 'e.g. Bengal Premier League Auction 2026',
-                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11.5),
+                              hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11.5),
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -307,15 +307,15 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                           const SizedBox(height: 10),
                           TextField(
                             controller: adminPassController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                             decoration: InputDecoration(
                               labelText: 'Host Auctioneer Security PIN *',
-                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                               hintText: 'e.g. admin123',
-                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11.5),
+                              hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11.5),
                               prefixIcon: const Icon(Icons.security, color: Colors.amber, size: 18),
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -355,7 +355,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              const Text('Preset:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                              const Text('Preset:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                               const SizedBox(width: 6),
                               ...[2, 4, 6, 8].map((n) {
                                 final isSelected = teamNameControllers.length == n;
@@ -367,14 +367,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                                       decoration: BoxDecoration(
-                                        color: isSelected ? Colors.amber : const Color(0xFF0F172A),
+                                        color: isSelected ? Colors.amber : Colors.white,
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: isSelected ? Colors.amber : Colors.white24),
+                                        border: Border.all(color: isSelected ? Colors.amber : GlassTokens.glassHairline),
                                       ),
                                       child: Text(
                                         '$n Teams',
                                         style: TextStyle(
-                                          color: isSelected ? Colors.black : Colors.white70,
+                                          color: isSelected ? Colors.black : GlassTokens.inkSecondary,
                                           fontSize: 10.5,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -407,9 +407,9 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                               return Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: GlassTokens.inkPrimary,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.white12),
+                                  border: Border.all(color: GlassTokens.glassHairline),
                                 ),
                                 child: Column(
                                   children: [
@@ -417,17 +417,17 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                       children: [
                                         CircleAvatar(
                                           radius: 10,
-                                          backgroundColor: Colors.amberAccent.withValues(alpha: 0.2),
-                                          child: Text('${idx + 1}', style: const TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          backgroundColor: Color(0xFFD97706).withValues(alpha: 0.2),
+                                          child: Text('${idx + 1}', style: const TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
                                         ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: TextField(
                                             controller: teamNameControllers[idx],
-                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                                             decoration: InputDecoration(
                                               hintText: 'Enter Team ${idx + 1} Name *',
-                                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                                              hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                                               isDense: true,
                                               border: InputBorder.none,
                                               contentPadding: const EdgeInsets.symmetric(vertical: 4),
@@ -442,7 +442,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                         ),
                                       ],
                                     ),
-                                    const Divider(color: Colors.white10, height: 8),
+                                    const Divider(color: GlassTokens.glassHairline, height: 8),
                                     Row(
                                       children: [
                                         const Icon(Icons.phone, size: 13, color: Color(0xFF34D399)),
@@ -451,10 +451,10 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                           child: TextField(
                                             controller: idx < teamMobileControllers.length ? teamMobileControllers[idx] : null,
                                             keyboardType: TextInputType.phone,
-                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                                             decoration: const InputDecoration(
                                               hintText: 'Owner Mobile * (for team owner login to bid)',
-                                              hintStyle: TextStyle(color: Colors.white38, fontSize: 10.5),
+                                              hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 10.5),
                                               isDense: true,
                                               border: InputBorder.none,
                                               contentPadding: EdgeInsets.symmetric(vertical: 4),
@@ -482,7 +482,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                           children: [
                             Text(
                               'Player Pool (${playerEntries.length} Lots)',
-                              style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5, fontWeight: FontWeight.bold),
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
@@ -512,9 +512,9 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                               return Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: GlassTokens.inkPrimary,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.white12),
+                                  border: Border.all(color: GlassTokens.glassHairline),
                                 ),
                                 child: Row(
                                   children: [
@@ -529,13 +529,13 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                       flex: 5,
                                       child: TextField(
                                         controller: nameCtrl,
-                                        style: const TextStyle(color: Colors.white, fontSize: 11.5),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5),
                                         decoration: InputDecoration(
                                           hintText: 'Player Name *',
-                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 10.5),
+                                          hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10.5),
                                           isDense: true,
                                           filled: true,
-                                          fillColor: const Color(0xFF1E293B),
+                                          fillColor: GlassTokens.bgLightBlue,
                                           contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                                         ),
@@ -548,15 +548,15 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                       child: TextField(
                                         controller: priceCtrl,
                                         keyboardType: TextInputType.number,
-                                        style: const TextStyle(color: Colors.amberAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: Color(0xFFD97706), fontSize: 11.5, fontWeight: FontWeight.bold),
                                         decoration: InputDecoration(
                                           prefixText: '₹',
-                                          prefixStyle: const TextStyle(color: Colors.amberAccent, fontSize: 10),
+                                          prefixStyle: const TextStyle(color: Color(0xFFD97706), fontSize: 10),
                                           hintText: '500',
-                                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 10.5),
+                                          hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10.5),
                                           isDense: true,
                                           filled: true,
-                                          fillColor: const Color(0xFF1E293B),
+                                          fillColor: GlassTokens.bgLightBlue,
                                           contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
                                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                                         ),
@@ -566,12 +566,12 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                                     // Role Dropdown
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                                      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(6)),
+                                      decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(6)),
                                       child: DropdownButtonHideUnderline(
                                         child: DropdownButton<PlayerRole>(
                                           value: p['role'] as PlayerRole,
-                                          dropdownColor: const Color(0xFF1E293B),
-                                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                                          dropdownColor: GlassTokens.bgLightBlue,
+                                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10),
                                           items: const [
                                             DropdownMenuItem(value: PlayerRole.batsman, child: Text('Bat')),
                                             DropdownMenuItem(value: PlayerRole.bowler, child: Text('Bowl')),
@@ -615,7 +615,7 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                   ),
                   NeoGlassButton(
                     onPressed: _validateAndCreateAuction,
@@ -635,14 +635,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     return TextField(
       controller: purseController,
       keyboardType: TextInputType.number,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
       decoration: InputDecoration(
         labelText: 'Purse Budget (₹)',
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+        labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
         hintText: '50000',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+        hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
         filled: true,
-        fillColor: const Color(0xFF0F172A),
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -653,14 +653,14 @@ class _CreateAuctionDialogState extends State<CreateAuctionDialog> with SingleTi
     return TextField(
       controller: minBidController,
       keyboardType: TextInputType.number,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
       decoration: InputDecoration(
         labelText: 'Min Bid (₹)',
-        labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
+        labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
         hintText: '500',
-        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+        hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
         filled: true,
-        fillColor: const Color(0xFF0F172A),
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),

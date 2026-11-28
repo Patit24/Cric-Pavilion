@@ -580,7 +580,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
       height: size,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
+        color: GlassTokens.inkPrimary,
       ),
       alignment: Alignment.center,
       child: Text(
@@ -671,7 +671,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                                   : (_is2faStep
                                       ? 'Enter 6-digit TOTP code from Google Authenticator'
                                       : (widget.initialActionPrompt ?? 'Sign in with Gmail, Mobile OTP, or password'))),
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -679,7 +679,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -785,20 +785,20 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                                     // Divider
                                     Row(
                                       children: [
-                                        const Expanded(child: Divider(color: Colors.white24, thickness: 0.8)),
+                                        const Expanded(child: Divider(color: GlassTokens.glassHairline, thickness: 0.8)),
                                         Padding(
                                           padding: const EdgeInsets.symmetric(horizontal: 10),
                                           child: Text(
                                             'OR MOBILE OTP / PASSWORD',
                                             style: TextStyle(
-                                              color: Colors.white.withValues(alpha: 0.5),
+                                              color: GlassTokens.inkPrimary.withValues(alpha: 0.5),
                                               fontSize: 9.5,
                                               fontWeight: FontWeight.w800,
                                               letterSpacing: 0.8,
                                             ),
                                           ),
                                         ),
-                                        const Expanded(child: Divider(color: Colors.white24, thickness: 0.8)),
+                                        const Expanded(child: Divider(color: GlassTokens.glassHairline, thickness: 0.8)),
                                       ],
                                     ),
                                     const SizedBox(height: 12),
@@ -806,16 +806,16 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                                     // Tab Bar
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF0F172A),
+                                        color: GlassTokens.inkPrimary,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.white10),
+                                        border: Border.all(color: GlassTokens.glassHairline),
                                       ),
                                       child: TabBar(
                                         controller: _tabController,
                                         indicatorColor: NeoGlassTheme.neonEmerald,
                                         indicatorWeight: 3,
                                         labelColor: NeoGlassTheme.neonEmerald,
-                                        unselectedLabelColor: Colors.white60,
+                                        unselectedLabelColor: GlassTokens.inkSecondary,
                                         tabs: const [
                                           Tab(text: 'Sign In'),
                                           Tab(text: 'Create Account'),
@@ -870,12 +870,12 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   children: [
                     Text(
                       'Welcome, ${user?.fullName ?? "Cricketer"}!',
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     const Text(
                       'This is your first-time sign in. Please verify your mobile number once to link your permanent cricket records.',
-                      style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                     ),
                   ],
                 ),
@@ -888,7 +888,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
         if (!_otpSent) ...[
           const Text(
             'Enter 10-digit mobile number for OTP:',
-            style: TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.bold),
+            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Row(
@@ -896,9 +896,9 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: const Text(
                   '+91',
@@ -909,16 +909,16 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 child: TextField(
                   controller: _mobileInputController,
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: const InputDecoration(
                     hintText: '10-digit mobile',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: GlassTokens.inkMuted),
                     filled: true,
-                    fillColor: Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.white24),
+                      borderSide: BorderSide(color: GlassTokens.glassHairline),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
@@ -964,7 +964,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                       const SizedBox(height: 2),
                       const Text(
                         'Please check your mobile phone messages and enter the 6-digit OTP code below.',
-                        style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                       ),
                     ],
                   ),
@@ -976,7 +976,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
 
           Text(
             'Enter the 6-digit OTP sent to +91 ${_mobileInputController.text.trim()}:',
-            style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
           ),
           const SizedBox(height: 8),
 
@@ -1016,14 +1016,14 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
             children: [
               TextButton(
                 onPressed: () => setState(() => _otpSent = false),
-                child: const Text('← Change Number', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                child: const Text('← Change Number', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
               ),
               TextButton(
                 onPressed: _resendCountdown == 0 ? () => _handleSendMobileOtp(db) : null,
                 child: Text(
                   _resendCountdown > 0 ? 'Resend OTP in ${_resendCountdown}s' : 'Resend OTP',
                   style: TextStyle(
-                    color: _resendCountdown == 0 ? const Color(0xFF00F5A0) : Colors.white38,
+                    color: _resendCountdown == 0 ? const Color(0xFF00F5A0) : GlassTokens.inkMuted,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1042,7 +1042,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 },
                 child: Text(
                   'Testing offline without mobile network? Fill test OTP',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+                  style: TextStyle(color: GlassTokens.inkPrimary.withValues(alpha: 0.35), fontSize: 10),
                 ),
               ),
             ),
@@ -1058,8 +1058,8 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF1E293B),
-            Color(0xFF0F172A),
+            GlassTokens.bgLightBlue,
+            Colors.white,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1089,11 +1089,11 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   children: [
                     Text(
                       'Google Sign In',
-                      style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       '1-Tap Secure Authentication',
-                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                     ),
                   ],
                 ),
@@ -1121,7 +1121,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 11),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: GlassTokens.inkPrimary,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: const [
                   BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
@@ -1137,7 +1137,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                     child: Text(
                       _isLoading ? 'Signing in with Google...' : 'Continue with Google',
                       style: const TextStyle(
-                        color: Color(0xFF1F2937),
+                        color: GlassTokens.glassFillMid,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.3,
@@ -1176,14 +1176,14 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   children: [
                     Text(
                       'Account: $_pending2faEmail',
-                      style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       _useRecoveryCode
                           ? 'Enter one of your 8-digit backup recovery codes'
                           : 'Open Google Authenticator on your phone and enter the 6-digit code',
-                      style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                     ),
                   ],
                 ),
@@ -1199,7 +1199,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
           keyboardType: _useRecoveryCode ? TextInputType.text : TextInputType.number,
           maxLength: _useRecoveryCode ? 10 : 6,
           style: const TextStyle(
-            color: Colors.white,
+            color: GlassTokens.inkPrimary,
             fontSize: 22,
             fontWeight: FontWeight.w900,
             letterSpacing: 6,
@@ -1240,10 +1240,10 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 _errorMessage = null;
               });
             },
-            icon: Icon(_useRecoveryCode ? Icons.phone_android : Icons.vpn_key_outlined, size: 14, color: Colors.white70),
+            icon: Icon(_useRecoveryCode ? Icons.phone_android : Icons.vpn_key_outlined, size: 14, color: GlassTokens.inkSecondary),
             label: Text(
               _useRecoveryCode ? 'Use 6-digit app code' : 'Lost phone? Use backup recovery code',
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
             ),
           ),
         ),
@@ -1285,12 +1285,12 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   children: [
                     Text(
                       'Mobile +91 $normMobile Verified!',
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     const Text(
                       'First-time users must link a Gmail / Email address along with their verified mobile number.',
-                      style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                     ),
                   ],
                 ),
@@ -1301,7 +1301,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
         const SizedBox(height: 14),
         TextField(
           controller: _completeNameController,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
           decoration: NeoGlassTheme.inputDecoration(
             hintText: 'Full Name *',
             prefixIcon: Icons.person_outline,
@@ -1311,7 +1311,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
         TextField(
           controller: _completeEmailController,
           keyboardType: TextInputType.emailAddress,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
           decoration: NeoGlassTheme.inputDecoration(
             hintText: 'Gmail Address (e.g. name@gmail.com) *',
             prefixIcon: Icons.email_outlined,
@@ -1351,17 +1351,17 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 7),
                     decoration: BoxDecoration(
-                      color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald.withValues(alpha: 0.16) : const Color(0xFF0F172A),
+                      color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald.withValues(alpha: 0.16) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald : Colors.white12,
+                        color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald : GlassTokens.glassHairline,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Password',
                       style: TextStyle(
-                        color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald : Colors.white60,
+                        color: !_useMobileOtpLogin ? NeoGlassTheme.neonEmerald : GlassTokens.inkSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1380,17 +1380,17 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 7),
                     decoration: BoxDecoration(
-                      color: _useMobileOtpLogin ? const Color(0xFF00F5A0).withValues(alpha: 0.16) : const Color(0xFF0F172A),
+                      color: _useMobileOtpLogin ? const Color(0xFF00F5A0).withValues(alpha: 0.16) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _useMobileOtpLogin ? const Color(0xFF00F5A0) : Colors.white12,
+                        color: _useMobileOtpLogin ? const Color(0xFF00F5A0) : GlassTokens.glassHairline,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Mobile Number (OTP)',
                       style: TextStyle(
-                        color: _useMobileOtpLogin ? const Color(0xFF00F5A0) : Colors.white60,
+                        color: _useMobileOtpLogin ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1405,7 +1405,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
           if (!_useMobileOtpLogin) ...[
             TextField(
               controller: _loginEmailController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               keyboardType: TextInputType.emailAddress,
               decoration: NeoGlassTheme.inputDecoration(
                 hintText: 'Email or Mobile Number',
@@ -1416,7 +1416,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
             TextField(
               controller: _loginPasswordController,
               obscureText: _obscureLoginPassword,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: NeoGlassTheme.inputDecoration(
                 hintText: 'Password',
                 prefixIcon: Icons.lock_outline,
@@ -1424,7 +1424,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   icon: Icon(
                     _obscureLoginPassword ? Icons.visibility_off : Icons.visibility,
                     size: 16,
-                    color: Colors.white54,
+                    color: GlassTokens.inkSecondary,
                   ),
                   onPressed: () => setState(() => _obscureLoginPassword = !_obscureLoginPassword),
                 ),
@@ -1449,9 +1449,9 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: GlassTokens.bgLightBlue,
                       borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                      border: Border.all(color: Colors.white24),
+                      border: Border.all(color: GlassTokens.glassHairline),
                     ),
                     child: const Text(
                       '+91',
@@ -1462,16 +1462,16 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                     child: TextField(
                       controller: _mobileLoginNumberController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       decoration: const InputDecoration(
                         hintText: '10-digit Mobile Number',
-                        hintStyle: TextStyle(color: Colors.white38),
+                        hintStyle: TextStyle(color: GlassTokens.inkMuted),
                         filled: true,
-                        fillColor: Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.white24),
+                          borderSide: BorderSide(color: GlassTokens.glassHairline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
@@ -1496,7 +1496,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
             ] else ...[
               Text(
                 'Enter 6-digit OTP sent to +91 ${MockDatabase.normalizeMobile(_mobileLoginNumberController.text)}:',
-                style: const TextStyle(color: Colors.white70, fontSize: 11),
+                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -1533,14 +1533,14 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 children: [
                   TextButton(
                     onPressed: () => setState(() => _mobileLoginOtpSent = false),
-                    child: const Text('← Change Number', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    child: const Text('← Change Number', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                   ),
                   TextButton(
                     onPressed: _resendCountdown == 0 ? () => _handleMobileLoginSendOtp(db) : null,
                     child: Text(
                       _resendCountdown > 0 ? 'Resend in ${_resendCountdown}s' : 'Resend OTP',
                       style: TextStyle(
-                        color: _resendCountdown == 0 ? const Color(0xFF00F5A0) : Colors.white38,
+                        color: _resendCountdown == 0 ? const Color(0xFF00F5A0) : GlassTokens.inkMuted,
                         fontSize: 11,
                       ),
                     ),
@@ -1553,7 +1553,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                     onPressed: () => setState(() => _mobileLoginOtpController.text = _mobileLoginSentCode!),
                     child: Text(
                       'Testing offline? Fill test OTP',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+                      style: TextStyle(color: GlassTokens.inkPrimary.withValues(alpha: 0.35), fontSize: 10),
                     ),
                   ),
                 ),
@@ -1573,7 +1573,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
           const SizedBox(height: 4),
           TextField(
             controller: _regNameController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
             decoration: NeoGlassTheme.inputDecoration(
               hintText: 'Full Name *',
               prefixIcon: Icons.person_outline,
@@ -1582,7 +1582,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
           const SizedBox(height: 8),
           TextField(
             controller: _regEmailController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
             keyboardType: TextInputType.emailAddress,
             decoration: NeoGlassTheme.inputDecoration(
               hintText: 'Email Address *',
@@ -1592,7 +1592,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
           const SizedBox(height: 8),
           TextField(
             controller: _regMobileController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
             keyboardType: TextInputType.phone,
             decoration: NeoGlassTheme.inputDecoration(
               hintText: '10-digit Mobile Number *',
@@ -1606,7 +1606,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 child: TextField(
                   controller: _regPasswordController,
                   obscureText: _obscureRegPassword,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                   decoration: NeoGlassTheme.inputDecoration(
                     hintText: 'Password (min 6)',
                     prefixIcon: Icons.lock_outline,
@@ -1614,7 +1614,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureRegPassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.white54,
+                        color: GlassTokens.inkSecondary,
                         size: 16,
                       ),
                       onPressed: () => setState(() => _obscureRegPassword = !_obscureRegPassword),
@@ -1627,7 +1627,7 @@ class _AuthModalDialogState extends State<AuthModalDialog> with SingleTickerProv
                 child: TextField(
                   controller: _regConfirmPasswordController,
                   obscureText: _obscureRegPassword,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                   decoration: NeoGlassTheme.inputDecoration(
                     hintText: 'Confirm',
                     prefixIcon: Icons.lock_reset,

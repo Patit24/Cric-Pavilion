@@ -6,6 +6,7 @@ import '../services/mock_database.dart';
 import '../services/server_sync_service.dart';
 import '../services/database_persistence_service.dart';
 import 'dart:convert';
+import '../theme/neo_glass_theme.dart';
 
 /// Dialog allowing users to view server sync status, trigger manual sync,
 /// and export/import match backups across mobile and desktop devices.
@@ -114,7 +115,7 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
         : 'Never (Tap Sync to connect)';
 
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -146,17 +147,17 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                         children: [
                           const Text(
                             'Cross-Device Synchronization',
-                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Sync matches between mobile phone & desktop',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
+                            style: TextStyle(color: GlassTokens.inkPrimary.withValues(alpha: 0.6), fontSize: 11),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                      icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -167,16 +168,16 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: GlassTokens.glassHairline),
                   ),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Central Sync Server', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const Text('Central Sync Server', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                           Row(
                             children: [
                               Container(
@@ -196,14 +197,14 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                           ),
                         ],
                       ),
-                      const Divider(color: Colors.white12, height: 16),
+                      const Divider(color: GlassTokens.glassHairline, height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Last Synchronized', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const Text('Last Synchronized', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                           Text(
                             timeStr,
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -211,7 +212,7 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Local Matches on this Device', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const Text('Local Matches on this Device', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                           Text(
                             '${db.matches.length} Matches',
                             style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 12, fontWeight: FontWeight.bold),
@@ -296,7 +297,7 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                       Expanded(
                         child: Text(
                           'If you scored a match on your phone, open the app on your phone and tap "Sync Now". This uploads the match to the central server so your desktop receives it immediately.',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, height: 1.3),
+                          style: TextStyle(color: GlassTokens.inkPrimary.withValues(alpha: 0.8), fontSize: 11, height: 1.3),
                         ),
                       ),
                     ],
@@ -310,10 +311,10 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _exportJson(db),
-                        icon: const Icon(Icons.copy, size: 14, color: Colors.white70),
-                        label: const Text('Export / Copy Data', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        icon: const Icon(Icons.copy, size: 14, color: GlassTokens.inkSecondary),
+                        label: const Text('Export / Copy Data', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white24),
+                          side: const BorderSide(color: GlassTokens.glassHairline),
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
@@ -327,13 +328,13 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                             _showImportBox = !_showImportBox;
                           });
                         },
-                        icon: const Icon(Icons.file_upload_outlined, size: 14, color: Colors.white70),
+                        icon: const Icon(Icons.file_upload_outlined, size: 14, color: GlassTokens.inkSecondary),
                         label: Text(
                           _showImportBox ? 'Hide Import' : 'Import / Restore',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white24),
+                          side: const BorderSide(color: GlassTokens.glassHairline),
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
@@ -348,27 +349,27 @@ class _CloudSyncDialogState extends State<CloudSyncDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: GlassTokens.bgLightBlue,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: GlassTokens.glassHairline),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const Text(
                           'Paste Backup JSON from Mobile:',
-                          style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 6),
                         TextField(
                           controller: _importJsonController,
                           maxLines: 4,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontFamily: 'monospace'),
                           decoration: InputDecoration(
                             hintText: '{"version": 1, "matches": [...]}',
-                            hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
+                            hintStyle: const TextStyle(color: GlassTokens.glassHairline, fontSize: 11),
                             filled: true,
-                            fillColor: const Color(0xFF0F172A),
+                            fillColor: Colors.white,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                             contentPadding: const EdgeInsets.all(10),
                           ),

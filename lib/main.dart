@@ -136,6 +136,7 @@ class MainNavigationShell extends StatefulWidget {
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
+  bool _sidebarCollapsed = false;
 
   @override
   void initState() {
@@ -172,65 +173,80 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       const TournamentHubScreen(),
     ];
 
-    return Scaffold(
-      extendBody: true,
-      drawer: _buildPublicDrawer(context),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final navItems = [
+      const GlassNavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
+      const GlassNavItem(icon: Icons.radio_button_unchecked, activeIcon: Icons.radio_button_checked, label: 'Live Scorer'),
+      const GlassNavItem(icon: Icons.sports_cricket_outlined, activeIcon: Icons.sports_cricket, label: 'Results'),
+      GlassNavItem(
+        icon: isAuth ? Icons.person_outline : Icons.people_outline,
+        activeIcon: isAuth ? Icons.person_rounded : Icons.people_rounded,
+        label: isAuth ? 'My Profile' : 'Players',
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0C1322).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.14),
-              width: 1.2,
+      const GlassNavItem(icon: Icons.emoji_events_outlined, activeIcon: Icons.emoji_events, label: 'Tournaments'),
+    ];
+
+    return GlassScaffoldBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        drawer: _buildPublicDrawer(context),
+        body: Row(
+          children: [
+            if (isDesktop)
+              GlassSidebar(
+                items: navItems,
+                selectedIndex: _currentIndex,
+                onSelect: _onTabTapped,
+                collapsed: _sidebarCollapsed,
+                onToggleCollapse: () => setState(() => _sidebarCollapsed = !_sidebarCollapsed),
+                footer: const AccountAuthPill(compact: true),
+              ),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: screens,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
-                offset: const Offset(0, 10),
-                blurRadius: 20,
-              ),
-              BoxShadow(
-                color: const Color(0xFF00F5A0).withValues(alpha: 0.08),
-                blurRadius: 16,
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.08),
-                offset: const Offset(0, -1),
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavTab(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
-                    _buildNavTab(1, Icons.radio_button_checked, Icons.radio_button_unchecked, 'Scorer'),
-                    _buildNavTab(2, Icons.sports_cricket, Icons.sports_cricket_outlined, 'Results'),
-                    _buildNavTab(
-                      3,
-                      isAuth ? Icons.person_rounded : Icons.people_rounded,
-                      isAuth ? Icons.person_outline : Icons.people_outline,
-                      isAuth ? 'My Profile' : 'Players',
+          ],
+        ),
+        bottomNavigationBar: isDesktop
+            ? null
+            : SafeArea(
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                  decoration: BoxDecoration(
+                    color: GlassTokens.glassFillHigh,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white, width: 1.2),
+                    boxShadow: GlassTokens.softShadow(),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildNavTab(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+                            _buildNavTab(1, Icons.radio_button_checked, Icons.radio_button_unchecked, 'Scorer'),
+                            _buildNavTab(2, Icons.sports_cricket, Icons.sports_cricket_outlined, 'Results'),
+                            _buildNavTab(
+                              3,
+                              isAuth ? Icons.person_rounded : Icons.people_rounded,
+                              isAuth ? Icons.person_outline : Icons.people_outline,
+                              isAuth ? 'My Profile' : 'Players',
+                            ),
+                            _buildNavTab(4, Icons.emoji_events, Icons.emoji_events_outlined, 'Hub'),
+                          ],
+                        ),
+                      ),
                     ),
-                    _buildNavTab(4, Icons.emoji_events, Icons.emoji_events_outlined, 'Hub'),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -242,27 +258,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       onTap: () => _onTabTapped(index),
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(
           horizontal: isSelected ? 12 : 8,
           vertical: 6,
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF00F5A0).withValues(alpha: 0.15)
+              ? GlassTokens.electricBlue.withValues(alpha: 0.12)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: isSelected
-              ? Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.6), width: 1.0)
-              : null,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF00F5A0).withValues(alpha: 0.25),
-                    blurRadius: 10,
-                  ),
-                ]
+              ? Border.all(color: GlassTokens.electricBlue.withValues(alpha: 0.28), width: 1.0)
               : null,
         ),
         child: Row(
@@ -270,7 +278,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           children: [
             Icon(
               isSelected ? activeIcon : inactiveIcon,
-              color: isSelected ? const Color(0xFF00F5A0) : Colors.white60,
+              color: isSelected ? GlassTokens.electricBlue : GlassTokens.inkSecondary,
               size: 20,
             ),
             if (isSelected) ...[
@@ -278,10 +286,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               Text(
                 label,
                 style: const TextStyle(
-                  color: Color(0xFF00F5A0),
+                  color: GlassTokens.electricBlue,
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
@@ -296,7 +304,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final user = db.currentUser;
 
     return Drawer(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -305,8 +313,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+                gradient: GlassTokens.canvasGradient,
+                border: Border(bottom: BorderSide(color: GlassTokens.glassHairline)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,13 +324,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          gradient: NeoGlassTheme.neonGradient,
+                          gradient: GlassTokens.accentGradient,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            NeoGlassTheme.neoGlowShadow(NeoGlassTheme.neonEmerald, opacity: 0.3),
-                          ],
+                          boxShadow: GlassTokens.softShadow(glow: GlassTokens.electricBlue),
                         ),
-                        child: const Icon(Icons.sports_cricket, color: Colors.black, size: 22),
+                        child: const Icon(Icons.sports_cricket, color: Colors.white, size: 22),
                       ),
                       const SizedBox(width: 12),
                       const Column(
@@ -331,15 +337,15 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                           Text(
                             'CricPavilion Pro',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: GlassTokens.inkPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.3,
                             ),
                           ),
                           Text(
                             'Public Cricket & Auction Platform',
-                            style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: GlassTokens.electricBlue, fontSize: 10.5, fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -480,13 +486,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFF1E293B))),
+                border: Border(top: BorderSide(color: GlassTokens.glassHairline)),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('v2.4.0 Production', style: TextStyle(color: Colors.white38, fontSize: 10)),
-                  Text('ICC Compliant', style: TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 10, fontWeight: FontWeight.bold)),
+                  Text('v2.4.0 Production', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10)),
+                  Text('ICC Compliant', style: TextStyle(color: GlassTokens.mintGreen, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -508,13 +514,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       leading: Container(
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
-          color: (iconColor ?? Colors.white70).withValues(alpha: 0.12),
+          color: (iconColor ?? GlassTokens.electricBlue).withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: iconColor ?? Colors.white70, size: 18),
+        child: Icon(icon, color: iconColor ?? GlassTokens.electricBlue, size: 18),
       ),
-      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+      title: Text(title, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
       onTap: onTap,
     );
   }

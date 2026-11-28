@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/mock_database.dart';
 import '../scorer/full_scorecard_dialog.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class CompletedMatchesScreen extends StatefulWidget {
   const CompletedMatchesScreen({super.key});
@@ -54,13 +55,13 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Completed Matches',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         actions: [
           Center(
@@ -80,19 +81,19 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFF0F172A),
-              border: Border(bottom: BorderSide(color: Colors.white12)),
+              color: GlassTokens.inkPrimary,
+              border: Border(bottom: BorderSide(color: GlassTokens.glassHairline)),
             ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Search match results by tournament, team, or venue...',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF00F5A0), size: 18),
                 suffixIcon: (_searchController.text.isNotEmpty || _selectedTournamentId != 'all')
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white54, size: 16),
+                        icon: const Icon(Icons.clear, color: GlassTokens.inkSecondary, size: 16),
                         onPressed: () => setState(() {
                           _searchController.clear();
                           _selectedTournamentId = 'all';
@@ -100,7 +101,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -117,7 +118,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: const BoxDecoration(
                 color: Color(0xFF0B132B),
-                border: Border(bottom: BorderSide(color: Colors.white12)),
+                border: Border(bottom: BorderSide(color: GlassTokens.glassHairline)),
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -161,7 +162,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                       children: [
                         Icon(
                           (query.isNotEmpty || _selectedTournamentId != 'all') ? Icons.search_off : Icons.sports_cricket,
-                          color: Colors.white24,
+                          color: GlassTokens.glassHairline,
                           size: 52,
                         ),
                         const SizedBox(height: 12),
@@ -169,7 +170,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                           (query.isNotEmpty || _selectedTournamentId != 'all')
                               ? 'No results found for this tournament'
                               : 'No completed matches yet',
-                          style: const TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 6),
                         Padding(
@@ -179,7 +180,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                 ? 'Try searching for another tournament or reset filters.'
                                 : 'Matches will permanently appear here with full ball-by-ball scorecards and career statistics once finalized.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white38, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                           ),
                         ),
                         if (query.isNotEmpty || _selectedTournamentId != 'all') ...[
@@ -217,9 +218,9 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: GlassTokens.inkPrimary,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white12),
+                          border: Border.all(color: GlassTokens.glassHairline),
                           boxShadow: [
                             BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8),
                           ],
@@ -248,14 +249,14 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                             : const Color(0xFF00F5A0).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: m.isStandalone ? Colors.amberAccent : const Color(0xFF00F5A0),
+                                          color: m.isStandalone ? Color(0xFFD97706) : const Color(0xFF00F5A0),
                                           width: 0.8,
                                         ),
                                       ),
                                       child: Text(
                                         m.isStandalone ? 'Direct 2-Team Match' : (tourn?.name ?? 'Tournament'),
                                         style: TextStyle(
-                                          color: m.isStandalone ? Colors.amberAccent : const Color(0xFF00F5A0),
+                                          color: m.isStandalone ? Color(0xFFD97706) : const Color(0xFF00F5A0),
                                           fontSize: 10.5,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -264,7 +265,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                     const SizedBox(width: 8),
                                     Text(
                                       '${m.stage} • ${m.overs} Ov',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                     ),
                                     const Spacer(),
                                     const Icon(Icons.verified, color: Color(0xFF00F5A0), size: 14),
@@ -292,18 +293,18 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                     Expanded(
                                       child: Text(
                                         teamA?.name ?? 'Team A',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.w600),
                                       ),
                                     ),
                                     if (inn1 != null && inn1.battingTeamId == m.teamAId)
                                       Text(
                                         '${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                                       )
                                     else if (inn2 != null && inn2.battingTeamId == m.teamAId)
                                       Text(
                                         '${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                                       ),
                                   ],
                                 ),
@@ -324,23 +325,23 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                     Expanded(
                                       child: Text(
                                         teamB?.name ?? 'Team B',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.w600),
                                       ),
                                     ),
                                     if (inn1 != null && inn1.battingTeamId == m.teamBId)
                                       Text(
                                         '${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                                       )
                                     else if (inn2 != null && inn2.battingTeamId == m.teamBId)
                                       Text(
                                         '${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                                       ),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                const Divider(color: Colors.white12, height: 1),
+                                const Divider(color: GlassTokens.glassHairline, height: 1),
                                 const SizedBox(height: 8),
 
                                 // Footer: Result Banner & Venue
@@ -363,7 +364,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                             Text(
                                               '🏆 Man of the Match: ${m.playerOfTheMatchName}',
                                               style: const TextStyle(
-                                                color: Colors.amberAccent,
+                                                color: Color(0xFFD97706),
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11,
                                               ),
@@ -373,7 +374,7 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
                                           const SizedBox(height: 2),
                                           Text(
                                             '📍 ${m.venue}',
-                                            style: const TextStyle(color: Colors.white54, fontSize: 10.5),
+                                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                                           ),
                                         ],
                                       ),
@@ -422,16 +423,16 @@ class _CompletedMatchesScreenState extends State<CompletedMatchesScreen> {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00F5A0) : const Color(0xFF1E293B),
+            color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.bgLightBlue,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? const Color(0xFF00F5A0) : Colors.white24,
+              color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white70,
+              color: isSelected ? Colors.black : GlassTokens.inkSecondary,
               fontSize: 11,
               fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
             ),

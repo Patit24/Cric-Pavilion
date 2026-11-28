@@ -128,12 +128,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
   Widget _buildEmptyAuctionDirectory(BuildContext context, MockDatabase db) {
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1120),
+        backgroundColor: GlassTokens.bgIcyWhite,
         elevation: 0,
-        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
-        title: const Text('Franchise Auctions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        shape: const Border(bottom: BorderSide(color: GlassTokens.bgLightBlue)),
+        title: const Text('Franchise Auctions', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
         actions: const [SizedBox(width: 8)],
       ),
       body: Center(
@@ -149,15 +149,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                 ),
-                child: const Icon(Icons.gavel_outlined, size: 52, color: Colors.amberAccent),
+                child: const Icon(Icons.gavel_outlined, size: 52, color: Color(0xFFD97706)),
               ),
               const SizedBox(height: 20),
-              const Text('No Player Auctions Created', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text('No Player Auctions Created', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
               const Text(
                 'Host a live player auction with franchise budgets, player wheel spin, and owner bidding.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white60, fontSize: 12),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -193,11 +193,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   // =========================================================================
   Widget _buildAuctionDirectory(BuildContext context, MockDatabase db) {
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1120),
+        backgroundColor: GlassTokens.bgIcyWhite,
         elevation: 0,
-        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+        shape: const Border(bottom: BorderSide(color: GlassTokens.bgLightBlue)),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -213,7 +213,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             const Flexible(
               child: Text(
                 'Auctions Arena',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -247,7 +247,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                colors: [GlassTokens.bgLightBlue, Colors.white],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
@@ -257,11 +257,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               children: [
                 const Text('OFFICIAL CRICKET DRAFT ARENA', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                 const SizedBox(height: 6),
-                const Text('Live Player Auctions & Franchise Purses', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                const Text('Live Player Auctions & Franchise Purses', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 4),
                 const Text(
                   'Select an auction to view live player lots, franchise waiting rooms, spinning wheel reveals, and team bidding.',
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 ),
                 const SizedBox(height: 14),
                 Wrap(
@@ -290,10 +290,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           });
                         }
                       },
-                      icon: const Icon(Icons.add_circle_outline, size: 14, color: Colors.white),
-                      label: const Text('Host New Auction', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.add_circle_outline, size: 14, color: GlassTokens.inkPrimary),
+                      label: const Text('Host New Auction', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold)),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white30),
+                        side: const BorderSide(color: GlassTokens.inkMuted),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
@@ -306,7 +306,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
           const Text(
             'ACTIVE & UPCOMING AUCTIONS',
-            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
           ),
           const SizedBox(height: 10),
 
@@ -321,9 +321,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isLive ? const Color(0xFF059669) : const Color(0xFF1E293B), width: 1.5),
+                  border: Border.all(color: isLive ? const Color(0xFF059669) : GlassTokens.bgLightBlue, width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,13 +359,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: Colors.white10,
+                              color: GlassTokens.glassHairline,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'PREVIEW',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: GlassTokens.inkSecondary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -382,9 +382,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text(auc.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                    Text(auc.title, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
-                    Text('${tourn.name} • ${tourn.location}', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text('${tourn.name} • ${tourn.location}', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                     const SizedBox(height: 12),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -401,7 +401,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: GlassTokens.inkSecondary),
                       ],
                     ),
                   ],
@@ -417,13 +417,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
   Widget _buildStatChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-      decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(6)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 11, color: Colors.amber),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 9.5, fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9.5, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -459,13 +459,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     final unsoldLotsCount = db.auctionLots.where((l) => l.auctionId == auction.id && l.status == LotStatus.unsold).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1120),
+        backgroundColor: GlassTokens.bgIcyWhite,
         elevation: 0,
-        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+        shape: const Border(bottom: BorderSide(color: GlassTokens.bgLightBlue)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: GlassTokens.inkPrimary),
           tooltip: 'All Auctions',
           onPressed: () => setState(() => selectedAuctionId = null),
         ),
@@ -474,7 +474,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: [
             Text(
               auction.title,
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w900),
               overflow: TextOverflow.ellipsis,
             ),
             Row(
@@ -482,7 +482,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 Icon(
                   isUnlocked ? (isAdmin ? Icons.shield : Icons.check_circle) : Icons.visibility,
                   size: 11,
-                  color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white54,
+                  color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : GlassTokens.inkSecondary,
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -491,7 +491,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         ? (isAdmin ? 'Host Auctioneer' : (myTeam?.shortName ?? 'Owner'))
                         : 'Spectator Mode',
                     style: TextStyle(
-                      color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : Colors.white70,
+                      color: isUnlocked ? (isAdmin ? Colors.amber : const Color(0xFF34D399)) : GlassTokens.inkSecondary,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -516,9 +516,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             },
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+            icon: const Icon(Icons.more_vert, color: GlassTokens.inkPrimary, size: 20),
             tooltip: 'Auction Menu',
-            color: const Color(0xFF1E293B),
+            color: GlassTokens.bgLightBlue,
             onSelected: (val) {
               if (val == 'hub') {
                 _showPlayersHubDialog(context, db, auction);
@@ -559,7 +559,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   children: [
                     Icon(Icons.people_alt, color: Color(0xFF34D399), size: 16),
                     SizedBox(width: 8),
-                    Text('Players Hub (Available / Sold / Unsold)', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text('Players Hub (Available / Sold / Unsold)', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -569,7 +569,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   children: [
                     Icon(Icons.assessment, color: Colors.amber, size: 16),
                     SizedBox(width: 8),
-                    Text('Auction Reports & CSV Export', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text('Auction Reports & CSV Export', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -579,7 +579,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   children: [
                     Icon(Icons.chat_bubble, color: Color(0xFF22C55E), size: 16),
                     SizedBox(width: 8),
-                    Text('WhatsApp Notifications Log', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text('WhatsApp Notifications Log', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -589,7 +589,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   children: [
                     Icon(Icons.history, color: Colors.cyanAccent, size: 16),
                     SizedBox(width: 8),
-                    Text('Immutable Audit Trail', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text('Immutable Audit Trail', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -601,7 +601,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.file_upload, color: Color(0xFF38BDF8), size: 16),
                       SizedBox(width: 8),
-                      Text('Bulk Import Players (CSV)', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Bulk Import Players (CSV)', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -611,7 +611,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.edit_note, color: Colors.amber, size: 16),
                       SizedBox(width: 8),
-                      Text('Edit Auction Rules', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Edit Auction Rules', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -621,7 +621,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       const Icon(Icons.manage_accounts, color: Colors.amber, size: 16),
                       const SizedBox(width: 8),
-                      Text('Spin Pool ($eligibleSpinCount/$totalPendingCount)', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Spin Pool ($eligibleSpinCount/$totalPendingCount)', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -631,7 +631,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.person_add, color: Color(0xFF34D399), size: 16),
                       SizedBox(width: 8),
-                      Text('Add Player to Auction', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Add Player to Auction', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -641,7 +641,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.badge, color: Color(0xFF38BDF8), size: 16),
                       SizedBox(width: 8),
-                      Text('Franchise PINs & Access', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Franchise PINs & Access', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -651,7 +651,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     children: [
                       Icon(Icons.group_add, color: Colors.amber, size: 16),
                       SizedBox(width: 8),
-                      Text('Add Franchise Team', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Text('Add Franchise Team', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -708,7 +708,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   gradient: LinearGradient(
                     colors: [
                       myTeam.primaryColor.withValues(alpha: 0.35),
-                      const Color(0xFF0F172A),
+                      Colors.white,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
@@ -729,7 +729,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           alignment: Alignment.center,
                           child: Text(
                             myTeam.shortName,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 13),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -742,7 +742,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   Flexible(
                                     child: Text(
                                       myTeam.name,
-                                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.w900),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -755,7 +755,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                     ),
                                     child: const Text(
                                       'YOUR FRANCHISE TABLE',
-                                      style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],
@@ -763,7 +763,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               const SizedBox(height: 2),
                               Text(
                                 'Owner: ${myTeam.ownerName.isNotEmpty ? myTeam.ownerName : "Authorized Owner"} • Mobile: ${myTeam.ownerMobileNumber.isNotEmpty ? myTeam.ownerMobileNumber : myTeam.uniqueTeamCode}',
-                                style: const TextStyle(color: Colors.white70, fontSize: 10.5),
+                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -771,7 +771,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         ),
                         IconButton(
                           tooltip: 'Exit Desk',
-                          icon: const Icon(Icons.logout, size: 18, color: Colors.white60),
+                          icon: const Icon(Icons.logout, size: 18, color: GlassTokens.inkSecondary),
                           onPressed: () {
                             db.exitAuctionRoom();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -789,7 +789,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -800,7 +800,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -837,7 +837,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.6)),
                 ),
@@ -855,7 +855,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           ),
                           Text(
                             'Manage auction rules, player lots, spin wheel, and floor hammer.',
-                            style: TextStyle(color: Colors.white60, fontSize: 10),
+                            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                           ),
                         ],
                       ),
@@ -900,13 +900,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.visibility, color: Colors.white70, size: 20),
+                    const Icon(Icons.visibility, color: GlassTokens.inkSecondary, size: 20),
                     const SizedBox(width: 10),
                     const Expanded(
                       child: Column(
@@ -914,11 +914,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         children: [
                           Text(
                             'Spectator Mode (Viewing Live)',
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'You are viewing live bids, wheel reveals, and team squads.',
-                            style: TextStyle(color: Colors.white60, fontSize: 10),
+                            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                           ),
                         ],
                       ),
@@ -949,7 +949,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: auction.isReadyToStart ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                color: auction.isReadyToStart ? const Color(0xFF064E3B) : GlassTokens.bgLightBlue,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: auction.isReadyToStart ? const Color(0xFF34D399) : Colors.amber.withValues(alpha: 0.5),
@@ -985,7 +985,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       ),
                       Text(
                         '${auction.joinedTeamIds.length}/8 Ready',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 12),
                       ),
                     ],
                   ),
@@ -994,7 +994,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     auction.isReadyToStart
                         ? 'Auction is LIVE! Host spins wheel to reveal players and only authenticated team owners place bids.'
                         : 'Until all 8 teams enter the auction room with their unique Team ID & PIN, bidding and wheel spinning are locked.',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                   ),
                   const SizedBox(height: 10),
 
@@ -1020,9 +1020,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: isConnected ? const Color(0xFF047857) : Colors.white10,
+                            color: isConnected ? const Color(0xFF047857) : GlassTokens.glassHairline,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: isConnected ? const Color(0xFF34D399) : Colors.white24),
+                            border: Border.all(color: isConnected ? const Color(0xFF34D399) : GlassTokens.glassHairline),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1030,13 +1030,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               Icon(
                                 isConnected ? Icons.check_circle : Icons.radio_button_unchecked,
                                 size: 10,
-                                color: isConnected ? Colors.white : Colors.white38,
+                                color: isConnected ? Colors.white : GlassTokens.inkMuted,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 t.shortName,
                                 style: TextStyle(
-                                  color: isConnected ? Colors.white : Colors.white60,
+                                  color: isConnected ? Colors.white : GlassTokens.inkSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
                                 ),
@@ -1097,7 +1097,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                  colors: [GlassTokens.bgLightBlue, Colors.white],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -1182,10 +1182,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             gradient: RadialGradient(
                               colors: auction.isReadyToStart && db.canSpinPlayer(auction.id)
                                   ? [const Color(0xFFFDE68A), const Color(0xFFF59E0B), const Color(0xFFB45309)]
-                                  : [const Color(0xFF334155), const Color(0xFF1E293B), const Color(0xFF0F172A)],
+                                  : [const Color(0xFF334155), GlassTokens.bgLightBlue, Colors.white],
                             ),
                             border: Border.all(
-                              color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.amberAccent : Colors.white24,
+                              color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Color(0xFFD97706) : GlassTokens.glassHairline,
                               width: 2.5,
                             ),
                             boxShadow: [
@@ -1207,7 +1207,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                         ? Icons.lock
                                         : (db.canSpinPlayer(auction.id) ? Icons.gavel : Icons.lock_outline)),
                                 size: 16,
-                                color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : Colors.white70,
+                                color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : GlassTokens.inkSecondary,
                               ),
                               const SizedBox(height: 2),
                               Text(
@@ -1220,7 +1220,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.8,
-                                  color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : Colors.white70,
+                                  color: auction.isReadyToStart && db.canSpinPlayer(auction.id) ? Colors.black87 : GlassTokens.inkSecondary,
                                 ),
                               ),
                             ],
@@ -1243,7 +1243,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             : (isAdmin
                                 ? 'Host: Tap SPIN to randomly draw from the $eligibleSpinCount selected players'
                                 : 'Wheel operated exclusively by Auctioneer Host')),
-                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -1274,7 +1274,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               width: 72,
                               height: 72,
                               color: Colors.grey.shade800,
-                              child: const Icon(Icons.person, color: Colors.white54, size: 36),
+                              child: const Icon(Icons.person, color: GlassTokens.inkSecondary, size: 36),
                             ),
                           ),
                         ),
@@ -1330,11 +1330,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               const SizedBox(height: 6),
                               Text(
                                 currentPlayer.fullName,
-                                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900),
                               ),
                               Text(
                                 '${currentPlayer.battingStyle} • ${currentPlayer.bowlingStyle}',
-                                style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                               ),
                             ],
                           ),
@@ -1363,7 +1363,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             children: [
                               Row(
                                 children: [
-                                  const Text('STARTING PRICE', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  const Text('STARTING PRICE', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                                   if (isAdmin)
                                     InkWell(
                                       onTap: () => _showManualStartingPriceDialog(context, db, auction, currentLot),
@@ -1377,7 +1377,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               const SizedBox(height: 2),
                               Text(
                                 currencyFormat.format(currentLot.startingPrice ?? currentLot.basePrice),
-                                style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -1401,7 +1401,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Text('Highest Bidder: ', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          const Text('Highest Bidder: ', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
@@ -1469,7 +1469,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                 style: TextStyle(
                                   color: (auction.biddingSecondsRemaining <= 5 && auction.isTimerRunning)
                                       ? Colors.redAccent
-                                      : Colors.white54,
+                                      : GlassTokens.inkSecondary,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -1494,7 +1494,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   onTap: () => db.resetAuctionTimer(auction.id, seconds: 15),
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    child: Icon(Icons.replay, color: Colors.white70, size: 16),
+                                    child: Icon(Icons.replay, color: GlassTokens.inkSecondary, size: 16),
                                   ),
                                 ),
                               ],
@@ -1519,7 +1519,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
+                          color: GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
                         ),
@@ -1540,7 +1540,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             const Text(
                               'Viewers watch live bids in real-time. Only the tournament creator or host can operate the floor, and verified franchise owners can place bids.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70, fontSize: 11),
+                              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                             ),
                             const SizedBox(height: 12),
                             Wrap(
@@ -1594,7 +1594,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     Expanded(
                       child: Text(
                         '$unsoldLotsCount player(s) unsold. Bring them back in Accelerated Round?',
-                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11),
                       ),
                     ),
                     ElevatedButton(
@@ -1623,12 +1623,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             // =========================================================
             const Text(
               'FRANCHISE SQUAD & REMAINING PURSE VIEWER',
-              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
             ),
             const SizedBox(height: 6),
             const Text(
               'Select any of the 8 teams to inspect remaining purse, bought players, and quota requirements.',
-              style: TextStyle(color: Colors.white38, fontSize: 11),
+              style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
             ),
             const SizedBox(height: 10),
 
@@ -1636,17 +1636,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Column(
                   children: [
                     const Icon(Icons.group_add_outlined, size: 40, color: Colors.amber),
                     const SizedBox(height: 10),
-                    const Text('No Teams in this Tournament Yet', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    const Text('No Teams in this Tournament Yet', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('Host can add franchise teams to begin participating in this auction.', style: TextStyle(color: Colors.white54, fontSize: 11), textAlign: TextAlign.center),
+                    const Text('Host can add franchise teams to begin participating in this auction.', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11), textAlign: TextAlign.center),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: () => _showAddTeamDialog(context, db, auction),
@@ -1674,9 +1674,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         avatar: CircleAvatar(backgroundImage: NetworkImage(t.logoUrl), radius: 10),
                         label: Text(t.name),
                         selectedColor: t.primaryColor,
-                        backgroundColor: const Color(0xFF0F172A),
+                        backgroundColor: Colors.white,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected ? Colors.white : GlassTokens.inkSecondary,
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
                         ),
@@ -1696,7 +1696,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: GlassTokens.inkPrimary,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: squadViewTeam.primaryColor, width: 1.5),
               ),
@@ -1714,7 +1714,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           children: [
                             Text(
                               squadViewTeam.name,
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
                             ),
                             Text(
                               isAdmin
@@ -1737,17 +1737,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('PURSE REMAINING', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              const Text('PURSE REMAINING', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 2),
                               Text(
                                 currencyFormat.format(squadViewTeam.purseRemaining),
                                 style: TextStyle(color: squadViewTeam.primaryColor, fontSize: 15, fontWeight: FontWeight.w900),
                               ),
-                              Text('Max: ${currencyFormat.format(squadViewTeam.maxPurse)}', style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                              Text('Max: ${currencyFormat.format(squadViewTeam.maxPurse)}', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 9)),
                             ],
                           ),
                         ),
@@ -1756,15 +1756,15 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('SQUAD STRENGTH', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              const Text('SQUAD STRENGTH', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 2),
                               Text(
                                 '${squadViewTeam.squadCount} / ${squadViewTeam.maxSquadLimit}',
-                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.w900),
                               ),
                               Text(
                                 squadViewTeam.playersStillNeeded > 0
@@ -1788,7 +1788,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   // Purchased Roster List
                   Text(
                     'ACQUIRED PLAYERS (${squadPlayers.length})',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                   ),
                   const SizedBox(height: 8),
 
@@ -1798,21 +1798,21 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       decoration: BoxDecoration(
                         color: const Color(0xFF020617),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: GlassTokens.glassHairline),
                       ),
                       alignment: Alignment.center,
                       child: Column(
                         children: [
-                          const Icon(Icons.shield_outlined, size: 36, color: Colors.white24),
+                          const Icon(Icons.shield_outlined, size: 36, color: GlassTokens.glassHairline),
                           const SizedBox(height: 8),
                           Text(
                             'No players acquired yet for ${squadViewTeam.name}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Purse is 100% intact (${currencyFormat.format(squadViewTeam.purseRemaining)}). Bidding opens when all teams check in.',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -1824,7 +1824,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         margin: const EdgeInsets.only(bottom: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
+                          color: GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -1835,8 +1835,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(p.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                                  Text('${p.roleString} • ${p.battingStyle}', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                  Text(p.fullName, style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${p.roleString} • ${p.battingStyle}', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10)),
                                 ],
                               ),
                             ),
@@ -1864,25 +1864,25 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             // LIVE BID TIMELINE
             const Text(
               'LIVE BID TIMELINE',
-              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
             ),
             const SizedBox(height: 10),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: GlassTokens.inkPrimary,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF1E293B)),
+                border: Border.all(color: GlassTokens.bgLightBlue),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: db.auctionBids.take(5).length,
-                separatorBuilder: (ctx, i) => const Divider(color: Color(0xFF1E293B), height: 1),
+                separatorBuilder: (ctx, i) => const Divider(color: GlassTokens.bgLightBlue, height: 1),
                 itemBuilder: (ctx, i) {
                   final bid = db.auctionBids[i];
                   return ListTile(
                     dense: true,
-                    title: Text(bid.teamName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                    title: Text(bid.teamName, style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
                     trailing: Text(
                       currencyFormat.format(bid.amount),
                       style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 14),
@@ -1912,12 +1912,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.warning_amber, color: Colors.white, size: 18),
+            const Icon(Icons.warning_amber, color: GlassTokens.inkPrimary, size: 18),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 '⚠️ GOING ONCE at ${currencyFormat.format(auction.currentBid)} to ${highBidder?.name ?? "..."}!',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1935,12 +1935,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.campaign, color: Colors.white, size: 18),
+            Icon(Icons.campaign, color: GlassTokens.inkPrimary, size: 18),
             SizedBox(width: 8),
             Flexible(
               child: Text(
                 '🚨 GOING TWICE! LAST CHANCE TO COUNTER-BID!',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1958,12 +1958,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.gavel, color: Colors.white, size: 18),
+            Icon(Icons.gavel, color: GlassTokens.inkPrimary, size: 18),
             SizedBox(width: 8),
             Flexible(
               child: Text(
                 '⚡ FAIR WARNING! GAVEL ABOUT TO FALL!',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1980,12 +1980,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.pause_circle_filled, color: Colors.white70, size: 18),
+            Icon(Icons.pause_circle_filled, color: GlassTokens.inkSecondary, size: 18),
             SizedBox(width: 8),
             Flexible(
               child: Text(
                 '⏸️ FLOOR PAUSED BY AUCTIONEER',
-                style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontWeight: FontWeight.bold, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -2086,7 +2086,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   constraints: const BoxConstraints(),
                   icon: Icon(
                     auction.floorStatus == FloorStatus.paused ? Icons.play_arrow : Icons.pause,
-                    color: Colors.white70,
+                    color: GlassTokens.inkSecondary,
                     size: 18,
                   ),
                   onPressed: () {
@@ -2132,8 +2132,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   icon: const Icon(Icons.group_add, size: 14),
                   label: const Text('+ Add Team', style: TextStyle(fontSize: 11)),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                    side: const BorderSide(color: Colors.white24),
+                    foregroundColor: GlassTokens.inkSecondary,
+                    side: const BorderSide(color: GlassTokens.glassHairline),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -2259,10 +2259,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     Row(
                       children: [
                         Text('Purse: ${currencyFormat.format(myTeam.purseRemaining)}',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w900)),
                         const SizedBox(width: 6),
                         Text('• Squad: ${myTeam.squadCount}/${myTeam.minSquadRequirement} (Max ${myTeam.maxSquadLimit})',
-                            style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                       ],
                     ),
                   ],
@@ -2287,9 +2287,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: GlassTokens.inkPrimary,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white12),
+              border: Border.all(color: GlassTokens.glassHairline),
             ),
             child: Row(
               children: [
@@ -2298,7 +2298,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 Expanded(
                   child: Text(
                     'Budget Protection: Max Eligible Bid ${currencyFormat.format(maxEligibleBid)} (Reserves ${currencyFormat.format(reserveRequired)} for ${myTeam.playersStillNeeded} slots)',
-                    style: const TextStyle(color: Colors.white70, fontSize: 10),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                   ),
                 ),
               ],
@@ -2401,8 +2401,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       ? null
                       : () => _showCustomBidDialog(context, db, auction, myTeam, maxEligibleBid),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                    side: const BorderSide(color: Colors.white24),
+                    foregroundColor: GlassTokens.inkSecondary,
+                    side: const BorderSide(color: GlassTokens.glassHairline),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -2423,31 +2423,31 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Place Custom Bid', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        backgroundColor: GlassTokens.bgLightBlue,
+        title: const Text('Place Custom Bid', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Current Bid: ${currencyFormat.format(currentBid)}', style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.bold)),
-            Text('Max Safe Bid: ${currencyFormat.format(maxEligibleBid)}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            Text('Max Safe Bid: ${currencyFormat.format(maxEligibleBid)}', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
             const SizedBox(height: 12),
             TextField(
               controller: incrementController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: GlassTokens.inkPrimary),
               decoration: InputDecoration(
                 labelText: 'Bid Increment (₹)',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
+                fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
           ElevatedButton(
             onPressed: () {
               final inc = int.tryParse(incrementController.text.trim()) ?? auction.minBidIncrement;
@@ -2476,12 +2476,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         title: Row(
           children: const [
             Icon(Icons.edit, color: Colors.amber, size: 20),
             SizedBox(width: 8),
-            Text('Set Starting Bidding Price', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+            Text('Set Starting Bidding Price', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -2490,18 +2490,18 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: [
             const Text(
               'Host can manually set or discount the starting price before teams start bidding.',
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+              style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: priceController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 labelText: 'Opening Starting Price (₹)',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
+                fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -2511,7 +2511,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               children: [200000, 500000, 1000000, 2000000].map((p) {
                 return ActionChip(
                   label: Text(currencyFormat.format(p), style: const TextStyle(fontSize: 10)),
-                  backgroundColor: const Color(0xFF0F172A),
+                  backgroundColor: Colors.white,
                   onPressed: () => priceController.text = '$p',
                 );
               }).toList(),
@@ -2519,7 +2519,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
           ElevatedButton(
             onPressed: () {
               final newPrice = int.tryParse(priceController.text.trim()) ?? lot.basePrice;
@@ -2547,7 +2547,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(
@@ -2575,11 +2575,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             children: const [
                               Icon(Icons.manage_accounts, color: Colors.amber, size: 20),
                               SizedBox(width: 8),
-                              Text('Host Player Pool & Wheel Manager', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                              Text('Host Player Pool & Wheel Manager', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white54),
+                            icon: const Icon(Icons.close, color: GlassTokens.inkSecondary),
                             onPressed: () => Navigator.pop(ctx),
                           ),
                         ],
@@ -2587,7 +2587,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                       const SizedBox(height: 4),
                       Text(
                         'Select which players enter the spin wheel ($eligibleCount of $pendingCount eligible for spin). You can also call any player directly to the board!',
-                        style: const TextStyle(color: Colors.white60, fontSize: 11),
+                        style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       ),
                       const SizedBox(height: 12),
 
@@ -2607,8 +2607,8 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               db.selectAllLotsForSpin(auction.id, false);
                               setSheetState(() {});
                             },
-                            icon: const Icon(Icons.deselect, size: 14, color: Colors.white54),
-                            label: const Text('Deselect All', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                            icon: const Icon(Icons.deselect, size: 14, color: GlassTokens.inkSecondary),
+                            label: const Text('Deselect All', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                           ),
                           const Spacer(),
                           ElevatedButton.icon(
@@ -2629,7 +2629,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           ),
                         ],
                       ),
-                      const Divider(color: Color(0xFF1E293B), height: 16),
+                      const Divider(color: GlassTokens.bgLightBlue, height: 16),
 
                       // Player Lots List
                       Expanded(
@@ -2646,7 +2646,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: isCurrent ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                                color: isCurrent ? const Color(0xFF064E3B) : GlassTokens.bgLightBlue,
                                 borderRadius: BorderRadius.circular(12),
                                 border: isCurrent ? Border.all(color: const Color(0xFF34D399), width: 1.5) : null,
                               ),
@@ -2670,7 +2670,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                       ),
                                       child: Text(
                                         lot.status.name.toUpperCase(),
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   const SizedBox(width: 8),
@@ -2680,10 +2680,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(player?.fullName ?? 'Player ${lot.lotNumber}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        Text(player?.fullName ?? 'Player ${lot.lotNumber}', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                                         Text(
                                           '${player?.roleString ?? lot.category} • Start: ${currencyFormat.format(lot.startingPrice ?? lot.basePrice)}',
-                                          style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                         ),
                                       ],
                                     ),
@@ -2748,7 +2748,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               : <Team>[];
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: const [
@@ -2757,7 +2757,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 Expanded(
                   child: Text(
                     'Franchise Owner Table Entry',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -2769,7 +2769,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 children: [
                   const Text(
                     'Enter your Auction ID & Registered Mobile Number to authenticate your dedicated franchise table and place bids.',
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                   ),
                   const SizedBox(height: 14),
 
@@ -2777,16 +2777,16 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     DropdownButtonFormField<String>(
                       value: db.auctions.any((a) => a.id == selectedAucId) ? selectedAucId : db.auctions.first.id,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: GlassTokens.bgLightBlue,
                       decoration: InputDecoration(
                         labelText: 'Select Auction',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                        labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       ),
-                      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
                       items: db.auctions.map((a) {
                         return DropdownMenuItem(
                           value: a.id,
@@ -2811,14 +2811,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                   TextField(
                     controller: auctionIdController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: InputDecoration(
                       labelText: 'Auction ID *',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. AUCTION-BPL',
                       prefixIcon: const Icon(Icons.tag, color: Colors.amber, size: 18),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onChanged: (val) {
@@ -2830,21 +2830,21 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   TextField(
                     controller: mobileController,
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                     decoration: InputDecoration(
                       labelText: 'Registered Owner Mobile Number *',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. 9876543201',
                       prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF34D399), size: 18),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
 
                   if (teamsInAuction.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text('Registered Teams in this Auction:', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                    const Text('Registered Teams in this Auction:', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10)),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 4,
@@ -2855,7 +2855,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                             '${t.name} ${t.ownerMobileNumber.isNotEmpty ? "(${t.ownerMobileNumber})" : ""}',
                             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                           ),
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: Colors.white,
                           side: BorderSide(color: t.primaryColor.withValues(alpha: 0.6)),
                           onPressed: () {
                             setDialogState(() {
@@ -2888,7 +2888,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
               ),
               ElevatedButton.icon(
                 onPressed: () {
@@ -2946,13 +2946,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
             Icon(Icons.edit_note, color: Colors.amber, size: 22),
             SizedBox(width: 8),
-            Text('Edit Auction Setup', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Edit Auction Setup', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: SingleChildScrollView(
@@ -2962,17 +2962,17 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             children: [
               const Text(
                 'Host can update auction title, purse limit, bid increments, and security PIN.',
-                style: TextStyle(color: Colors.white70, fontSize: 11),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: titleCtrl,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Auction Title *',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -2980,14 +2980,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               TextField(
                 controller: purseCtrl,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Franchise Max Purse (₹) *',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   prefixText: '₹ ',
                   prefixStyle: const TextStyle(color: Colors.amber),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -2998,14 +2998,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     child: TextField(
                       controller: minBidCtrl,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       decoration: InputDecoration(
                         labelText: 'Min Bid Incr (₹) *',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                         prefixText: '₹ ',
                         prefixStyle: const TextStyle(color: Colors.amber),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -3015,12 +3015,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     child: TextField(
                       controller: teamsCountCtrl,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       decoration: InputDecoration(
                         labelText: 'Teams Required *',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -3031,13 +3031,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               TextField(
                 controller: pinCtrl,
                 obscureText: true,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Host Admin PIN *',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   prefixIcon: const Icon(Icons.security, size: 16, color: Color(0xFF34D399)),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -3047,7 +3047,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -3105,13 +3105,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: const [
                 Icon(Icons.gavel, color: Colors.amber, size: 20),
                 SizedBox(width: 8),
-                Text('Enter Auction Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('Enter Auction Room', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
             content: SingleChildScrollView(
@@ -3122,7 +3122,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   // Tab toggle
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: GlassTokens.inkPrimary, borderRadius: BorderRadius.circular(10)),
                     child: Row(
                       children: [
                         Expanded(
@@ -3138,7 +3138,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               child: Text(
                                 'Team Owner (Bid)',
                                 style: TextStyle(
-                                  color: activeTab == 0 ? Colors.black : Colors.white70,
+                                  color: activeTab == 0 ? Colors.black : GlassTokens.inkSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 11,
                                 ),
@@ -3159,7 +3159,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               child: Text(
                                 'Host / Admin',
                                 style: TextStyle(
-                                  color: activeTab == 1 ? Colors.white : Colors.white70,
+                                  color: activeTab == 1 ? Colors.white : GlassTokens.inkSecondary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 11,
                                 ),
@@ -3174,19 +3174,19 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                   if (activeTab == 0) ...[
                     // TEAM OWNER LOGIN
-                    const Text('Enter your registered Mobile Number to unlock your franchise table:', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const Text('Enter your registered Mobile Number to unlock your franchise table:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                     const SizedBox(height: 12),
                     TextField(
                       controller: mobileController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       decoration: InputDecoration(
                         labelText: 'Owner Registered Mobile *',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                         hintText: 'e.g. 9876543201',
                         prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF34D399), size: 18),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -3196,13 +3196,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         Expanded(
                           child: TextField(
                             controller: teamCodeController,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                             decoration: InputDecoration(
                               labelText: 'Team ID (Optional)',
-                              labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                              labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                               hintText: 'e.g. TEAM-01',
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: Colors.white,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             ),
@@ -3213,13 +3213,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           child: TextField(
                             controller: teamPassController,
                             obscureText: true,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                             decoration: InputDecoration(
                               labelText: 'PIN (Optional)',
-                              labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                              labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                               hintText: '1234',
                               filled: true,
-                              fillColor: const Color(0xFF0F172A),
+                              fillColor: Colors.white,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             ),
@@ -3229,7 +3229,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     ),
                     if (safe8Teams.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      const Text('Or tap your franchise:', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                      const Text('Or tap your franchise:', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10)),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 4,
@@ -3240,7 +3240,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               '${t.name} ${t.ownerMobileNumber.isNotEmpty ? "(${t.ownerMobileNumber})" : ""}',
                               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                             ),
-                            backgroundColor: const Color(0xFF0F172A),
+                            backgroundColor: Colors.white,
                             side: BorderSide(color: t.primaryColor.withValues(alpha: 0.6)),
                             onPressed: () {
                               setDialogState(() {
@@ -3255,19 +3255,19 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     ],
                   ] else ...[
                     // HOST LOGIN
-                    const Text('Enter Host PIN or Tournament Passcode / Room ID to operate spinning wheel, manage floor, and hammer sold.', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                    const Text('Enter Host PIN or Tournament Passcode / Room ID to operate spinning wheel, manage floor, and hammer sold.', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                     const SizedBox(height: 12),
                     TextField(
                       controller: hostPassController,
                       obscureText: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                       decoration: InputDecoration(
                         labelText: 'Host PIN / Tournament Passcode',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                         hintText: 'admin123 or tournament passcode',
                         prefixIcon: const Icon(Icons.security, color: Color(0xFF34D399), size: 18),
                         filled: true,
-                        fillColor: const Color(0xFF0F172A),
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -3286,7 +3286,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -3347,13 +3347,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
             Icon(Icons.group_add, color: Colors.amber, size: 20),
             SizedBox(width: 8),
-            Text('Add Franchise Team', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Add Franchise Team', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -3361,13 +3361,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
           children: [
             TextField(
               controller: teamNameCtrl,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Franchise Team Name',
-                labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 hintText: 'e.g. Royal Warriors',
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
+                fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onChanged: (val) {
@@ -3382,13 +3382,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             const SizedBox(height: 10),
             TextField(
               controller: shortNameCtrl,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Short Code',
-                labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                labelStyle: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 hintText: 'e.g. RW',
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
+                fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
@@ -3397,7 +3397,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -3430,7 +3430,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
@@ -3441,12 +3441,12 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
         ),
         content: const Text(
           'This will reset all franchise purses in this auction back to 100%, set squad counts to 0, and clear bought players so bidding can be restarted from scratch.',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -3478,7 +3478,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
               children: const [
@@ -3487,7 +3487,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 Expanded(
                   child: Text(
                     'Franchise Owner Permissions & PINs',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -3501,13 +3501,13 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                   children: [
                     const Text(
                       'As Auction Host, you give permission for franchise owners to bid. Share their unique Team Code & PIN, or manually check them in below.',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: GlassTokens.inkPrimary,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -3515,7 +3515,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         children: [
                           Text(
                             'Franchises: ${safe8Teams.length}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 11),
                           ),
                           Text(
                             'Approved to Bid: ${auction.joinedTeamIds.length} / ${safe8Teams.length}',
@@ -3535,10 +3535,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: GlassTokens.inkPrimary,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isConnected ? const Color(0xFF059669) : Colors.white12,
+                            color: isConnected ? const Color(0xFF059669) : GlassTokens.glassHairline,
                           ),
                         ),
                         child: Row(
@@ -3554,7 +3554,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                 children: [
                                   Text(
                                     team.name,
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
@@ -3564,7 +3564,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   const SizedBox(height: 2),
                                   Text(
                                     'Purse: ₹${(team.purseRemaining / 100000).toStringAsFixed(1)}L • Squad: ${team.squadCount}/${team.minSquadRequirement}',
-                                    style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                    style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 10),
                                   ),
                                 ],
                               ),
@@ -3618,7 +3618,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                 ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Close', style: TextStyle(color: Colors.white70)),
+                child: const Text('Close', style: TextStyle(color: GlassTokens.inkSecondary)),
               ),
             ],
           );
@@ -3650,10 +3650,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isSold
-              ? [const Color(0xFF065F46), const Color(0xFF0F172A)]
+              ? [const Color(0xFF065F46), Colors.white]
               : (isInAuction
-                  ? [const Color(0xFF991B1B), const Color(0xFF0F172A)]
-                  : [const Color(0xFF1E3A8A), const Color(0xFF0F172A)]),
+                  ? [const Color(0xFF991B1B), Colors.white]
+                  : [const Color(0xFF1E3A8A), Colors.white]),
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -3678,7 +3678,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: GlassTokens.inkPrimary, width: 2),
                 ),
                 child: CircleAvatar(
                   radius: 26,
@@ -3695,7 +3695,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         Flexible(
                           child: Text(
                             player.fullName,
-                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -3714,7 +3714,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                     const SizedBox(height: 3),
                     Text(
                       '${player.roleString} • ${player.battingStyle} • ${player.city.isNotEmpty ? player.city : "Domestic"} • Base: ${currencyFormat.format(player.basePrice)}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -3730,7 +3730,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white12),
+              border: Border.all(color: GlassTokens.glassHairline),
             ),
             child: isSold
                 ? Column(
@@ -3752,7 +3752,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           const SizedBox(width: 8),
                           Text(
                             'Franchise: ${winningTeam?.name ?? "Winning Franchise"}',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -3769,7 +3769,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           const SizedBox(width: 4),
                           Text(
                             'Automated WhatsApp notification sent to ${player.mobileNumber}',
-                            style: const TextStyle(color: Colors.white60, fontSize: 10),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                           ),
                         ],
                       ),
@@ -3794,7 +3794,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           const SizedBox(height: 4),
                           Text(
                             'Leader: ${auction.highBidderTeamId != null ? (db.teams.where((t) => t.id == auction.highBidderTeamId).firstOrNull?.name ?? "Bid Placed") : "Base Price (Opening Bid)"}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           ),
                         ],
                       )
@@ -3831,7 +3831,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return DefaultTabController(
@@ -3859,7 +3859,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                           child: Container(
                             width: 36,
                             height: 4,
-                            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                            decoration: BoxDecoration(color: GlassTokens.glassHairline, borderRadius: BorderRadius.circular(2)),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -3870,11 +3870,11 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                               children: const [
                                 Icon(Icons.people_alt, color: Color(0xFF34D399), size: 20),
                                 SizedBox(width: 8),
-                                Text('Players Hub', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                                Text('Players Hub', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
                               ],
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white54),
+                              icon: const Icon(Icons.close, color: GlassTokens.inkSecondary),
                               onPressed: () => Navigator.pop(ctx),
                             ),
                           ],
@@ -3884,14 +3884,14 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                         // Tab Bar: Available / Sold / Unsold
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TabBar(
                             indicatorColor: const Color(0xFF009270),
                             indicatorWeight: 3,
                             labelColor: const Color(0xFF34D399),
-                            unselectedLabelColor: Colors.white60,
+                            unselectedLabelColor: GlassTokens.inkSecondary,
                             tabs: [
                               Tab(text: 'Available (${availableLots.length})'),
                               Tab(text: 'Sold (${soldLots.length})'),
@@ -3916,9 +3916,9 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                   return Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1E293B),
+                                      color: GlassTokens.bgLightBlue,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.white12),
+                                      border: Border.all(color: GlassTokens.glassHairline),
                                     ),
                                     child: Row(
                                       children: [
@@ -3928,10 +3928,10 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text(player?.fullName ?? 'Player #${lot.lotNumber}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                              Text(player?.fullName ?? 'Player #${lot.lotNumber}', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                                               Text(
                                                 '${player?.roleString ?? lot.category} • Base: ${currencyFormat.format(lot.basePrice)}',
-                                                style: const TextStyle(color: Colors.white60, fontSize: 11),
+                                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                               ),
                                             ],
                                           ),
@@ -3961,7 +3961,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                               // 2. SOLD PLAYERS (WITH REVERSE SALE OPTION)
                               soldLots.isEmpty
-                                  ? const Center(child: Text('No players sold yet.', style: TextStyle(color: Colors.white54)))
+                                  ? const Center(child: Text('No players sold yet.', style: TextStyle(color: GlassTokens.inkSecondary)))
                                   : ListView.separated(
                                       controller: scrollController,
                                       itemCount: soldLots.length,
@@ -3975,7 +3975,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                         return Container(
                                           padding: const EdgeInsets.all(10),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF1E293B),
+                                            color: GlassTokens.bgLightBlue,
                                             borderRadius: BorderRadius.circular(12),
                                             border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.5)),
                                           ),
@@ -3990,7 +3990,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                                     Row(
                                                       children: [
                                                         Flexible(
-                                                          child: Text(player?.fullName ?? 'Player', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                          child: Text(player?.fullName ?? 'Player', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                                                         ),
                                                         const SizedBox(width: 6),
                                                         Text('₹${(soldPrice / 100000).toStringAsFixed(1)}L', style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w900, fontSize: 12)),
@@ -4002,7 +4002,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                                           CircleAvatar(radius: 6, backgroundImage: NetworkImage(team.logoUrl)),
                                                           const SizedBox(width: 4),
                                                         ],
-                                                        Text('${team?.name ?? "Sold Team"} • Rnd ${lot.round}', style: const TextStyle(color: Colors.white60, fontSize: 10.5)),
+                                                        Text('${team?.name ?? "Sold Team"} • Rnd ${lot.round}', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5)),
                                                       ],
                                                     ),
                                                   ],
@@ -4034,7 +4034,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
 
                               // 3. UNSOLD PLAYERS (WITH ADVANCE ROUND TRIGGER)
                               unsoldLots.isEmpty
-                                  ? const Center(child: Text('No unsold players.', style: TextStyle(color: Colors.white54)))
+                                  ? const Center(child: Text('No unsold players.', style: TextStyle(color: GlassTokens.inkSecondary)))
                                   : Column(
                                       children: [
                                         if (isAdmin) ...[
@@ -4053,7 +4053,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                                 Expanded(
                                                   child: Text(
                                                     '${unsoldLots.length} Unsold. Advance to Round ${auction.currentRound + 1}?',
-                                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold),
                                                   ),
                                                 ),
                                                 ElevatedButton(
@@ -4087,7 +4087,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                               return Container(
                                                 padding: const EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF1E293B),
+                                                  color: GlassTokens.bgLightBlue,
                                                   borderRadius: BorderRadius.circular(12),
                                                   border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
                                                 ),
@@ -4099,7 +4099,7 @@ class _AuctionScreenState extends State<AuctionScreen> with SingleTickerProvider
                                                       child: Column(
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
-                                                          Text(player?.fullName ?? 'Player', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                          Text(player?.fullName ?? 'Player', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                                                           Text('Base: ${currencyFormat.format(lot.basePrice)} • Unsold', style: const TextStyle(color: Colors.redAccent, fontSize: 10.5)),
                                                         ],
                                                       ),
@@ -4144,13 +4144,13 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: GlassTokens.bgLightBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: const [
               Icon(Icons.file_upload, color: Color(0xFF38BDF8), size: 22),
               SizedBox(width: 8),
-              Text('Bulk Player Import (CSV)', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Bulk Player Import (CSV)', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
           content: SingleChildScrollView(
@@ -4160,26 +4160,26 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
               children: [
                 const Text(
                   'Paste CSV / Excel lines with player details. Duplicates by name or mobile will be skipped automatically.',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 ),
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
                     onPressed: () => csvController.text = sampleCsv,
-                    icon: const Icon(Icons.flash_on, size: 14, color: Colors.amberAccent),
-                    label: const Text('Paste Sample CSV', style: TextStyle(color: Colors.amberAccent, fontSize: 11)),
+                    icon: const Icon(Icons.flash_on, size: 14, color: Color(0xFFD97706)),
+                    label: const Text('Paste Sample CSV', style: TextStyle(color: Color(0xFFD97706), fontSize: 11)),
                   ),
                 ),
                 TextField(
                   controller: csvController,
                   maxLines: 8,
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontFamily: 'monospace'),
                   decoration: InputDecoration(
                     hintText: 'FullName, Mobile, Role, BasePrice, Category...',
-                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 11),
+                    hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -4189,7 +4189,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -4225,7 +4225,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(
@@ -4250,11 +4250,11 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                             children: const [
                               Icon(Icons.chat_bubble, color: Color(0xFF22C55E), size: 20),
                               SizedBox(width: 8),
-                              Text('WhatsApp Notifications', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('WhatsApp Notifications', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white54),
+                            icon: const Icon(Icons.close, color: GlassTokens.inkSecondary),
                             onPressed: () => Navigator.pop(ctx),
                           ),
                         ],
@@ -4288,7 +4288,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                 child: Text(
                                   'No notifications sent yet. Whenever a player is SOLD, congratulatory messages are dispatched automatically.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                                 ),
                               )
                             : ListView.separated(
@@ -4302,7 +4302,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                   return Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1E293B),
+                                      color: GlassTokens.bgLightBlue,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: isSent ? const Color(0xFF22C55E).withValues(alpha: 0.4) : Colors.amber.withValues(alpha: 0.4)),
                                     ),
@@ -4314,7 +4314,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                           children: [
                                             Text(
                                               'To: ${n.recipientName} (${n.recipientMobile})',
-                                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                                             ),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -4324,17 +4324,17 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                               ),
                                               child: Text(
                                                 n.status.name.toUpperCase(),
-                                                style: TextStyle(color: isSent ? const Color(0xFF86EFAC) : Colors.amberAccent, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                                style: TextStyle(color: isSent ? const Color(0xFF86EFAC) : Color(0xFFD97706), fontSize: 9.5, fontWeight: FontWeight.bold),
                                               ),
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(n.messageContent, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                        Text(n.messageContent, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                                         const SizedBox(height: 4),
                                         Text(
                                           DateFormat('dd MMM, hh:mm:ss a').format(n.timestamp),
-                                          style: const TextStyle(color: Colors.white38, fontSize: 9.5),
+                                          style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 9.5),
                                         ),
                                       ],
                                     ),
@@ -4363,7 +4363,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return DraggableScrollableSheet(
@@ -4381,7 +4381,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                     child: Container(
                       width: 36,
                       height: 4,
-                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                      decoration: BoxDecoration(color: GlassTokens.glassHairline, borderRadius: BorderRadius.circular(2)),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -4392,11 +4392,11 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                         children: const [
                           Icon(Icons.assessment, color: Colors.amber, size: 20),
                           SizedBox(width: 8),
-                          Text('Auction Report & Analytics', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('Auction Report & Analytics', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white54),
+                        icon: const Icon(Icons.close, color: GlassTokens.inkSecondary),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -4409,11 +4409,11 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(10)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('TOTAL SPENDING', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                              const Text('TOTAL SPENDING', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
                               Text(currencyFormat.format(report['totalSpent'] ?? 0), style: const TextStyle(color: Color(0xFF34D399), fontSize: 14, fontWeight: FontWeight.w900)),
                             ],
                           ),
@@ -4423,12 +4423,12 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(10)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('PLAYERS SOLD', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
-                              Text('${report['soldLots']} / ${report['totalLots']}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900)),
+                              const Text('PLAYERS SOLD', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
+                              Text('${report['soldLots']} / ${report['totalLots']}', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.w900)),
                             ],
                           ),
                         ),
@@ -4437,12 +4437,12 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(10)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('TOP BUY', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
-                              Text(report['topPlayerName'] ?? 'N/A', style: const TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.w900), overflow: TextOverflow.ellipsis),
+                              const Text('TOP BUY', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
+                              Text(report['topPlayerName'] ?? 'N/A', style: const TextStyle(color: Color(0xFFD97706), fontSize: 12, fontWeight: FontWeight.w900), overflow: TextOverflow.ellipsis),
                             ],
                           ),
                         ),
@@ -4451,7 +4451,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                   ),
                   const SizedBox(height: 14),
 
-                  const Text('FRANCHISE SPENDING BREAKDOWN', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('FRANCHISE SPENDING BREAKDOWN', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
 
                   Expanded(
@@ -4464,7 +4464,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                         return Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -4473,8 +4473,8 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(t['name'] ?? 'Team', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                                    Text('Owner: ${t['owner']} • Squad: ${t['squadCount']} players', style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                                    Text(t['name'] ?? 'Team', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                                    Text('Owner: ${t['owner']} • Squad: ${t['squadCount']} players', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                                   ],
                                 ),
                               ),
@@ -4500,10 +4500,10 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                       showDialog(
                         context: context,
                         builder: (c) => AlertDialog(
-                          backgroundColor: const Color(0xFF1E293B),
-                          title: const Text('Exported CSV Preview', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          backgroundColor: GlassTokens.bgLightBlue,
+                          title: const Text('Exported CSV Preview', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
                           content: SingleChildScrollView(
-                            child: SelectableText(csv, style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'monospace')),
+                            child: SelectableText(csv, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontFamily: 'monospace')),
                           ),
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(c), child: const Text('Close')),
@@ -4531,7 +4531,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         final logs = db.auditLogs.where((l) => l.auctionId == auction.id || l.category == 'auction').toList();
@@ -4554,11 +4554,11 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                         children: const [
                           Icon(Icons.history, color: Colors.cyanAccent, size: 20),
                           SizedBox(width: 8),
-                          Text('Immutable Audit Trail', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('Immutable Audit Trail', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white54),
+                        icon: const Icon(Icons.close, color: GlassTokens.inkSecondary),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -4567,7 +4567,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
 
                   Expanded(
                     child: logs.isEmpty
-                        ? const Center(child: Text('No audit logs recorded yet.', style: TextStyle(color: Colors.white54)))
+                        ? const Center(child: Text('No audit logs recorded yet.', style: TextStyle(color: GlassTokens.inkSecondary)))
                         : ListView.separated(
                             controller: scrollController,
                             itemCount: logs.length,
@@ -4577,7 +4577,7 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                               return Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E293B),
+                                  color: GlassTokens.bgLightBlue,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Column(
@@ -4594,13 +4594,13 @@ Rinku Singh, 9800000005, batsman, 1000000, emerging, Left Hand Bat, Off Break, 2
                                           ),
                                           child: Text(log.action, style: const TextStyle(color: Colors.cyanAccent, fontSize: 9.5, fontWeight: FontWeight.bold)),
                                         ),
-                                        Text(DateFormat('hh:mm:ss a').format(log.timestamp), style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                                        Text(DateFormat('hh:mm:ss a').format(log.timestamp), style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 9)),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(log.details, style: const TextStyle(color: Colors.white, fontSize: 11)),
+                                    Text(log.details, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11)),
                                     const SizedBox(height: 2),
-                                    Text('By: ${log.performedBy} (${log.role.isNotEmpty ? log.role : "User"})', style: const TextStyle(color: Colors.white54, fontSize: 9.5)),
+                                    Text('By: ${log.performedBy} (${log.role.isNotEmpty ? log.role : "User"})', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9.5)),
                                   ],
                                 ),
                               );
@@ -4630,8 +4630,8 @@ class AuctionWheelPainter extends CustomPainter {
 
     // High-end dark stadium metallic palette with subtle sheen
     final segmentColors = [
-      const Color(0xFF0F172A),
-      const Color(0xFF1E293B),
+      Colors.white,
+      GlassTokens.bgLightBlue,
       const Color(0xFF131D31),
       const Color(0xFF1A2642),
       const Color(0xFF111C2E),

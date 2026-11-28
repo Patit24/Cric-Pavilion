@@ -165,7 +165,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
         backgroundColor: const Color(0xCC0B1120),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white70),
+          icon: const Icon(Icons.arrow_back, color: GlassTokens.inkSecondary),
           onPressed: () {
             if (_step == 2 && _registrationResult == null) {
               setState(() => _step = 1);
@@ -178,7 +178,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
         ),
         title: const Text(
           'Join Auction by PIN',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
         ),
       ),
       body: SafeArea(
@@ -230,13 +230,13 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           const Text(
             'Team Owner Self-Service Entry',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+            style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
           const Text(
             'Enter the Auction ID and 6-digit PIN provided by your tournament organizer to register your franchise and bid live.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white60, fontSize: 12),
+            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
           ),
           const SizedBox(height: 20),
 
@@ -266,11 +266,11 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           ],
 
           // Auction ID
-          const Text('AUCTION ID OR CODE *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('AUCTION ID OR CODE *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           TextField(
             controller: _idController,
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
             decoration: NeoGlassTheme.inputDecoration(
               hintText: 'e.g. ROOM-7842 or AUCTION-01',
               prefixIcon: Icons.fingerprint,
@@ -279,21 +279,21 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           const SizedBox(height: 14),
 
           // Auction PIN
-          const Text('6-DIGIT AUCTION PIN *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('6-DIGIT AUCTION PIN *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           TextField(
             controller: _pinController,
             obscureText: _obscurePin,
             keyboardType: TextInputType.number,
             maxLength: 6,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
             decoration: NeoGlassTheme.inputDecoration(
               hintText: '••••••',
               prefixIcon: Icons.lock_outline,
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePin ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white54,
+                  color: GlassTokens.inkSecondary,
                   size: 18,
                 ),
                 onPressed: () => setState(() => _obscurePin = !_obscurePin),
@@ -348,7 +348,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
                   children: [
                     Text(
                       auc.title,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.w900),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
@@ -369,14 +369,14 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
             decoration: BoxDecoration(
               color: isAuth ? const Color(0x3310B981) : const Color(0x33F59E0B),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isAuth ? NeoGlassTheme.neonEmerald : Colors.amberAccent),
+              border: Border.all(color: isAuth ? NeoGlassTheme.neonEmerald : Color(0xFFD97706)),
             ),
             child: Row(
               children: [
                 Icon(
                   isAuth ? Icons.verified : Icons.account_circle_outlined,
                   size: 16,
-                  color: isAuth ? NeoGlassTheme.neonEmerald : Colors.amberAccent,
+                  color: isAuth ? NeoGlassTheme.neonEmerald : Color(0xFFD97706),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -385,7 +385,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
                         ? 'Authenticated as: ${db.currentUser!.fullName} (${db.currentUser!.email})'
                         : 'Sign in required to link this team to your account.',
                     style: TextStyle(
-                      color: isAuth ? Colors.white : Colors.amberAccent,
+                      color: isAuth ? Colors.white : Color(0xFFD97706),
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -401,7 +401,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
                         ),
                       );
                     },
-                    child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                    child: const Text('Sign In', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 11)),
                   ),
               ],
             ),
@@ -423,11 +423,11 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           ],
 
           // Team Name Input
-          const Text('FRANCHISE / TEAM NAME *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('FRANCHISE / TEAM NAME *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           TextField(
             controller: _teamNameController,
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
             decoration: NeoGlassTheme.inputDecoration(
               hintText: 'e.g. Royal Challengers Barasat',
               prefixIcon: Icons.groups,
@@ -436,11 +436,11 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           const SizedBox(height: 12),
 
           // Short Code Input
-          const Text('TEAM SHORT CODE *', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('TEAM SHORT CODE *', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           TextField(
             controller: _teamShortCodeController,
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
             decoration: NeoGlassTheme.inputDecoration(
               hintText: 'e.g. RCB or BBL (max 4 letters)',
               prefixIcon: Icons.tag,
@@ -449,7 +449,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           const SizedBox(height: 14),
 
           // Team Primary Color
-          const Text('TEAM THEME COLOR', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const Text('TEAM THEME COLOR', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 10,
@@ -484,7 +484,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
             children: [
               TextButton(
                 onPressed: () => setState(() => _step = 1),
-                child: const Text('← Re-enter PIN', style: TextStyle(color: Colors.white60)),
+                child: const Text('← Re-enter PIN', style: TextStyle(color: GlassTokens.inkSecondary)),
               ),
               const Spacer(),
               NeoGlassButton(
@@ -536,7 +536,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
           Text(
             isAuto ? 'Team Approved & Joined!' : 'Registration Submitted!',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           Text(
@@ -544,7 +544,7 @@ class _JoinAuctionScreenState extends State<JoinAuctionScreen> {
                 ? 'Your franchise has been added to ${_validatedAuction!.title}. You have full team owner bidding access with ₹${(_validatedAuction!.maxPursePerTeam / 10000000).toStringAsFixed(1)} Cr purse.'
                 : 'Your franchise registration has been sent to the host of ${_validatedAuction!.title} for verification. Once approved, your team will appear in the bidding lobby.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
           ),
           const SizedBox(height: 24),
 

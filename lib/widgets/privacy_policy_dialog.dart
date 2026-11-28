@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/neo_glass_theme.dart';
 
 class PrivacyPolicyDialog extends StatelessWidget {
   const PrivacyPolicyDialog({super.key});
@@ -13,10 +14,10 @@ class PrivacyPolicyDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF1E293B)),
+        side: const BorderSide(color: GlassTokens.bgLightBlue),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 550, maxHeight: 600),
@@ -36,7 +37,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       Text(
                         'Privacy Policy',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: GlassTokens.inkPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -44,7 +45,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white60, size: 20),
+                    icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -52,9 +53,9 @@ class PrivacyPolicyDialog extends StatelessWidget {
               const SizedBox(height: 4),
               const Text(
                 'Effective Date: April 2026 • Google Play Compliant',
-                style: TextStyle(color: Colors.white38, fontSize: 11),
+                style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
               ),
-              const Divider(color: Colors.white12, height: 20),
+              const Divider(color: GlassTokens.glassHairline, height: 20),
 
               // Content
               Expanded(
@@ -137,7 +138,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
   Widget _buildParagraph(String text) {
     return Text(
       text,
-      style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.45),
+      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, height: 1.45),
     );
   }
 
@@ -151,7 +152,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.4),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5, height: 1.4),
             ),
           ),
         ],

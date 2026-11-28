@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 import '../../widgets/role_switcher_chip.dart';
 import '../../widgets/app_animations.dart';
 import 'scorer/scorer_screen.dart';
@@ -100,26 +101,25 @@ class _HomeScreenState extends State<HomeScreen> {
     final filterTitle = _getFilterTitle(db);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF009270), // Cricbuzz Signature Green
-        elevation: 1,
+      backgroundColor: Colors.transparent,
+      appBar: GlassNavbar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(6),
+                gradient: GlassTokens.accentGradient,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: GlassTokens.softShadow(glow: GlassTokens.electricBlue),
               ),
               child: const Text(
                 'CRICPAVILION',
                 style: TextStyle(
-                  color: Color(0xFF009270),
-                  fontSize: 13,
+                  color: Colors.white,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: -0.3,
+                  letterSpacing: 0.2,
                 ),
               ),
             ),
@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const Text(
               'PRO',
               style: TextStyle(
-                color: Colors.amberAccent,
+                color: GlassTokens.indigo,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Multi-Device Cloud Sync
           IconButton(
             tooltip: 'Sync with Mobile / Central Server',
-            icon: const Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 21),
+            icon: const Icon(Icons.cloud_sync, color: GlassTokens.mintGreen, size: 21),
             onPressed: () {
               CloudSyncDialog.show(context);
             },
@@ -149,15 +149,15 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             child: ElevatedButton.icon(
               onPressed: () => _openQuickMatch(context, db),
-              icon: const Icon(Icons.flash_on, color: Colors.black, size: 14),
+              icon: const Icon(Icons.flash_on, color: Colors.white, size: 14),
               label: const Text(
                 'QUICK MATCH',
-                style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900),
+                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00F5A0),
+                backgroundColor: GlassTokens.electricBlue,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 elevation: 0,
               ),
             ),
@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Activity & Audit Log Access
           IconButton(
             tooltip: 'System Audit Log',
-            icon: const Icon(Icons.receipt_long, color: Colors.white, size: 20),
+            icon: const Icon(Icons.receipt_long, color: GlassTokens.inkSecondary, size: 20),
             onPressed: () {
               showDialog(
                 context: context,

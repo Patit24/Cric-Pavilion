@@ -29,7 +29,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
         backgroundColor: NeoGlassTheme.bgSurface,
         elevation: 0,
         shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
-        title: const Text('Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
+        title: const Text('Standings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: GlassTokens.inkPrimary)),
         actions: [
           const RoleSwitcherChip(compact: true),
           const SizedBox(width: 4),
@@ -63,9 +63,9 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                       selected: isSelected,
                       label: Text('${t.shortName} (${t.overs} Ov)'),
                       selectedColor: const Color(0xFF059669),
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: GlassTokens.bgLightBlue,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
+                        color: isSelected ? Colors.white : GlassTokens.inkSecondary,
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
                       ),
@@ -111,9 +111,9 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(activeTourn.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                  Text(activeTourn.name, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
-                  Text('${activeTourn.overs} Overs T20 • ${activeTourn.location} • 8 Franchises', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('${activeTourn.overs} Overs T20 • ${activeTourn.location} • 8 Franchises', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -124,14 +124,14 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                               ? const Color(0xFF059669).withValues(alpha: 0.3)
                               : isUnlocked
                                   ? const Color(0xFF0284C7).withValues(alpha: 0.3)
-                                  : Colors.white10,
+                                  : GlassTokens.glassHairline,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isCreator
                                 ? const Color(0xFF34D399)
                                 : isUnlocked
                                     ? const Color(0xFF38BDF8)
-                                    : Colors.white24,
+                                    : GlassTokens.glassHairline,
                           ),
                         ),
                         child: Row(
@@ -143,7 +143,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                                   ? const Color(0xFF34D399)
                                   : isUnlocked
                                       ? const Color(0xFF38BDF8)
-                                      : Colors.white70,
+                                      : GlassTokens.inkSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -157,7 +157,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                                     ? const Color(0xFF34D399)
                                     : isUnlocked
                                         ? const Color(0xFF38BDF8)
-                                        : Colors.white70,
+                                        : GlassTokens.inkSecondary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -186,7 +186,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
 
             // Standings Card Table
             Card(
-              color: const Color(0xFF1E293B),
+              color: GlassTokens.bgLightBlue,
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Column(
@@ -195,17 +195,17 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF0F172A),
+                      color: GlassTokens.inkPrimary,
                       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: const Row(
                       children: [
-                        Expanded(flex: 5, child: Text('Team', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 1, child: Text('P', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 1, child: Text('W', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 1, child: Text('L', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 2, child: Text('PTS', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 2, child: Text('NRR', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 5, child: Text('Team', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 1, child: Text('P', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 1, child: Text('W', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 1, child: Text('L', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 2, child: Text('PTS', textAlign: TextAlign.center, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 2, child: Text('NRR', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold))),
                       ],
                     ),
                   ),
@@ -223,7 +223,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                             flex: 5,
                             child: Row(
                               children: [
-                                Text('$rank', style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
+                                Text('$rank', style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11, fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 8),
                                 CircleAvatar(
                                   radius: 10,
@@ -233,18 +233,18 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                                 Expanded(
                                   child: Text(
                                     s.teamName,
-                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          Expanded(flex: 1, child: Text('${s.matchesPlayed}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                          Expanded(flex: 1, child: Text('${s.matchesPlayed}', textAlign: TextAlign.center, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                           Expanded(flex: 1, child: Text('${s.won}', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold))),
                           Expanded(flex: 1, child: Text('${s.lost}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 11))),
                           Expanded(flex: 2, child: Text('${s.points}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text(s.netRunRate.toStringAsFixed(3), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                          Expanded(flex: 2, child: Text(s.netRunRate.toStringAsFixed(3), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                         ],
                       ),
                     );
@@ -268,12 +268,12 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             title: Row(
               children: const [
                 Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 20),
                 SizedBox(width: 8),
-                Text('Unlock Tournament Scoring', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('Unlock Tournament Scoring', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
             content: Column(
@@ -282,17 +282,17 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
               children: [
                 Text(
                   'Enter the Tournament ID/Room ID and Passcode set by the tournament organizer to unlock full scoring control for all matches in ${tourn.name}.',
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: roomController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Tournament / Room ID',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -300,13 +300,13 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
                 TextField(
                   controller: passController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Host Passcode / PIN',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                     hintText: 'e.g. ${tourn.passcode}',
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
@@ -317,7 +317,7 @@ class _TournamentStandingsScreenState extends State<TournamentStandingsScreen> {
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary))),
               ElevatedButton(
                 onPressed: () {
                   final ok = db.unlockTournamentScoring(

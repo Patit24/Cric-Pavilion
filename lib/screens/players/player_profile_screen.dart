@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../scorer/full_scorecard_dialog.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final String playerId;
@@ -30,13 +31,13 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
     if (player == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF070B14),
+        backgroundColor: GlassTokens.bgIcyWhite,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF0F172A),
+          backgroundColor: Colors.white,
           title: const Text('Player Profile'),
         ),
         body: const Center(
-          child: Text('Player not found', style: TextStyle(color: Colors.white70)),
+          child: Text('Player not found', style: TextStyle(color: GlassTokens.inkSecondary)),
         ),
       );
     }
@@ -50,9 +51,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     final matchLogs = db.getPlayerMatchLogs(player.id);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -60,7 +61,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             Flexible(
               child: Text(
                 widget.isMyProfile ? 'My Profile & Stats' : player.fullName,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -119,7 +120,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   margin: const EdgeInsets.only(bottom: 14),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: GlassTokens.inkPrimary,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.35)),
                     boxShadow: [
@@ -137,7 +138,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                       Expanded(
                         child: Text(
                           'Search player directory (Name, ID e.g. PLY-2026, or mobile)...',
-                          style: TextStyle(color: Colors.white70, fontSize: 12.5),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12.5),
                         ),
                       ),
                       Icon(Icons.arrow_forward_ios, color: Color(0xFF00F5A0), size: 12),
@@ -150,9 +151,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: GlassTokens.inkPrimary,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: GlassTokens.glassHairline),
                 boxShadow: [
                   BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10),
                 ],
@@ -173,7 +174,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                               right: 0,
                               child: CircleAvatar(
                                 radius: 10,
-                                backgroundColor: Color(0xFF070B14),
+                                backgroundColor: GlassTokens.bgIcyWhite,
                                 child: Icon(Icons.verified, color: Color(0xFF00F5A0), size: 16),
                               ),
                             ),
@@ -186,16 +187,16 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                           children: [
                             Text(
                               player.fullName,
-                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               '${player.roleString} • ${player.battingStyle}',
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                             ),
                             Text(
                               player.bowlingStyle,
-                              style: const TextStyle(color: Colors.white54, fontSize: 11),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                             ),
                             const SizedBox(height: 6),
                             Row(
@@ -208,14 +209,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                                   ),
                                   child: Text(
                                     currentTeam?.name ?? 'Free Agent',
-                                    style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: Color(0xFFD97706), fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 if (player.mobileNumber.isNotEmpty)
                                   Text(
                                     '📱 •••• ${player.mobileNumber.length >= 4 ? player.mobileNumber.substring(player.mobileNumber.length - 4) : player.mobileNumber}',
-                                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                                    style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                                   ),
                               ],
                             ),
@@ -226,14 +227,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   ),
                   if (player.teamHistory.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Divider(color: Colors.white12),
+                    const Divider(color: GlassTokens.glassHairline),
                     const SizedBox(height: 6),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Career Teams: ',
-                          style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         Expanded(
                           child: Wrap(
@@ -243,12 +244,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1E293B),
+                                  color: GlassTokens.bgLightBlue,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   '${th.teamName} (${th.year})',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                 ),
                               );
                             }).toList(),
@@ -336,7 +337,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             _buildStatSection(
               title: 'Fielding Record',
               icon: Icons.pan_tool,
-              iconColor: Colors.amberAccent,
+              iconColor: Color(0xFFD97706),
               child: Row(
                 children: [
                   _buildStatTile('Catches', '${stats.catches}'),
@@ -351,16 +352,16 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             // 6. Match-by-Match History
             Row(
               children: [
-                const Icon(Icons.history, color: Colors.white70, size: 18),
+                const Icon(Icons.history, color: GlassTokens.inkSecondary, size: 18),
                 const SizedBox(width: 8),
                 const Text(
                   'Match Performance Log',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 const Spacer(),
                 Text(
                   '${matchLogs.length} Match(es)',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -370,13 +371,13 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
                   child: Text(
                     'No completed match performances recorded yet.',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                   ),
                 ),
               )
@@ -396,14 +397,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF00F5A0).withValues(alpha: 0.2) : const Color(0xFF0F172A),
+          color: isSelected ? const Color(0xFF00F5A0).withValues(alpha: 0.2) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : Colors.white12),
+          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF00F5A0) : Colors.white70,
+            color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -421,9 +422,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: GlassTokens.inkPrimary,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: GlassTokens.glassHairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +435,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
           ),
@@ -451,7 +452,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 2),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: GlassTokens.bgLightBlue,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -467,7 +468,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(color: Colors.white60, fontSize: 10),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -482,9 +483,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: GlassTokens.inkPrimary,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: GlassTokens.glassHairline),
       ),
       child: InkWell(
         onTap: () {
@@ -503,24 +504,24 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               children: [
                 Text(
                   '${log.date.day}/${log.date.month}/${log.date.year}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   log.matchName,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: log.isWin ? const Color(0x3300F5A0) : Colors.white10,
+                    color: log.isWin ? const Color(0x3300F5A0) : GlassTokens.glassHairline,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     log.matchResult,
                     style: TextStyle(
-                      color: log.isWin ? const Color(0xFF00F5A0) : Colors.white70,
+                      color: log.isWin ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -531,7 +532,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             const SizedBox(height: 6),
             Text(
               'vs ${log.opponentTeamName}',
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Row(
@@ -549,7 +550,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 if (log.catches > 0)
                   Text(
                     '🧤 ${log.catches} catch   ',
-                    style: const TextStyle(color: Colors.amberAccent, fontSize: 11),
+                    style: const TextStyle(color: Color(0xFFD97706), fontSize: 11),
                   ),
               ],
             ),

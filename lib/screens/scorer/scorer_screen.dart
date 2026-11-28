@@ -49,7 +49,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
           backgroundColor: NeoGlassTheme.bgSurface,
           elevation: 0,
           shape: const Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
-          title: const Text('Live Scorer Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+          title: const Text('Live Scorer Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: GlassTokens.inkPrimary)),
         ),
         body: Center(
           child: Padding(
@@ -64,7 +64,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 const Text(
                   'Organize a tournament to schedule matches, conduct toss, and score live ball-by-ball.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -172,9 +172,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   value: selectedMatchId,
                   isExpanded: true,
                   isDense: true,
-                  dropdownColor: const Color(0xFF0F172A),
+                  dropdownColor: Colors.white,
                   icon: const Icon(Icons.keyboard_arrow_down, color: NeoGlassTheme.neonEmerald, size: 18),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                   items: db.matches.map((m) {
                     return DropdownMenuItem<String>(
                       value: m.id,
@@ -204,7 +204,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 Icon(
                   isScorer ? Icons.check_circle : Icons.lock_outline,
                   size: 11,
-                  color: isScorer ? NeoGlassTheme.neonEmerald : Colors.amberAccent,
+                  color: isScorer ? NeoGlassTheme.neonEmerald : Color(0xFFD97706),
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -213,7 +213,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         ? 'Scorer: ${currentRoom?.id ?? "ROOM-01"}'
                         : 'Spectator Mode',
                     style: TextStyle(
-                      color: isScorer ? NeoGlassTheme.neonEmerald : Colors.amberAccent,
+                      color: isScorer ? NeoGlassTheme.neonEmerald : Color(0xFFD97706),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -235,7 +235,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ),
           IconButton(
             tooltip: 'Team Squads & Mobile Numbers',
-            icon: const Icon(Icons.people_alt, color: Colors.white70, size: 18),
+            icon: const Icon(Icons.people_alt, color: GlassTokens.inkSecondary, size: 18),
             padding: const EdgeInsets.all(6),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () {
@@ -251,9 +251,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
           ),
           // Overflow-proof Secondary Actions Popup Menu
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+            icon: const Icon(Icons.more_vert, color: GlassTokens.inkPrimary, size: 20),
             tooltip: 'Match Options',
-            color: const Color(0xFF1E293B),
+            color: GlassTokens.bgLightBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onSelected: (value) {
               switch (value) {
@@ -349,9 +349,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 value: 'scorecard',
                 child: Row(
                   children: [
-                    Icon(Icons.table_chart, color: Colors.white70, size: 17),
+                    Icon(Icons.table_chart, color: GlassTokens.inkSecondary, size: 17),
                     SizedBox(width: 10),
-                    Text('Full Scorecard', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    Text('Full Scorecard', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13)),
                   ],
                 ),
               ),
@@ -359,9 +359,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 value: 'tournament',
                 child: Row(
                   children: [
-                    Icon(Icons.emoji_events, color: Colors.amberAccent, size: 17),
+                    Icon(Icons.emoji_events, color: Color(0xFFD97706), size: 17),
                     SizedBox(width: 10),
-                    Text('Tournament Hub', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    Text('Tournament Hub', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13)),
                   ],
                 ),
               ),
@@ -371,7 +371,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   children: [
                     Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 17),
                     SizedBox(width: 10),
-                    Text('Cloud Sync (Mobile & Desktop)', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    Text('Cloud Sync (Mobile & Desktop)', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13)),
                   ],
                 ),
               ),
@@ -414,9 +414,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   value: 'reset_match',
                   child: Row(
                     children: [
-                      Icon(Icons.refresh, color: Colors.amberAccent, size: 17),
+                      Icon(Icons.refresh, color: Color(0xFFD97706), size: 17),
                       SizedBox(width: 10),
-                      Text('Reset Match', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      Text('Reset Match', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 13)),
                     ],
                   ),
                 ),
@@ -492,7 +492,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                colors: [GlassTokens.bgLightBlue, Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -537,13 +537,13 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   'Fill Players with Mobile Numbers to Start Scoring',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
                 const Text(
                   'Tournament rules require both teams to enter all playing squad names along with their contact mobile numbers before ball-by-ball scoring can begin.',
-                  style: TextStyle(color: Colors.white70, fontSize: 11.5),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -552,7 +552,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: isAReady ? const Color(0xFF059669) : Colors.redAccent.withValues(alpha: 0.5)),
                   ),
@@ -564,10 +564,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(teamA.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(teamA.name, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
                             Text(
                               '${playersA.length} Players (${playersAWithMobile.length} with mobile)',
-                              style: TextStyle(color: isAReady ? const Color(0xFF34D399) : Colors.white54, fontSize: 11),
+                              style: TextStyle(color: isAReady ? const Color(0xFF34D399) : GlassTokens.inkSecondary, fontSize: 11),
                             ),
                           ],
                         ),
@@ -597,7 +597,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: isBReady ? const Color(0xFF059669) : Colors.redAccent.withValues(alpha: 0.5)),
                   ),
@@ -609,10 +609,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(teamB.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(teamB.name, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
                             Text(
                               '${playersB.length} Players (${playersBWithMobile.length} with mobile)',
-                              style: TextStyle(color: isBReady ? const Color(0xFF34D399) : Colors.white54, fontSize: 11),
+                              style: TextStyle(color: isBReady ? const Color(0xFF34D399) : GlassTokens.inkSecondary, fontSize: 11),
                             ),
                           ],
                         ),
@@ -704,22 +704,22 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFF34D399), width: 2),
               ),
-              child: const Icon(Icons.sports_cricket, size: 48, color: Colors.white),
+              child: const Icon(Icons.sports_cricket, size: 48, color: GlassTokens.inkPrimary),
             ),
             const SizedBox(height: 20),
             Text(
               match.stage,
-              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 22, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             Text(
               '${teamA.name} vs ${teamB.name}',
-              style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               '${match.venue} • ${match.overs} Overs T20',
-              style: const TextStyle(color: Colors.white38, fontSize: 12),
+              style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
             ),
             const SizedBox(height: 28),
 
@@ -773,7 +773,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
                 ),
@@ -794,7 +794,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     const Text(
                       'Toss and lineup setup require official room credentials. Normal spectators can follow live ball-by-ball once the match commences.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -820,7 +820,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                             label: const Text('Create Room', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white38),
+                              side: const BorderSide(color: GlassTokens.inkMuted),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -842,7 +842,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: GlassTokens.bgLightBlue,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.6), width: 1.5),
         boxShadow: [
@@ -866,13 +866,13 @@ class _ScorerScreenState extends State<ScorerScreen> {
           const SizedBox(height: 12),
           const Text(
             'Login Required to Score Matches',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+            style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 16),
           ),
           const SizedBox(height: 8),
           const Text(
             'Match scoring, coin toss, and official ball-by-ball records require an authenticated user account. Please log in or register to begin live scoring.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 18),
           ElevatedButton.icon(
@@ -919,12 +919,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
           children: [
             const Icon(Icons.emoji_events, size: 64, color: Colors.amber),
             const SizedBox(height: 16),
-            const Text('MATCH CONCLUDED', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+            const Text('MATCH CONCLUDED', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
             const SizedBox(height: 6),
             Text(
               '${winner?.name ?? "Winner"} won by ${match.winMargin ?? "runs"}',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 24),
 
@@ -933,12 +933,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(db.getTeam(inn1.battingTeamId)?.name ?? "Team", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(db.getTeam(inn1.battingTeamId)?.name ?? "Team", style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold)),
+                    Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -946,12 +946,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(db.getTeam(inn2.battingTeamId)?.name ?? "Team", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(db.getTeam(inn2.battingTeamId)?.name ?? "Team", style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold)),
+                    Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -973,7 +973,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   const SizedBox(width: 12),
                   OutlinedButton(
                     onPressed: () => _confirmResetMatch(context, db, match),
-                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                    style: OutlinedButton.styleFrom(foregroundColor: GlassTokens.inkSecondary),
                     child: const Text('Reset Match'),
                   ),
                 ],
@@ -1040,7 +1040,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
           child: Row(
             children: [
               Expanded(
@@ -1055,7 +1055,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       'Innings 1 ${inn1 != null ? "(${inn1.totalRuns}/${inn1.wickets})" : ""}',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -1081,7 +1081,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                       style: TextStyle(
                         color: selectedInningsNum == 2
                             ? Colors.white
-                            : (inn2 != null ? Colors.white70 : const Color(0xFF34D399)),
+                            : (inn2 != null ? GlassTokens.inkSecondary : const Color(0xFF34D399)),
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1139,7 +1139,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           ),
                           Text(
                             'Max ${match.overs} Ov (4 ov/bowler)',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -1151,7 +1151,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           Text(
                             '${currentInnings.totalRuns}',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: GlassTokens.inkPrimary,
                               fontSize: 46,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -1,
@@ -1193,12 +1193,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         children: [
                           Text(
                             'Overs: ${currentInnings.oversStr} (${currentInnings.legalBalls} balls)',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                           ),
                           const Spacer(),
                           Text(
                             'Extras: ${currentInnings.totalExtras}',
-                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -1211,7 +1211,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: GlassTokens.inkPrimary,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: currentInnings.inningsNumber == 1
@@ -1243,7 +1243,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               ),
                               Text(
                                 'Striker: ${_formatPlayerName(striker, "Select")} • Non-Striker: ${_formatPlayerName(nonStriker, "Select")} • Bowler: ${_formatPlayerName(bowler, "Select")}',
-                                style: const TextStyle(color: Colors.white70, fontSize: 10),
+                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -1369,7 +1369,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: const BoxDecoration(
-        color: Color(0xFF0B1120),
+        color: GlassTokens.bgIcyWhite,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -1381,11 +1381,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
             children: [
               const Text(
                 'THIS OVER: ',
-                style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 6),
               if (lastBalls.isEmpty)
-                const Text('Over in progress...', style: TextStyle(color: Colors.white30, fontSize: 11))
+                const Text('Over in progress...', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11))
               else
                 Expanded(
                   child: SingleChildScrollView(
@@ -1409,13 +1409,13 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                 ? Colors.red
                                 : (isBoundary
                                     ? (d.runsBatter == 4 ? Colors.blue.shade700 : Colors.purple.shade700)
-                                    : const Color(0xFF1E293B)),
+                                    : GlassTokens.bgLightBlue),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white24),
+                            border: Border.all(color: GlassTokens.glassHairline),
                           ),
                           child: Text(
                             label,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 11),
                           ),
                         );
                       }).toList(),
@@ -1430,7 +1430,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                color: GlassTokens.bgLightBlue.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1440,7 +1440,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   Expanded(
                     child: Text(
                       'Ball ${latestDelivery.overNumber}.${latestDelivery.ballInOver}: ${latestDelivery.commentaryText}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1457,7 +1457,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                colors: [GlassTokens.bgLightBlue, Colors.white],
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
@@ -1477,10 +1477,10 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.white10,
+                        color: GlassTokens.glassHairline,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('Read Only', style: TextStyle(color: Colors.white60, fontSize: 9)),
+                      child: const Text('Read Only', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9)),
                     ),
                   ],
                 ),
@@ -1488,7 +1488,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 if (!db.isAuthenticated) ...[
                   const Text(
                     'Scoring is restricted to authenticated users. Log in or create an account to start scoring matches.',
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
@@ -1512,7 +1512,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 ] else ...[
                   const Text(
                     'Scoring controls are locked. Official scorers can enter the Scoring Room with the Room ID and Passcode PIN to record deliveries.',
-                    style: TextStyle(color: Colors.white60, fontSize: 10),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -1538,7 +1538,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white38),
+                            side: const BorderSide(color: GlassTokens.inkMuted),
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
@@ -1581,7 +1581,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: const BoxDecoration(
-          color: Color(0xFF0B1120),
+          color: GlassTokens.bgIcyWhite,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -1605,7 +1605,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         Expanded(
                           child: Text(
                             'INNINGS 1 CONCLUDED (${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0})',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                         ),
                       ],
@@ -1644,9 +1644,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: GlassTokens.bgLightBlue,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                  border: Border.all(color: Color(0xFFD97706).withValues(alpha: 0.5)),
                 ),
                 child: Column(
                   children: [
@@ -1657,12 +1657,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           ? '${db.getTeam(match.winnerId)?.name ?? "Winner"} won by ${match.winMargin}'
                           : 'MATCH COMPLETED',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 15),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Final Score: ${currentInnings.totalRuns}/${currentInnings.wickets} in ${currentInnings.oversStr} ov',
-                      style: const TextStyle(color: Colors.white60, fontSize: 11),
+                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -1713,7 +1713,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       decoration: const BoxDecoration(
-        color: Color(0xFF0B1120),
+        color: GlassTokens.bgIcyWhite,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -1725,8 +1725,8 @@ class _ScorerScreenState extends State<ScorerScreen> {
             children: [
               TextButton.icon(
                 onPressed: () => db.undoLastDelivery(currentInnings.id),
-                icon: const Icon(Icons.undo, size: 14, color: Colors.white70),
-                label: const Text('Undo', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                icon: const Icon(Icons.undo, size: 14, color: GlassTokens.inkSecondary),
+                label: const Text('Undo', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
               ),
               TextButton.icon(
                 onPressed: () => db.swapEnds(currentInnings.id),
@@ -1789,17 +1789,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF131D31),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: GlassTokens.glassHairline),
               ),
               child: Row(
                 children: [
                   Text(
                     'THIS OVER (${currentInnings.legalBalls ~/ 6 + 1}):',
-                    style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
                   if (currentOverBalls.isEmpty)
-                    const Text('Ready for first ball...', style: TextStyle(color: Colors.white38, fontSize: 10))
+                    const Text('Ready for first ball...', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10))
                   else
                     Expanded(
                       child: SingleChildScrollView(
@@ -1838,11 +1838,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               badgeColor = const Color(0xFF0284C7);
                             } else if (isDot) {
                               ballText = '•';
-                              badgeColor = const Color(0xFF1E293B);
-                              textColor = Colors.white60;
+                              badgeColor = GlassTokens.bgLightBlue;
+                              textColor = GlassTokens.inkSecondary;
                             } else {
                               ballText = '${d.runsBatter}';
-                              badgeColor = const Color(0xFF1E293B);
+                              badgeColor = GlassTokens.bgLightBlue;
                             }
 
                             return Container(
@@ -1852,7 +1852,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                 color: badgeColor,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: isWicket ? Colors.redAccent : Colors.white24,
+                                  color: isWicket ? Colors.redAccent : GlassTokens.glassHairline,
                                   width: 0.8,
                                 ),
                               ),
@@ -1883,9 +1883,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
               final isDot = run == 0;
 
               LinearGradient? buttonGradient;
-              Color buttonColor = const Color(0xFF0F172A);
+              Color buttonColor = Colors.white;
               Color textColor = Colors.white;
-              Color borderColor = Colors.white12;
+              Color borderColor = GlassTokens.glassHairline;
               Color? glowColor;
 
               if (isFour) {
@@ -1907,9 +1907,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 glowColor = NeoGlassTheme.neonViolet;
                 borderColor = Colors.transparent;
               } else if (isDot) {
-                buttonColor = const Color(0xFF0B1120);
-                textColor = Colors.white54;
-                borderColor = Colors.white10;
+                buttonColor = GlassTokens.bgIcyWhite;
+                textColor = GlassTokens.inkSecondary;
+                borderColor = GlassTokens.glassHairline;
               } else {
                 buttonColor = const Color(0xFF131D31);
                 textColor = NeoGlassTheme.neonEmerald;
@@ -1994,7 +1994,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     decoration: BoxDecoration(
                       gradient: NeoGlassTheme.amberGoldGradient,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                      border: Border.all(color: Color(0xFFD97706).withValues(alpha: 0.5)),
                       boxShadow: [
                         NeoGlassTheme.neoDarkShadow,
                         NeoGlassTheme.neoGlowShadow(Colors.amber, opacity: 0.25),
@@ -2073,7 +2073,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     child: const Text(
                       'WICKET (OUT!)',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: GlassTokens.inkPrimary,
                         fontWeight: FontWeight.w900,
                         fontSize: 12,
                         letterSpacing: 0.5,
@@ -2115,12 +2115,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: GlassTokens.bgLightBlue,
             title: Row(
               children: const [
                 Icon(Icons.vpn_key, color: Color(0xFF34D399), size: 20),
                 SizedBox(width: 8),
-                Text('Enter Scoring Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('Enter Scoring Room', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
             content: SingleChildScrollView(
@@ -2130,20 +2130,20 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 children: [
                   Text(
                     'Unlock official ball-by-ball scoring for ${match.stage}.',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: roomController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: GlassTokens.inkPrimary),
                     decoration: InputDecoration(
                       labelText: 'Scoring Room ID',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. ROOM-BPL-01',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      prefixIcon: const Icon(Icons.meeting_room, color: Colors.white54),
+                      hintStyle: const TextStyle(color: GlassTokens.inkMuted),
+                      prefixIcon: const Icon(Icons.meeting_room, color: GlassTokens.inkSecondary),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -2151,15 +2151,15 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   TextField(
                     controller: passController,
                     obscureText: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: GlassTokens.inkPrimary),
                     decoration: InputDecoration(
                       labelText: 'Passcode PIN',
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                       hintText: 'e.g. 1234',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      prefixIcon: const Icon(Icons.password, color: Colors.white54),
+                      hintStyle: const TextStyle(color: GlassTokens.inkMuted),
+                      prefixIcon: const Icon(Icons.password, color: GlassTokens.inkSecondary),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -2177,7 +2177,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -2237,12 +2237,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         title: Row(
           children: const [
             Icon(Icons.add_circle, color: Color(0xFF34D399), size: 20),
             SizedBox(width: 8),
-            Text('Create Scoring Room', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Create Scoring Room', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: SingleChildScrollView(
@@ -2252,42 +2252,42 @@ class _ScorerScreenState extends State<ScorerScreen> {
             children: [
               Text(
                 'Create a private room for ${match.stage}. Only individuals who receive the Room ID & PIN will be able to change or conduct scores.',
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: roomController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: GlassTokens.inkPrimary),
                 decoration: InputDecoration(
                   labelText: 'Room ID',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: passController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: GlassTokens.inkPrimary),
                 decoration: InputDecoration(
                   labelText: 'Secret Passcode PIN',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   hintText: 'e.g. 1234',
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: nameController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: GlassTokens.inkPrimary),
                 decoration: InputDecoration(
                   labelText: 'Created By (Your Name / Role)',
-                  labelStyle: const TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: GlassTokens.inkSecondary),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -2297,7 +2297,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -2352,7 +2352,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     final available = batters.where((p) => p.id != otherBatterId).toList();
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: GlassTokens.bgLightBlue,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return Padding(
@@ -2364,7 +2364,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
               Text(
                 isStriker ? 'SELECT OPENING STRIKER (Facing 0.1)' : 'SELECT OPENING NON-STRIKER',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               ...available.map((p) {
@@ -2375,7 +2375,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                     child: Icon(isStriker ? Icons.sports_cricket : Icons.directions_run, color: isStriker ? Colors.amber : const Color(0xFF34D399), size: 18),
                   ),
                   title: Text(pName, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  subtitle: Text(p.battingStyle, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  subtitle: Text(p.battingStyle, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                   onTap: () {
                     Navigator.pop(ctx);
                     if (isStriker) {
@@ -2470,7 +2470,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: GlassTokens.bgLightBlue,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(builder: (sheetCtx, setSheetState) {
@@ -2490,7 +2490,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   Text(
                     'SELECT OPENING CREASE LINEUP (INNINGS ${inn.inningsNumber})',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13.5, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 14),
 
@@ -2500,12 +2500,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   DropdownButtonFormField<String>(
                     value: curStrikerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     items: battingPlayers.map((p) {
@@ -2517,17 +2517,17 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   const SizedBox(height: 10),
 
                   // Non-Striker
-                  const Text('Opening Non-Striker (runner):', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('Opening Non-Striker (runner):', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: curNonStrikerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     items: battingPlayers.map((p) {
@@ -2549,12 +2549,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   DropdownButtonFormField<String>(
                     value: curBowlerId,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF0F172A),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    dropdownColor: Colors.white,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     items: bowlingPlayers.map((p) {
@@ -2737,12 +2737,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
           children: [
             const Text(
               'End Innings 1 Early & Start Chase?',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
               'Innings 1 is currently ${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} in ${(inn1?.legalBalls ?? 0) ~/ 6}.${(inn1?.legalBalls ?? 0) % 6} overs.\n\nDo you want to declare/conclude Innings 1 and start Innings 2 with a target of ${(inn1?.totalRuns ?? 0) + 1} runs?',
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
             ),
             const SizedBox(height: 18),
             Row(
@@ -2750,7 +2750,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
                 ),
                 const SizedBox(width: 8),
                 NeoGlassButton(

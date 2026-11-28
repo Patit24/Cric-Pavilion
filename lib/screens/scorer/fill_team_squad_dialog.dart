@@ -157,12 +157,12 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                     children: const [
                       Text(
                         'Required: Player Names & Mobile',
-                        style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Both teams must register player names with mobile numbers before scoring.',
-                        style: TextStyle(color: Colors.white60, fontSize: 10.5),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -170,7 +170,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -181,16 +181,16 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
             // Tabs for Team A and Team B
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: GlassTokens.inkPrimary,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: GlassTokens.glassHairline),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicatorColor: NeoGlassTheme.neonEmerald,
                 indicatorWeight: 3,
                 labelColor: NeoGlassTheme.neonEmerald,
-                unselectedLabelColor: Colors.white60,
+                unselectedLabelColor: GlassTokens.inkSecondary,
                 tabs: [
                   Tab(
                     child: Row(
@@ -206,7 +206,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Text('(${teamAPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                        Text('(${teamAPlayers.length})', style: const TextStyle(fontSize: 10, color: GlassTokens.inkSecondary)),
                       ],
                     ),
                   ),
@@ -224,7 +224,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Text('(${teamBPlayers.length})', style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                        Text('(${teamBPlayers.length})', style: const TextStyle(fontSize: 10, color: GlassTokens.inkSecondary)),
                       ],
                     ),
                   ),
@@ -279,11 +279,11 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white24),
+                        side: const BorderSide(color: GlassTokens.glassHairline),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -325,7 +325,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
             Expanded(
               child: Text(
                 '${team.name} Squad (${playerList.length} Players)',
-                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -390,9 +390,9 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.flash_on, size: 12, color: Colors.amberAccent),
+                      Icon(Icons.flash_on, size: 12, color: Color(0xFFD97706)),
                       SizedBox(width: 4),
-                      Text('Auto 11', style: TextStyle(color: Colors.amberAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('Auto 11', style: TextStyle(color: Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -439,9 +439,9 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
               return Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Column(
                   children: [
@@ -450,17 +450,17 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                       children: [
                         CircleAvatar(
                           radius: 10,
-                          backgroundColor: const Color(0xFF1E293B),
-                          child: Text('${index + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                          backgroundColor: GlassTokens.bgLightBlue,
+                          child: Text('${index + 1}', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             controller: nameCtrl,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                             decoration: const InputDecoration(
                               hintText: 'Player Name *',
-                              hintStyle: TextStyle(color: Colors.white38, fontSize: 11),
+                              hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                               isDense: true,
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(vertical: 4),
@@ -470,16 +470,16 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.white12),
+                            border: Border.all(color: GlassTokens.glassHairline),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: role,
-                              dropdownColor: const Color(0xFF1E293B),
+                              dropdownColor: GlassTokens.bgLightBlue,
                               isDense: true,
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 16),
+                              icon: const Icon(Icons.arrow_drop_down, color: GlassTokens.inkSecondary, size: 16),
                               style: const TextStyle(color: Color(0xFF34D399), fontSize: 10.5, fontWeight: FontWeight.bold),
                               items: const [
                                 DropdownMenuItem(value: 'batter', child: Text('Bat')),
@@ -508,7 +508,7 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                         ],
                       ],
                     ),
-                    const Divider(color: Colors.white10, height: 8),
+                    const Divider(color: GlassTokens.glassHairline, height: 8),
                     // Line 2: Phone Icon + Mobile Input
                     Row(
                       children: [
@@ -518,10 +518,10 @@ class _FillTeamSquadDialogState extends State<FillTeamSquadDialog> with SingleTi
                           child: TextField(
                             controller: mobileCtrl,
                             keyboardType: TextInputType.phone,
-                            style: const TextStyle(color: Colors.white, fontSize: 11.5),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5),
                             decoration: const InputDecoration(
                               hintText: '10-digit Mobile Number *',
-                              hintStyle: TextStyle(color: Colors.white38, fontSize: 10.5),
+                              hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 10.5),
                               isDense: true,
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(vertical: 2),

@@ -104,7 +104,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: GlassTokens.glassHairline,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -133,7 +133,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: GlassTokens.inkPrimary,
                       ),
                     ),
                   ],
@@ -156,13 +156,13 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                 ),
               ],
             ),
-            const Divider(color: Colors.white12, height: 24),
+            const Divider(color: GlassTokens.glassHairline, height: 24),
 
             if (currentStep == 1) ...[
               // STEP 1: COIN TOSS
               const Text(
                 '1. Which team won the coin toss?',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: GlassTokens.inkPrimary),
               ),
               const SizedBox(height: 10),
               Row(
@@ -186,12 +186,12 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: tossWonById == widget.teamA.id ? null : const Color(0xFF0F172A),
+                          color: tossWonById == widget.teamA.id ? null : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: tossWonById == widget.teamA.id
                                 ? NeoGlassTheme.neonEmerald
-                                : Colors.white12,
+                                : GlassTokens.glassHairline,
                             width: tossWonById == widget.teamA.id ? 2 : 1,
                           ),
                           boxShadow: [
@@ -219,7 +219,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: tossWonById == widget.teamA.id ? Colors.white : Colors.white70,
+                                color: tossWonById == widget.teamA.id ? Colors.white : GlassTokens.inkSecondary,
                               ),
                             ),
                           ],
@@ -247,12 +247,12 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: tossWonById == widget.teamB.id ? null : const Color(0xFF0F172A),
+                          color: tossWonById == widget.teamB.id ? null : Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: tossWonById == widget.teamB.id
                                 ? NeoGlassTheme.neonCyan
-                                : Colors.white12,
+                                : GlassTokens.glassHairline,
                             width: tossWonById == widget.teamB.id ? 2 : 1,
                           ),
                           boxShadow: [
@@ -280,7 +280,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: tossWonById == widget.teamB.id ? Colors.white : Colors.white70,
+                                color: tossWonById == widget.teamB.id ? Colors.white : GlassTokens.inkSecondary,
                               ),
                             ),
                           ],
@@ -294,7 +294,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
 
               const Text(
                 '2. What did they elect to do?',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: GlassTokens.inkPrimary),
               ),
               const SizedBox(height: 8),
               Row(
@@ -311,9 +311,9 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                       ),
                       selected: tossDecision == 'bat',
                       selectedColor: NeoGlassTheme.neonEmerald,
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: Colors.white,
                       labelStyle: TextStyle(
-                        color: tossDecision == 'bat' ? Colors.black : Colors.white70,
+                        color: tossDecision == 'bat' ? Colors.black : GlassTokens.inkSecondary,
                         fontWeight: FontWeight.bold,
                       ),
                       onSelected: (val) {
@@ -337,9 +337,9 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                       ),
                       selected: tossDecision == 'bowl',
                       selectedColor: NeoGlassTheme.neonCyan,
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: Colors.white,
                       labelStyle: TextStyle(
-                        color: tossDecision == 'bowl' ? Colors.black : Colors.white70,
+                        color: tossDecision == 'bowl' ? Colors.black : GlassTokens.inkSecondary,
                         fontWeight: FontWeight.bold,
                       ),
                       onSelected: (val) {
@@ -389,7 +389,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                           ),
                           Text(
                             'Bowling First: ${bowlingTeam.name}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -403,7 +403,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 1.5),
                   boxShadow: [NeoGlassTheme.neoDarkShadow],
@@ -417,31 +417,31 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         SizedBox(width: 6),
                         Text(
                           '1. Opening Striker (* Facing Ball 0.1)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: GlassTokens.inkPrimary),
                         ),
                         Spacer(),
                         Text(
                           'ON STRIKE',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.amberAccent),
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'This batsman will face the very first ball of the match.',
-                      style: TextStyle(fontSize: 10.5, color: Colors.white60),
+                      style: TextStyle(fontSize: 10.5, color: GlassTokens.inkSecondary),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: strikerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: GlassTokens.bgLightBlue,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                        fillColor: GlassTokens.bgLightBlue,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                       ),
                       items: battingPlayers.map((p) {
                         final isSelected = p.id == strikerId;
@@ -454,19 +454,19 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: Colors.white,
+                                  color: GlassTokens.inkPrimary,
                                 ),
                               ),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.white12,
+                                  color: GlassTokens.glassHairline,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   p.battingStyle,
-                                  style: const TextStyle(fontSize: 9.5, color: Colors.white70),
+                                  style: const TextStyle(fontSize: 9.5, color: GlassTokens.inkSecondary),
                                 ),
                               ),
                             ],
@@ -484,9 +484,9 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: GlassTokens.glassHairline),
                   boxShadow: [NeoGlassTheme.neoDarkShadow],
                 ),
                 child: Column(
@@ -498,31 +498,31 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         SizedBox(width: 6),
                         Text(
                           '2. Opening Non-Striker (Runner at Crease)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: GlassTokens.inkPrimary),
                         ),
                         Spacer(),
                         Text(
                           'BOWLER END',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white60),
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: GlassTokens.inkSecondary),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'Partner batsman standing at the non-striker bowling end.',
-                      style: TextStyle(fontSize: 10.5, color: Colors.white60),
+                      style: TextStyle(fontSize: 10.5, color: GlassTokens.inkSecondary),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: nonStrikerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: GlassTokens.bgLightBlue,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                        fillColor: GlassTokens.bgLightBlue,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                       ),
                       items: battingPlayers.map((p) {
                         final isSelected = p.id == nonStrikerId;
@@ -535,19 +535,19 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: Colors.white,
+                                  color: GlassTokens.inkPrimary,
                                 ),
                               ),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.white12,
+                                  color: GlassTokens.glassHairline,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   p.battingStyle,
-                                  style: const TextStyle(fontSize: 9.5, color: Colors.white70),
+                                  style: const TextStyle(fontSize: 9.5, color: GlassTokens.inkSecondary),
                                 ),
                               ),
                             ],
@@ -590,7 +590,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.6)),
                   boxShadow: [NeoGlassTheme.neoDarkShadow],
@@ -604,7 +604,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                         const SizedBox(width: 6),
                         const Text(
                           '3. Opening Bowler (Over 1)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: GlassTokens.inkPrimary),
                         ),
                         const Spacer(),
                         Text(
@@ -616,19 +616,19 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                     const SizedBox(height: 4),
                     Text(
                       'Will bowl the first over of the match for ${bowlingTeam.name}.',
-                      style: const TextStyle(fontSize: 10.5, color: Colors.white60),
+                      style: const TextStyle(fontSize: 10.5, color: GlassTokens.inkSecondary),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: bowlerId,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: GlassTokens.bgLightBlue,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         filled: true,
-                        fillColor: const Color(0xFF1E293B),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                        fillColor: GlassTokens.bgLightBlue,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                       ),
                       items: bowlingPlayers.map((p) {
                         final isSelected = p.id == bowlerId;
@@ -641,19 +641,19 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: Colors.white,
+                                  color: GlassTokens.inkPrimary,
                                 ),
                               ),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.white12,
+                                  color: GlassTokens.glassHairline,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   p.bowlingStyle,
-                                  style: const TextStyle(fontSize: 9.5, color: Colors.white70),
+                                  style: const TextStyle(fontSize: 9.5, color: GlassTokens.inkSecondary),
                                 ),
                               ),
                             ],
@@ -708,7 +708,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                       Expanded(
                                         child: Text(
                                           strikerP.fullName.isNotEmpty ? strikerP.fullName : strikerP.displayName,
-                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -718,11 +718,11 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                     const SizedBox(height: 2),
                                     Row(
                                       children: [
-                                        const Text('• ', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                                        const Text('• ', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                                         Expanded(
                                           child: Text(
                                             nonStrikerP.fullName.isNotEmpty ? nonStrikerP.fullName : nonStrikerP.displayName,
-                                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -752,7 +752,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                       Flexible(
                                         child: Text(
                                           bowlerP.fullName.isNotEmpty ? bowlerP.fullName : bowlerP.displayName,
-                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -761,7 +761,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '${bowlingTeam.name} (Over 1)',
-                                    style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -781,8 +781,8 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                 children: [
                   TextButton.icon(
                     onPressed: () => setState(() => currentStep = 1),
-                    icon: const Icon(Icons.arrow_back, size: 14, color: Colors.white70),
-                    label: const Text('Toss', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.arrow_back, size: 14, color: GlassTokens.inkSecondary),
+                    label: const Text('Toss', style: TextStyle(color: GlassTokens.inkSecondary, fontWeight: FontWeight.bold)),
                   ),
                   const Spacer(),
                   NeoGlassButton(

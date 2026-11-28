@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class AuctionProjectorScreen extends StatefulWidget {
   final String auctionId;
@@ -60,7 +61,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
     final isUrgent = secondsLeft <= 5 && auction.isTimerRunning;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14), // Modern deep obsidian stadium
+      backgroundColor: GlassTokens.bgIcyWhite, // Modern deep obsidian stadium
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -118,14 +119,14 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+            color: GlassTokens.inkPrimary,
+            border: Border(bottom: BorderSide(color: GlassTokens.inkPrimary.withValues(alpha: 0.08))),
           ),
           child: Row(
             children: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                icon: const Icon(Icons.arrow_back, color: GlassTokens.inkPrimary, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -141,7 +142,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                   children: [
                     CircleAvatar(radius: 2.5, backgroundColor: Colors.white),
                     SizedBox(width: 4),
-                    Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900)),
+                    Text('LIVE', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 8.5, fontWeight: FontWeight.w900)),
                   ],
                 ),
               ),
@@ -149,7 +150,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
               Expanded(
                 child: Text(
                   auction.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w900),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -187,12 +188,12 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF131D31), Color(0xFF0F172A)],
+                        colors: [Color(0xFF131D31), Colors.white],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      border: Border.all(color: GlassTokens.inkPrimary.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,13 +236,13 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                   const SizedBox(height: 4),
                                   Text(
                                     currentPlayer.fullName,
-                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     '${currentPlayer.battingStyle} • ${currentPlayer.bowlingStyle}',
-                                    style: const TextStyle(color: Colors.white60, fontSize: 11),
+                                    style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -255,7 +256,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                           children: [
                             Text(
                               'Base Price: ${currencyFormat.format(currentPlayer.basePrice)}',
-                              style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                             Text(
                               'Lot #${currentLot?.lotNumber ?? 1}',
@@ -270,12 +271,12 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: GlassTokens.inkPrimary,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: GlassTokens.glassHairline),
                     ),
                     alignment: Alignment.center,
-                    child: const Text('Awaiting Player on Stage...', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                    child: const Text('Awaiting Player on Stage...', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 13)),
                   ),
 
                 const SizedBox(height: 12),
@@ -286,8 +287,8 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        highBidderTeam?.primaryColor.withValues(alpha: 0.22) ?? const Color(0xFF1E293B),
-                        const Color(0xFF0F172A),
+                        highBidderTeam?.primaryColor.withValues(alpha: 0.22) ?? GlassTokens.bgLightBlue,
+                        Colors.white,
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -337,7 +338,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                           ),
                         )
                       else
-                        const Text('Floor Open • Awaiting Opening Bid', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                        const Text('Floor Open • Awaiting Opening Bid', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -354,9 +355,9 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: GlassTokens.inkPrimary,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isUrgent ? Colors.redAccent : Colors.white12),
+                          border: Border.all(color: isUrgent ? Colors.redAccent : GlassTokens.glassHairline),
                         ),
                         child: Column(
                           children: [
@@ -372,7 +373,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                             Text(
                               isUrgent ? 'CLOSING SOON!' : 'TIME LEFT',
                               style: TextStyle(
-                                color: isUrgent ? Colors.redAccent : Colors.white54,
+                                color: isUrgent ? Colors.redAccent : GlassTokens.inkSecondary,
                                 fontSize: 8.5,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -388,19 +389,19 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: GlassTokens.inkPrimary,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white12),
+                          border: Border.all(color: GlassTokens.glassHairline),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('RECENT BIDS', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                            const Text('RECENT BIDS', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
                             const SizedBox(height: 6),
                             if (bids.isEmpty)
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 8),
-                                child: Text('No bids yet', style: TextStyle(color: Colors.white30, fontSize: 10)),
+                                child: Text('No bids yet', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10)),
                               )
                             else
                               ...bids.take(3).map((b) => Padding(
@@ -409,7 +410,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Flexible(
-                                          child: Text(b.teamName, style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                          child: Text(b.teamName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10.5, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                                         ),
                                         Text(currencyFormat.format(b.amount), style: const TextStyle(color: Colors.amber, fontSize: 10.5, fontWeight: FontWeight.bold)),
                                       ],
@@ -431,7 +432,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: const Color(0xFF0B132B),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+            border: Border(top: BorderSide(color: GlassTokens.inkPrimary.withValues(alpha: 0.08))),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -442,7 +443,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: t.primaryColor.withValues(alpha: 0.4)),
                   ),
@@ -451,11 +452,11 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                     children: [
                       CircleAvatar(backgroundImage: NetworkImage(t.logoUrl), radius: 9),
                       const SizedBox(width: 6),
-                      Text(t.shortName, style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                      Text(t.shortName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10.5, fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       Text(currencyFormat.format(t.purseRemaining), style: TextStyle(color: t.primaryColor, fontSize: 9.5, fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
-                      Text('(${t.squadCount})', style: const TextStyle(color: Colors.white54, fontSize: 9)),
+                      Text('(${t.squadCount})', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9)),
                     ],
                   ),
                 );
@@ -488,8 +489,8 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            color: GlassTokens.inkPrimary,
+            border: Border(bottom: BorderSide(color: GlassTokens.inkPrimary.withValues(alpha: 0.1))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -516,7 +517,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                 child: Text(
                                   auction.title.toUpperCase(),
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: GlassTokens.inkPrimary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.2,
@@ -546,7 +547,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Ceremony Projector View • Lot ${auction.completedLots + 1} of ${auction.totalLots}',
-                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -604,7 +605,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                        colors: [Colors.white, GlassTokens.bgLightBlue],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -612,7 +613,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                       border: Border.all(color: const Color(0xFF334155), width: 1.5),
                     ),
                     child: currentPlayer == null
-                        ? const Center(child: Text('No Player Currently on Stage', style: TextStyle(color: Colors.white54, fontSize: 16)))
+                        ? const Center(child: Text('No Player Currently on Stage', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 16)))
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -629,7 +630,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                         width: 110,
                                         height: 110,
                                         color: Colors.grey.shade800,
-                                        child: const Icon(Icons.person, color: Colors.white54, size: 48),
+                                        child: const Icon(Icons.person, color: GlassTokens.inkSecondary, size: 48),
                                       ),
                                     ),
                                   ),
@@ -653,12 +654,12 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                         const SizedBox(height: 8),
                                         Text(
                                           currentPlayer.fullName,
-                                          style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+                                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 26, fontWeight: FontWeight.w900),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
                                           '${currentPlayer.battingStyle} • ${currentPlayer.bowlingStyle}',
-                                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 13),
                                         ),
                                       ],
                                     ),
@@ -677,18 +678,18 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                   children: [
                                     Column(
                                       children: [
-                                        const Text('BASE PRICE', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                                        const Text('BASE PRICE', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 4),
                                         Text(
                                           currencyFormat.format(currentPlayer.basePrice),
-                                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 18, fontWeight: FontWeight.w900),
                                         ),
                                       ],
                                     ),
-                                    Container(width: 1, height: 32, color: Colors.white12),
+                                    Container(width: 1, height: 32, color: GlassTokens.glassHairline),
                                     Column(
                                       children: [
-                                        const Text('MIN BID INCREMENT', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                                        const Text('MIN BID INCREMENT', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 4),
                                         Text(
                                           '+${currencyFormat.format(auction.minBidIncrement)}',
@@ -718,8 +719,8 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                highBidderTeam?.primaryColor.withValues(alpha: 0.25) ?? const Color(0xFF1E293B),
-                                const Color(0xFF0F172A),
+                                highBidderTeam?.primaryColor.withValues(alpha: 0.25) ?? GlassTokens.bgLightBlue,
+                                Colors.white,
                               ],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -761,7 +762,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                   ),
                                 )
                               else
-                                const Text('Floor Open • Awaiting Opening Bid', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                const Text('Floor Open • Awaiting Opening Bid', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -776,7 +777,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: GlassTokens.inkPrimary,
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(color: isUrgent ? Colors.redAccent : const Color(0xFF334155)),
                                 ),
@@ -784,7 +785,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text('00:${secondsLeft.toString().padLeft(2, '0')}', style: TextStyle(color: isUrgent ? Colors.redAccent : Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
-                                    Text(isUrgent ? 'CLOSING!' : 'TIME LEFT', style: TextStyle(color: isUrgent ? Colors.redAccent : Colors.white54, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                    Text(isUrgent ? 'CLOSING!' : 'TIME LEFT', style: TextStyle(color: isUrgent ? Colors.redAccent : GlassTokens.inkSecondary, fontSize: 8.5, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               ),
@@ -795,24 +796,24 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: GlassTokens.inkPrimary,
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(color: const Color(0xFF334155)),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('LIVE BIDS', style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    const Text('LIVE BIDS', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 4),
                                     Expanded(
                                       child: bids.isEmpty
-                                          ? const Center(child: Text('No bids yet', style: TextStyle(color: Colors.white30, fontSize: 10)))
+                                          ? const Center(child: Text('No bids yet', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10)))
                                           : ListView.builder(
                                               itemCount: bids.length,
                                               itemBuilder: (_, i) => Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  Text(bids[i].teamName, style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                                                  Text(bids[i].teamName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10.5, fontWeight: FontWeight.bold)),
                                                   Text(currencyFormat.format(bids[i].amount), style: const TextStyle(color: Colors.amber, fontSize: 10.5, fontWeight: FontWeight.bold)),
                                                 ],
                                               ),
@@ -837,8 +838,8 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            color: GlassTokens.inkPrimary,
+            border: Border(top: BorderSide(color: GlassTokens.inkPrimary.withValues(alpha: 0.1))),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -848,7 +849,7 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: GlassTokens.bgLightBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: t.primaryColor.withValues(alpha: 0.5)),
                   ),
@@ -856,11 +857,11 @@ class _AuctionProjectorScreenState extends State<AuctionProjectorScreen> {
                     children: [
                       CircleAvatar(backgroundImage: NetworkImage(t.logoUrl), radius: 10),
                       const SizedBox(width: 8),
-                      Text(t.shortName, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      Text(t.shortName, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold)),
                       const SizedBox(width: 6),
                       Text(currencyFormat.format(t.purseRemaining), style: TextStyle(color: t.primaryColor, fontSize: 10.5, fontWeight: FontWeight.bold)),
                       const SizedBox(width: 6),
-                      Text('${t.squadCount}/${t.minSquadRequirement}', style: const TextStyle(color: Colors.white54, fontSize: 9.5)),
+                      Text('${t.squadCount}/${t.minSquadRequirement}', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9.5)),
                     ],
                   ),
                 );

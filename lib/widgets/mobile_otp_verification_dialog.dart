@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/mock_database.dart';
+import '../theme/neo_glass_theme.dart';
 
 class MobileOtpVerificationDialog extends StatefulWidget {
   final VoidCallback? onVerified;
@@ -86,7 +87,7 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -118,11 +119,11 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
                       children: [
                         Text(
                           'Mobile Verification',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Mandatory step to protect player & match records',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
@@ -134,7 +135,7 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
               if (!_otpSent) ...[
                 const Text(
                   'Enter your 10-digit mobile number to link your permanent cricket identity:',
-                  style: TextStyle(color: Colors.white70, fontSize: 12.5),
+                  style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -142,30 +143,30 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: GlassTokens.bgLightBlue,
                         borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
-                        border: Border.all(color: Colors.white24),
+                        border: Border.all(color: GlassTokens.glassHairline),
                       ),
-                      child: const Text('+91', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text('+91', style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold)),
                     ),
                     Expanded(
                       child: TextField(
                         controller: _mobileController,
                         keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 14),
                         decoration: const InputDecoration(
                           hintText: 'e.g. 9830112233',
-                          hintStyle: TextStyle(color: Colors.white38, fontSize: 13),
+                          hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 13),
                           filled: true,
-                          fillColor: Color(0xFF1E293B),
+                          fillColor: GlassTokens.bgLightBlue,
                           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                            borderSide: BorderSide(color: Colors.white24),
+                            borderSide: BorderSide(color: GlassTokens.glassHairline),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
-                            borderSide: BorderSide(color: Colors.white24),
+                            borderSide: BorderSide(color: GlassTokens.glassHairline),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.horizontal(right: Radius.circular(10)),
@@ -193,7 +194,7 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
               ] else ...[
                 Text(
                   'We sent a 6-digit OTP to +91 ${_mobileController.text.trim()}:',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12.5),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -203,13 +204,13 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
                   style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 20, letterSpacing: 8, fontWeight: FontWeight.bold),
                   decoration: const InputDecoration(
                     hintText: '123456',
-                    hintStyle: TextStyle(color: Colors.white24, letterSpacing: 6),
+                    hintStyle: TextStyle(color: GlassTokens.glassHairline, letterSpacing: 6),
                     filled: true,
-                    fillColor: Color(0xFF1E293B),
+                    fillColor: GlassTokens.bgLightBlue,
                     contentPadding: EdgeInsets.symmetric(vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Colors.white24),
+                      borderSide: BorderSide(color: GlassTokens.glassHairline),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -225,11 +226,11 @@ class _MobileOtpVerificationDialogState extends State<MobileOtpVerificationDialo
                       child: OutlinedButton(
                         onPressed: () => setState(() => _otpSent = false),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white38),
+                          side: const BorderSide(color: GlassTokens.inkMuted),
                           padding: const EdgeInsets.symmetric(vertical: 11),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: const Text('Change Number', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        child: const Text('Change Number', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                       ),
                     ),
                     const SizedBox(width: 8),

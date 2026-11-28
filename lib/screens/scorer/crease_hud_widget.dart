@@ -136,14 +136,14 @@ class CreaseHudWidget extends StatelessWidget {
               // Table Headers
               const Row(
                 children: [
-                  Expanded(flex: 8, child: Text('Batter', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 2, child: Text('R (B)', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 1, child: Text('4s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 1, child: Text('6s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 2, child: Text('SR', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 8, child: Text('Batter', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 2, child: Text('R (B)', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 1, child: Text('4s', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 1, child: Text('6s', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                  Expanded(flex: 2, child: Text('SR', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
                 ],
               ),
-              const Divider(color: Colors.white10, height: 12),
+              const Divider(color: GlassTokens.glassHairline, height: 12),
 
               // STRIKER ROW
               Container(
@@ -181,7 +181,7 @@ class CreaseHudWidget extends StatelessWidget {
                           Expanded(
                             child: Text(
                               _playerName(striker, 'Striker'),
-                              style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -195,13 +195,13 @@ class CreaseHudWidget extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(text: '${strikerCard.runs} ', style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w900)),
-                            TextSpan(text: '(${strikerCard.balls})', style: const TextStyle(color: Colors.white60, fontSize: 10)),
+                            TextSpan(text: '(${strikerCard.balls})', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                           ],
                         ),
                       ),
                     ),
-                    Expanded(flex: 1, child: Text('${strikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11))),
-                    Expanded(flex: 1, child: Text('${strikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11))),
+                    Expanded(flex: 1, child: Text('${strikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11))),
+                    Expanded(flex: 1, child: Text('${strikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11))),
                     Expanded(flex: 2, child: Text(strikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
@@ -217,11 +217,11 @@ class CreaseHudWidget extends StatelessWidget {
                       flex: 8,
                       child: Row(
                         children: [
-                          const Text('• ', style: TextStyle(color: Colors.white38, fontSize: 13, fontWeight: FontWeight.bold)),
+                          const Text('• ', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 13, fontWeight: FontWeight.bold)),
                           Expanded(
                             child: Text(
                               _playerName(nonStriker, 'Non-Striker'),
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -234,15 +234,15 @@ class CreaseHudWidget extends StatelessWidget {
                         textAlign: TextAlign.right,
                         text: TextSpan(
                           children: [
-                            TextSpan(text: '${nonStrikerCard.runs} ', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                            TextSpan(text: '(${nonStrikerCard.balls})', style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                            TextSpan(text: '${nonStrikerCard.runs} ', style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
+                            TextSpan(text: '(${nonStrikerCard.balls})', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                           ],
                         ),
                       ),
                     ),
-                    Expanded(flex: 1, child: Text('${nonStrikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white60, fontSize: 11))),
-                    Expanded(flex: 1, child: Text('${nonStrikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white60, fontSize: 11))),
-                    Expanded(flex: 2, child: Text(nonStrikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                    Expanded(flex: 1, child: Text('${nonStrikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                    Expanded(flex: 1, child: Text('${nonStrikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                    Expanded(flex: 2, child: Text(nonStrikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                   ],
                 ),
               ),
@@ -294,10 +294,10 @@ class CreaseHudWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                         decoration: BoxDecoration(
                           gradient: bowler == null ? NeoGlassTheme.amberGoldGradient : null,
-                          color: bowler == null ? null : const Color(0xFF1E293B),
+                          color: bowler == null ? null : GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: bowler == null ? Colors.transparent : Colors.white24,
+                            color: bowler == null ? Colors.transparent : GlassTokens.glassHairline,
                           ),
                         ),
                         child: Row(
@@ -327,15 +327,15 @@ class CreaseHudWidget extends StatelessWidget {
                 // Bowler Table Headers
                 const Row(
                   children: [
-                    Expanded(flex: 8, child: Text('Bowler', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('O', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('M', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('R', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('W', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('ECON', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 8, child: Text('Bowler', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('O', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('M', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('R', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('W', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('ECON', textAlign: TextAlign.right, style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold))),
                   ],
                 ),
-                const Divider(color: Colors.white10, height: 10),
+                const Divider(color: GlassTokens.glassHairline, height: 10),
 
                 // Bowler Row
                 Row(
@@ -347,22 +347,22 @@ class CreaseHudWidget extends StatelessWidget {
                         children: [
                           Text(
                             _playerName(bowler, 'Bowler'),
-                            style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             bowler!.bowlingStyle,
-                            style: const TextStyle(color: Colors.white54, fontSize: 9.5),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 9.5),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                    Expanded(flex: 2, child: Text(bowlerCard.oversStr, textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('${bowlerCard.maidens}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                    Expanded(flex: 2, child: Text(bowlerCard.oversStr, textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('${bowlerCard.maidens}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                     Expanded(flex: 1, child: Text('${bowlerCard.runsConceded}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
                     Expanded(flex: 1, child: Text('${bowlerCard.wickets}', textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 12, fontWeight: FontWeight.w900))),
-                    Expanded(flex: 2, child: Text(bowlerCard.economy.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                    Expanded(flex: 2, child: Text(bowlerCard.economy.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
                   ],
                 ),
               ] else ...[
@@ -379,11 +379,11 @@ class CreaseHudWidget extends StatelessWidget {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.touch_app, size: 16, color: Colors.amberAccent),
+                        Icon(Icons.touch_app, size: 16, color: Color(0xFFD97706)),
                         SizedBox(width: 8),
                         Text(
                           'Over Complete — Tap here to Select Next Bowler',
-                          style: TextStyle(color: Colors.amberAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Color(0xFFD97706), fontSize: 11.5, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),

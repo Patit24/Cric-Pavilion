@@ -177,7 +177,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                           Flexible(
                             child: Text(
                               currentStep == 1 ? 'Organize Tournament' : 'Team Roster Setup',
-                              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -210,7 +210,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                         currentStep == 1
                             ? 'Format & overs are editable • Configure venue & scorer PIN'
                             : 'Teams & players are fully editable • Add/remove teams',
-                        style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+                        style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -218,7 +218,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -274,7 +274,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
         children: [
           TextField(
             controller: nameController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
             decoration: NeoGlassTheme.inputDecoration(
               labelText: 'Tournament Name *',
               hintText: 'e.g. Bengal Premier League',
@@ -312,7 +312,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                const Text('Format Presets: ', style: TextStyle(color: Colors.white54, fontSize: 10)),
+                const Text('Format Presets: ', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                 _buildFormatChip('T6', 6),
                 _buildFormatChip('T10', 10),
                 _buildFormatChip('15 Ov', 15),
@@ -402,8 +402,8 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
 
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Create Linked Player Auction Draft', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-            subtitle: const Text('Provision auction floor & team bidding consoles for this tournament', style: TextStyle(color: Colors.white54, fontSize: 10)),
+            title: const Text('Create Linked Player Auction Draft', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Provision auction floor & team bidding consoles for this tournament', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
             value: autoCreateAuction,
             activeColor: NeoGlassTheme.neonEmerald,
             onChanged: (val) => setState(() => autoCreateAuction = val),
@@ -443,7 +443,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white70,
+              color: isSelected ? Colors.white : GlassTokens.inkSecondary,
               fontSize: 10.5,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             ),
@@ -456,7 +456,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildShortCodeField() {
     return TextField(
       controller: shortController,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
       decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Short Code *',
         hintText: 'e.g. BPL',
@@ -481,7 +481,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     return TextField(
       controller: oversController,
       keyboardType: TextInputType.number,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5, fontWeight: FontWeight.bold),
       decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Match Overs (Format) *',
         hintText: '20',
@@ -502,7 +502,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildLocationField() {
     return TextField(
       controller: locationController,
-      style: const TextStyle(color: Colors.white, fontSize: 12.5),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
       decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Venue / Stadium *',
         hintText: 'e.g. Eden Gardens, Kolkata',
@@ -527,7 +527,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: Colors.white60, size: 18),
+            icon: const Icon(Icons.remove_circle_outline, color: GlassTokens.inkSecondary, size: 18),
             onPressed: () {
               if (selectedTeamCount > 2) {
                 setState(() {
@@ -584,7 +584,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildRoomIdField() {
     return TextField(
       controller: roomController,
-      style: const TextStyle(color: Colors.white, fontSize: 12),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
       decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Room ID',
         hintText: 'e.g. TOURN-BPL-2026',
@@ -595,7 +595,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   Widget _buildHostPinField() {
     return TextField(
       controller: passController,
-      style: const TextStyle(color: Colors.white, fontSize: 12),
+      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
       decoration: NeoGlassTheme.inputDecoration(
         labelText: 'Host PIN',
         hintText: '1234',
@@ -610,7 +610,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
   void _showColorPickerModal(int teamIdx) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: GlassTokens.bgLightBlue,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
         return Padding(
@@ -619,7 +619,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Choose Team Jersey Color', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              const Text('Choose Team Jersey Color', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
               const SizedBox(height: 14),
               Wrap(
                 spacing: 12,
@@ -644,7 +644,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             BoxShadow(color: col.withValues(alpha: 0.6), blurRadius: 10, spreadRadius: 2),
                         ],
                       ),
-                      child: isCurrent ? const Icon(Icons.check, color: Colors.white, size: 22) : null,
+                      child: isCurrent ? const Icon(Icons.check, color: GlassTokens.inkPrimary, size: 22) : null,
                     ),
                   );
                 }).toList(),
@@ -665,7 +665,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
@@ -674,7 +674,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             Expanded(
               child: Text(
                 'Paste WhatsApp / Text Roster',
-                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -686,19 +686,19 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               Text(
                 'Paste your squad list for "$displayName" below. Each line can contain player name and mobile number:',
-                style: const TextStyle(color: Colors.white70, fontSize: 11),
+                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
               ),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: const Text(
                   'Example:\n1. Rohit Sharma - 9876543201 (Batter)\n2. Jasprit Bumrah - 9876543202 (Bowler)\n3. KL Rahul - 9876543203 (WK)',
-                  style: TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
+                  style: TextStyle(color: GlassTokens.inkMuted, fontSize: 10, fontFamily: 'monospace'),
                 ),
               ),
               const SizedBox(height: 12),
@@ -706,12 +706,12 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 controller: pasteController,
                 maxLines: 8,
                 minLines: 5,
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontFamily: 'monospace'),
                 decoration: InputDecoration(
                   hintText: 'Paste player list here...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                  hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                   filled: true,
-                  fillColor: const Color(0xFF0F172A),
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
@@ -721,7 +721,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -826,7 +826,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
 
     return PopupMenuButton<String>(
       tooltip: 'Change Role',
-      color: const Color(0xFF1E293B),
+      color: GlassTokens.bgLightBlue,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (val) {
         setState(() => row['role'] = val);
@@ -838,7 +838,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               Icon(Icons.sports_cricket_outlined, color: Color(0xFFD97706), size: 16),
               SizedBox(width: 8),
-              Text('Batter', style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text('Batter', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
             ],
           ),
         ),
@@ -848,7 +848,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               Icon(Icons.sports_baseball_outlined, color: Color(0xFF0284C7), size: 16),
               SizedBox(width: 8),
-              Text('Bowler', style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text('Bowler', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
             ],
           ),
         ),
@@ -868,7 +868,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               Icon(Icons.sports_handball, color: Color(0xFF7C3AED), size: 16),
               SizedBox(width: 8),
-              Text('Wicketkeeper', style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text('Wicketkeeper', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 12)),
             ],
           ),
         ),
@@ -965,14 +965,14 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             alignment: Alignment.center,
                             child: Text(
                               '${idx + 1}',
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.w900),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             label,
                             style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
+                              color: isSelected ? Colors.white : GlassTokens.inkSecondary,
                               fontSize: 11,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                             ),
@@ -983,7 +983,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             decoration: BoxDecoration(
                               color: pCount >= 11
                                   ? const Color(0x3300F5A0)
-                                  : (pCount > 0 ? const Color(0x33FBBF24) : Colors.white10),
+                                  : (pCount > 0 ? const Color(0x33FBBF24) : GlassTokens.glassHairline),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -991,7 +991,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               style: TextStyle(
                                 color: pCount >= 11
                                     ? NeoGlassTheme.neonEmerald
-                                    : (pCount > 0 ? NeoGlassTheme.neonAmber : Colors.white60),
+                                    : (pCount > 0 ? NeoGlassTheme.neonAmber : GlassTokens.inkSecondary),
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1032,7 +1032,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xE60B1120),
+            color: GlassTokens.glassFillHigh,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: activeColor.withValues(alpha: 0.5), width: 1.2),
             boxShadow: [
@@ -1058,7 +1058,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                         decoration: BoxDecoration(
                           color: activeColor,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: GlassTokens.inkPrimary, width: 2),
                           boxShadow: [
                             BoxShadow(
                               color: activeColor.withValues(alpha: 0.5),
@@ -1067,7 +1067,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.palette, color: Colors.white, size: 14),
+                        child: const Icon(Icons.palette, color: GlassTokens.inkPrimary, size: 14),
                       ),
                     ),
                   ),
@@ -1076,7 +1076,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     flex: 6,
                     child: TextField(
                       controller: teamNameCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                       decoration: NeoGlassTheme.inputDecoration(
                         labelText: 'Team ${selectedTeamIndex + 1} Name *',
                         hintText: 'e.g. Kolkata Tigers',
@@ -1089,7 +1089,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     flex: 3,
                     child: TextField(
                       controller: teamShortCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                       decoration: NeoGlassTheme.inputDecoration(
                         labelText: 'Code *',
                         hintText: 'KT',
@@ -1117,7 +1117,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     Text(
                       'Squad: 0/11 Players',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: GlassTokens.inkSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1125,7 +1125,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     Text(
                       'Roster Empty',
                       style: TextStyle(
-                        color: Colors.white38,
+                        color: GlassTokens.inkMuted,
                         fontSize: 10,
                       ),
                     ),
@@ -1136,7 +1136,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   borderRadius: BorderRadius.circular(4),
                   child: const LinearProgressIndicator(
                     value: 0.0,
-                    backgroundColor: Colors.white12,
+                    backgroundColor: GlassTokens.glassHairline,
                     minHeight: 4,
                   ),
                 ),
@@ -1152,7 +1152,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               Text(
                                 'Squad: ${pList.length}/11',
                                 style: TextStyle(
-                                  color: pList.length >= 11 ? NeoGlassTheme.neonEmerald : Colors.white70,
+                                  color: pList.length >= 11 ? NeoGlassTheme.neonEmerald : GlassTokens.inkSecondary,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -1168,7 +1168,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: (pList.length / 11.0).clamp(0.0, 1.0),
-                              backgroundColor: Colors.white12,
+                              backgroundColor: GlassTokens.glassHairline,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 pList.length >= 11 ? NeoGlassTheme.neonEmerald : activeColor,
                               ),
@@ -1189,7 +1189,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: NeoGlassTheme.glassBorder),
                         ),
-                        child: const Text('Paste', style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                        child: const Text('Paste', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5, fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -1227,9 +1227,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   padding: const EdgeInsets.all(20),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: GlassTokens.inkPrimary,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: GlassTokens.glassHairline),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1245,13 +1245,13 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       const SizedBox(height: 10),
                       const Text(
                         'No Players Added Yet',
-                        style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       const Text(
                         'Add your playing XI players or paste your squad roster.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       ),
                       const SizedBox(height: 14),
                       Wrap(
@@ -1270,10 +1270,10 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                           ),
                           OutlinedButton.icon(
                             onPressed: () => _showPasteRosterDialog(selectedTeamIndex),
-                            icon: const Icon(Icons.content_paste, size: 14, color: Colors.white70),
-                            label: const Text('Paste Roster', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.content_paste, size: 14, color: GlassTokens.inkSecondary),
+                            label: const Text('Paste Roster', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.white24),
+                              side: const BorderSide(color: GlassTokens.glassHairline),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
                           ),
@@ -1306,9 +1306,9 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     return Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: GlassTokens.inkPrimary,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        border: Border.all(color: GlassTokens.inkPrimary.withValues(alpha: 0.1)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1334,10 +1334,10 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               Expanded(
                                 child: TextField(
                                   controller: pNameCtrl,
-                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.w600),
                                   decoration: const InputDecoration(
                                     hintText: 'Player Full Name *',
-                                    hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                                    hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                                     isDense: true,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                                     border: InputBorder.none,
@@ -1348,7 +1348,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               _buildRoleChip(row, pIdx),
                               const SizedBox(width: 4),
                               IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white38, size: 18),
+                                icon: const Icon(Icons.close, color: GlassTokens.inkMuted, size: 18),
                                 tooltip: 'Remove Player',
                                 onPressed: () {
                                   setState(() {
@@ -1362,7 +1362,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                               ),
                             ],
                           ),
-                          const Divider(color: Colors.white10, height: 1),
+                          const Divider(color: GlassTokens.glassHairline, height: 1),
                           const SizedBox(height: 4),
                           // Bottom Line: Mobile Phone Input
                           Row(
@@ -1373,10 +1373,10 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                                 child: TextField(
                                   controller: pMobileCtrl,
                                   keyboardType: TextInputType.phone,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                                   decoration: const InputDecoration(
                                     hintText: 'Mobile Number (e.g. 9876543210)',
-                                    hintStyle: TextStyle(color: Colors.white38, fontSize: 11),
+                                    hintStyle: TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                                     isDense: true,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                                     border: InputBorder.none,
@@ -1411,7 +1411,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
               ),
               Wrap(
                 spacing: 8,
@@ -1458,7 +1458,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                 Expanded(
                   child: Text(
                     'Tip: You can tap "Skip for Now" to create tournament now and add squad players later before match scoring.',
-                    style: TextStyle(color: Colors.white70, fontSize: 10),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                   ),
                 ),
               ],
@@ -1472,8 +1472,8 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
             children: [
               TextButton.icon(
                 onPressed: () => setState(() => currentStep = 1),
-                icon: const Icon(Icons.arrow_back, size: 14, color: Colors.white70),
-                label: const Text('Back', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                icon: const Icon(Icons.arrow_back, size: 14, color: GlassTokens.inkSecondary),
+                label: const Text('Back', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
               ),
               Wrap(
                 spacing: 8,
@@ -1621,7 +1621,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: GlassTokens.bgLightBlue,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: Color(0xFF00F5A0), width: 1.4),
@@ -1651,7 +1651,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                       children: [
                         Text(
                           tourn.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
@@ -1669,20 +1669,20 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: GlassTokens.inkPrimary,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Scorer Room ID:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        const Text('Scorer Room ID:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: const Color(0xFF00D9F5).withValues(alpha: 0.5)),
                           ),
@@ -1693,21 +1693,21 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                         ),
                       ],
                     ),
-                    const Divider(color: Colors.white10, height: 16),
+                    const Divider(color: GlassTokens.glassHairline, height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Scorer PIN / Passcode:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        const Text('Scorer PIN / Passcode:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
+                            border: Border.all(color: Color(0xFFD97706).withValues(alpha: 0.5)),
                           ),
                           child: Text(
                             tourn.passcode,
-                            style: const TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 2),
+                            style: const TextStyle(color: Color(0xFFD97706), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 2),
                           ),
                         ),
                       ],
@@ -1733,7 +1733,7 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                     Expanded(
                       child: Text(
                         'You are the Organizer: Live scoring is unlocked for you immediately! Share this Room ID and PIN only with delegates or other scorers if you want someone else to score.',
-                        style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, height: 1.3),
                       ),
                     ),
                   ],
@@ -1772,11 +1772,11 @@ class _CreateTournamentDialogState extends State<CreateTournamentDialog> with Si
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white24),
+                  side: const BorderSide(color: GlassTokens.glassHairline),
                   padding: const EdgeInsets.symmetric(vertical: 11),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('View Tournament Hub', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                child: const Text('View Tournament Hub', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
               ),
             ],
           ),

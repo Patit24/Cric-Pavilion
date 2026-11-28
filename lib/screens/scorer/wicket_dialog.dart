@@ -109,7 +109,7 @@ class _WicketDialogState extends State<WicketDialog> {
                     ),
                     Text(
                       step == 1 ? 'Step 1: How Out?' : 'Step 2: Incoming Batter',
-                      style: const TextStyle(fontSize: 11, color: Colors.white70),
+                      style: const TextStyle(fontSize: 11, color: GlassTokens.inkSecondary),
                     ),
                   ],
                 ),
@@ -119,7 +119,7 @@ class _WicketDialogState extends State<WicketDialog> {
 
             if (step == 1) ...[
               // Out Player Choice
-              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
+              const Text('Dismissed Batter:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: GlassTokens.inkSecondary)),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -136,7 +136,7 @@ class _WicketDialogState extends State<WicketDialog> {
                       ),
                       selected: dismissedBatterId == widget.striker.id,
                       selectedColor: NeoGlassTheme.neonEmerald,
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: Colors.white,
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.striker.id);
                       },
@@ -156,7 +156,7 @@ class _WicketDialogState extends State<WicketDialog> {
                       ),
                       selected: dismissedBatterId == widget.nonStriker.id,
                       selectedColor: NeoGlassTheme.neonEmerald,
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: Colors.white,
                       onSelected: (val) {
                         setState(() => dismissedBatterId = widget.nonStriker.id);
                       },
@@ -167,7 +167,7 @@ class _WicketDialogState extends State<WicketDialog> {
               const SizedBox(height: 12),
 
               // Dismissal Mode
-              const Text('Dismissal Type:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
+              const Text('Dismissal Type:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: GlassTokens.inkSecondary)),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -180,12 +180,12 @@ class _WicketDialogState extends State<WicketDialog> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.white70,
+                        color: isSelected ? Colors.white : GlassTokens.inkSecondary,
                       ),
                     ),
                     selected: isSelected,
                     selectedColor: NeoGlassTheme.neonRose,
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: Colors.white,
                     onSelected: (val) {
                       setState(() => selectedType = type);
                     },
@@ -196,19 +196,19 @@ class _WicketDialogState extends State<WicketDialog> {
 
               // Fielder dropdown for caught/run-out/stumped
               if (selectedType == DismissalType.caught || selectedType == DismissalType.runOut || selectedType == DismissalType.stumped) ...[
-                const Text('Fielder Involved:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70)),
+                const Text('Fielder Involved:', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: GlassTokens.inkSecondary)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   value: selectedFielderId,
                   isExpanded: true,
-                  dropdownColor: const Color(0xFF0F172A),
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  dropdownColor: Colors.white,
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     filled: true,
-                    fillColor: const Color(0xFF0F172A),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white24)),
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: GlassTokens.glassHairline)),
                   ),
                   items: widget.bowlingTeamPlayers.map((p) {
                     final name = p.fullName.isNotEmpty ? p.fullName : p.displayName;
@@ -249,7 +249,7 @@ class _WicketDialogState extends State<WicketDialog> {
               // Step 2: Select incoming batter
               Text(
                 'Select Incoming Batter (${availableDugout.length} in dugout):',
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white70),
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: GlassTokens.inkSecondary),
               ),
               const SizedBox(height: 10),
 
@@ -272,7 +272,7 @@ class _WicketDialogState extends State<WicketDialog> {
                           color: isSelected ? const Color(0x3310B981) : const Color(0x330F172A),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? NeoGlassTheme.neonEmerald : Colors.white12,
+                            color: isSelected ? NeoGlassTheme.neonEmerald : GlassTokens.glassHairline,
                             width: isSelected ? 1.5 : 1.0,
                           ),
                           boxShadow: [
@@ -286,7 +286,7 @@ class _WicketDialogState extends State<WicketDialog> {
                             CircleAvatar(
                               radius: 16,
                               backgroundImage: NetworkImage(b.photoUrl),
-                              backgroundColor: const Color(0xFF1E293B),
+                              backgroundColor: GlassTokens.bgLightBlue,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -295,12 +295,12 @@ class _WicketDialogState extends State<WicketDialog> {
                                 children: [
                                   Text(
                                     bName,
-                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: GlassTokens.inkPrimary),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     '${b.roleString} • ${b.battingStyle}',
-                                    style: const TextStyle(fontSize: 10, color: Colors.white60),
+                                    style: const TextStyle(fontSize: 10, color: GlassTokens.inkSecondary),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -321,7 +321,7 @@ class _WicketDialogState extends State<WicketDialog> {
                 children: [
                   TextButton(
                     onPressed: () => setState(() => step = 1),
-                    child: const Text('← Back', style: TextStyle(color: Colors.white70)),
+                    child: const Text('← Back', style: TextStyle(color: GlassTokens.inkSecondary)),
                   ),
                   const Spacer(),
                   NeoGlassButton(

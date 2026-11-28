@@ -44,13 +44,16 @@ class AccountAuthPill extends StatelessWidget {
             children: [
               const Icon(Icons.lock_outline, size: 12, color: NeoGlassTheme.neonEmerald),
               const SizedBox(width: 5),
-              Text(
-                compact ? 'Login' : 'Organizer Login',
-                style: const TextStyle(
-                  color: NeoGlassTheme.neonEmerald,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
+              Flexible(
+                child: Text(
+                  compact ? 'Login' : 'Organizer Login',
+                  style: const TextStyle(
+                    color: NeoGlassTheme.neonEmerald,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -131,7 +134,7 @@ class AccountAuthPill extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: GlassTokens.glassHairline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -146,7 +149,7 @@ class AccountAuthPill extends StatelessWidget {
                     ),
                     child: const CircleAvatar(
                       radius: 24,
-                      backgroundColor: Color(0xFF1E293B),
+                      backgroundColor: GlassTokens.bgLightBlue,
                       child: Icon(Icons.person, color: NeoGlassTheme.neonEmerald, size: 26),
                     ),
                   ),
@@ -157,11 +160,11 @@ class AccountAuthPill extends StatelessWidget {
                       children: [
                         Text(
                           user.fullName,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.w900),
                         ),
                         Text(
                           '${user.email} • ${user.mobileNumber}',
-                          style: const TextStyle(color: Colors.white60, fontSize: 11),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
@@ -176,20 +179,20 @@ class AccountAuthPill extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0x330F172A),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: GlassTokens.glassHairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'YOUR AUTHORIZED TOURNAMENT ROLES:',
-                      style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.6),
                     ),
                     const SizedBox(height: 8),
                     if (user.tournamentRoles.isEmpty && user.ownedTeamIds.isEmpty && user.conductorAuctionIds.isEmpty)
                       const Text(
                         'No organizer roles assigned yet. You can create a tournament or join an auction with an Auction PIN.',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                        style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                       )
                     else ...[
                       if (user.tournamentRoles.isNotEmpty)
@@ -204,7 +207,7 @@ class AccountAuthPill extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     '${tourn?.name ?? "Tournament"}: ${e.value.displayName}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -223,7 +226,7 @@ class AccountAuthPill extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     'Franchise Owner: ${team?.name ?? tId}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -242,7 +245,7 @@ class AccountAuthPill extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     'Auction Conductor: ${auc.title}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11.5, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -286,7 +289,7 @@ class AccountAuthPill extends StatelessWidget {
                           children: [
                             Text(
                               user.isGoogleAuthEnabled ? 'Google Authenticator 2FA: Active' : 'Google Authenticator (2FA)',
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -294,7 +297,7 @@ class AccountAuthPill extends StatelessWidget {
                                   ? 'RFC 6238 TOTP verified • Tap to manage'
                                   : 'Tap to configure 6-digit TOTP app verification',
                               style: TextStyle(
-                                color: user.isGoogleAuthEnabled ? const Color(0xFF00F5A0) : Colors.white60,
+                                color: user.isGoogleAuthEnabled ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
                                 fontSize: 10.5,
                               ),
                             ),
@@ -304,16 +307,16 @@ class AccountAuthPill extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: user.isGoogleAuthEnabled ? const Color(0xFF064E3B) : const Color(0xFF1E293B),
+                          color: user.isGoogleAuthEnabled ? const Color(0xFF064E3B) : GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: user.isGoogleAuthEnabled ? const Color(0xFF10B981) : Colors.white24,
+                            color: user.isGoogleAuthEnabled ? const Color(0xFF10B981) : GlassTokens.glassHairline,
                           ),
                         ),
                         child: Text(
                           user.isGoogleAuthEnabled ? 'ON' : 'SETUP',
                           style: TextStyle(
-                            color: user.isGoogleAuthEnabled ? const Color(0xFF10B981) : Colors.white70,
+                            color: user.isGoogleAuthEnabled ? const Color(0xFF10B981) : GlassTokens.inkSecondary,
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
                           ),
@@ -356,12 +359,12 @@ class AccountAuthPill extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Logged out. Returned to Public Viewer mode.'),
-                      backgroundColor: Color(0xFF1E293B),
+                      backgroundColor: GlassTokens.bgLightBlue,
                     ),
                   );
                 },
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF334155), Color(0xFF1E293B)],
+                  colors: [Color(0xFF334155), GlassTokens.bgLightBlue],
                 ),
                 icon: Icons.logout,
                 child: const Text('Sign Out (Return to Public View)', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -389,7 +392,7 @@ class AccountAuthPill extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Color(0xFFEF4444)),
@@ -403,12 +406,12 @@ class AccountAuthPill extends StatelessWidget {
         ),
         content: Text(
           'Are you sure you want to permanently delete account "${user.fullName}" (${user.mobileNumber})? All associated personal records will be erased.',
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
+          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            child: const Text('Cancel', style: TextStyle(color: GlassTokens.inkSecondary)),
           ),
           ElevatedButton(
             onPressed: () {

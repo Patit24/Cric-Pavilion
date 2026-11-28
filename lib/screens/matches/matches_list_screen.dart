@@ -57,12 +57,12 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1120),
+        backgroundColor: GlassTokens.bgIcyWhite,
         elevation: 0,
-        shape: const Border(bottom: BorderSide(color: Color(0xFF1E293B))),
-        title: const Text('Match Centre', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Colors.white)),
+        shape: const Border(bottom: BorderSide(color: GlassTokens.bgLightBlue)),
+        title: const Text('Match Centre', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: GlassTokens.inkPrimary)),
         actions: const [
           RoleSwitcherChip(compact: true),
           SizedBox(width: 8),
@@ -74,24 +74,24 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
             decoration: const BoxDecoration(
-              color: Color(0xFF0B1120),
+              color: GlassTokens.bgIcyWhite,
               border: Border(bottom: BorderSide(color: Color(0x18FFFFFF))),
             ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Search by tournament (e.g. BPL), team, venue...',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF00F5A0), size: 18),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white54, size: 16),
+                        icon: const Icon(Icons.clear, color: GlassTokens.inkSecondary, size: 16),
                         onPressed: () => setState(() => _searchController.clear()),
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: GlassTokens.bgLightBlue,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -143,7 +143,7 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                            color: isSelected ? Colors.black : Colors.white70,
+                            color: isSelected ? Colors.black : GlassTokens.inkSecondary,
                           ),
                         ),
                       ),
@@ -172,14 +172,14 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                             child: const Icon(Icons.sports_cricket, size: 48, color: Color(0xFF34D399)),
                           ),
                           const SizedBox(height: 16),
-                          const Text('No Matches Found', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          const Text('No Matches Found', style: TextStyle(color: GlassTokens.inkPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           Text(
                             filter == 'all'
                                 ? 'Create a tournament and schedule matches to start scoring live.'
                                 : 'No ${filter.toUpperCase()} matches right now in this category.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
                           ),
                           const SizedBox(height: 20),
                           if (db.tournaments.isNotEmpty)
@@ -248,19 +248,19 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(m.stage, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  Text(m.stage, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
                                   if (isLive)
                                     const PulsingLiveBadge(label: 'LIVE', color: Colors.redAccent)
                                   else
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: isCompleted ? const Color(0xFF059669) : Colors.white12,
+                                        color: isCompleted ? const Color(0xFF059669) : GlassTokens.glassHairline,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         m.status.name.toUpperCase(),
-                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 9, fontWeight: FontWeight.w900),
                                       ),
                                     ),
                                 ],
@@ -274,12 +274,12 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                   Expanded(
                                     child: Row(
                                       children: [
-                                        CircleAvatar(radius: 12, backgroundColor: teamA.primaryColor, child: Text(teamA.shortName, style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold))),
+                                        CircleAvatar(radius: 12, backgroundColor: teamA.primaryColor, child: Text(teamA.shortName, style: const TextStyle(fontSize: 8, color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold))),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             teamA.name,
-                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -288,9 +288,9 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   if (inn1 != null)
-                                    Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))
+                                    Text('${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr} ov)', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13))
                                   else
-                                    const Text('Ready', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                                    const Text('Ready', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11)),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -302,12 +302,12 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                   Expanded(
                                     child: Row(
                                       children: [
-                                        CircleAvatar(radius: 12, backgroundColor: teamB.primaryColor, child: Text(teamB.shortName, style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold))),
+                                        CircleAvatar(radius: 12, backgroundColor: teamB.primaryColor, child: Text(teamB.shortName, style: const TextStyle(fontSize: 8, color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold))),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             teamB.name,
-                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                            style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -316,9 +316,9 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   if (inn2 != null)
-                                    Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))
+                                    Text('${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr} ov)', style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13))
                                   else
-                                    const Text('Ready', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                                    const Text('Ready', style: TextStyle(color: GlassTokens.inkMuted, fontSize: 11)),
                                 ],
                               ),
 
@@ -330,7 +330,7 @@ class _MatchesListScreenState extends State<MatchesListScreen> {
                                   Expanded(
                                     child: Text(
                                       m.venue,
-                                      style: const TextStyle(color: Colors.white38, fontSize: 11),
+                                      style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 11),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),

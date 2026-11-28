@@ -61,7 +61,7 @@ class OverCompleteDialog extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: GlassTokens.inkPrimary,
               letterSpacing: 0.3,
             ),
           ),
@@ -69,7 +69,7 @@ class OverCompleteDialog extends StatelessWidget {
           const Text(
             'Ends swap automatically. Same bowler cannot bowl consecutive overs (ICC Law 17.8).',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11.5, color: Colors.white60),
+            style: TextStyle(fontSize: 11.5, color: GlassTokens.inkSecondary),
           ),
           const SizedBox(height: 16),
 
@@ -108,7 +108,7 @@ class OverCompleteDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isLocked
-                            ? Colors.white12
+                            ? GlassTokens.glassHairline
                             : NeoGlassTheme.neonEmerald.withValues(alpha: 0.6),
                         width: isLocked ? 1 : 1.4,
                       ),
@@ -124,14 +124,14 @@ class OverCompleteDialog extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isLocked ? Colors.white24 : NeoGlassTheme.neonEmerald,
+                              color: isLocked ? GlassTokens.glassHairline : NeoGlassTheme.neonEmerald,
                               width: 1.5,
                             ),
                           ),
                           child: CircleAvatar(
                             radius: 18,
                             backgroundImage: NetworkImage(p.photoUrl),
-                            backgroundColor: const Color(0xFF1E293B),
+                            backgroundColor: GlassTokens.bgLightBlue,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -144,14 +144,14 @@ class OverCompleteDialog extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: isLocked ? Colors.white54 : Colors.white,
+                                  color: isLocked ? GlassTokens.inkSecondary : Colors.white,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${p.bowlingStyle} • ${eligibility.oversStr} ov bowled',
-                                style: const TextStyle(fontSize: 10.5, color: Colors.white60),
+                                style: const TextStyle(fontSize: 10.5, color: GlassTokens.inkSecondary),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               if (isLocked && eligibility.reason != null)

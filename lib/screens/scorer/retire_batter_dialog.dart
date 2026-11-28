@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../theme/neo_glass_theme.dart';
 
 /// Modal dialog for retiring a batter mid-innings (Retired Hurt / Injured or Retired Out).
 /// In cricket, retiring a batter does NOT count as a delivery/ball bowled!
@@ -85,7 +86,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0x3300F5A0), width: 1.2),
@@ -118,17 +119,17 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                         children: [
                           Text(
                             'RETIRE BATTER',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 0.8),
+                            style: TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 0.8),
                           ),
                           Text(
                             'Change injured / retiring batsman without counting a ball',
-                            style: TextStyle(color: Colors.white60, fontSize: 11),
+                            style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                      icon: const Icon(Icons.close, color: GlassTokens.inkSecondary, size: 20),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -150,7 +151,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                 ],
 
                 // 1. Select Retiring Batter
-                const Text('1. Which batter is retiring?', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const Text('1. Which batter is retiring?', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -164,7 +165,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                           fontWeight: FontWeight.bold,
                           fontSize: 11.5,
                         ),
-                        backgroundColor: const Color(0xFF1E293B),
+                        backgroundColor: GlassTokens.bgLightBlue,
                         onSelected: (val) {
                           if (val) setState(() => _retiringPlayerId = widget.striker.id);
                         },
@@ -181,7 +182,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                           fontWeight: FontWeight.bold,
                           fontSize: 11.5,
                         ),
-                        backgroundColor: const Color(0xFF1E293B),
+                        backgroundColor: GlassTokens.bgLightBlue,
                         onSelected: (val) {
                           if (val) setState(() => _retiringPlayerId = widget.nonStriker.id);
                         },
@@ -192,7 +193,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                 const SizedBox(height: 16),
 
                 // 2. Select Reason (Retired Hurt vs Retired Out)
-                const Text('2. Retirement Condition:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const Text('2. Retirement Condition:', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -203,16 +204,16 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: _isHurt ? const Color(0xFF009270).withValues(alpha: 0.25) : const Color(0xFF1E293B),
+                            color: _isHurt ? const Color(0xFF009270).withValues(alpha: 0.25) : GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: _isHurt ? const Color(0xFF00F5A0) : Colors.white12, width: _isHurt ? 1.5 : 1),
+                            border: Border.all(color: _isHurt ? const Color(0xFF00F5A0) : GlassTokens.glassHairline, width: _isHurt ? 1.5 : 1),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.healing, color: _isHurt ? const Color(0xFF00F5A0) : Colors.white60, size: 16),
+                                  Icon(Icons.healing, color: _isHurt ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary, size: 16),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Retired Hurt',
@@ -225,7 +226,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              const Text('Injured / ill (Not Out). Wicket is NOT incremented.', style: TextStyle(color: Colors.white60, fontSize: 10)),
+                              const Text('Injured / ill (Not Out). Wicket is NOT incremented.', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                             ],
                           ),
                         ),
@@ -239,16 +240,16 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: !_isHurt ? Colors.redAccent.withValues(alpha: 0.25) : const Color(0xFF1E293B),
+                            color: !_isHurt ? Colors.redAccent.withValues(alpha: 0.25) : GlassTokens.bgLightBlue,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: !_isHurt ? Colors.redAccent : Colors.white12, width: !_isHurt ? 1.5 : 1),
+                            border: Border.all(color: !_isHurt ? Colors.redAccent : GlassTokens.glassHairline, width: !_isHurt ? 1.5 : 1),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.exit_to_app, color: !_isHurt ? Colors.redAccent : Colors.white60, size: 16),
+                                  Icon(Icons.exit_to_app, color: !_isHurt ? Colors.redAccent : GlassTokens.inkSecondary, size: 16),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Retired Out',
@@ -261,7 +262,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              const Text('Voluntary exit. Counts as dismissal/wicket.', style: TextStyle(color: Colors.white60, fontSize: 10)),
+                              const Text('Voluntary exit. Counts as dismissal/wicket.', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
                             ],
                           ),
                         ),
@@ -274,7 +275,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                 // 3. Select Replacement Batter from Dugout
                 Text(
                   '3. Incoming Replacement Batter (${widget.availableDugout.length} in dugout):',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 if (widget.availableDugout.isEmpty) ...[
@@ -291,7 +292,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                         value: p.id,
                         child: Text(
                           '${_name(p)} (${p.roleString})',
-                          style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                          style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
                         ),
                       );
                     }).toList(),
@@ -299,10 +300,10 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                       _replacementPlayerId = id;
                       _errorMessage = null;
                     }),
-                    dropdownColor: const Color(0xFF0F172A),
+                    dropdownColor: Colors.white,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFF1E293B),
+                      fillColor: GlassTokens.bgLightBlue,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                     ),
@@ -325,7 +326,7 @@ class _RetireBatterDialogState extends State<RetireBatterDialog> {
                       Expanded(
                         child: Text(
                           'Per cricket rules, retirement happens between balls — no extra delivery or legal ball is consumed.',
-                          style: TextStyle(color: Colors.white70, fontSize: 10.5),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                         ),
                       ),
                     ],

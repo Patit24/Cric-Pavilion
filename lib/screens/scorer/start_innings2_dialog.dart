@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
+import '../../theme/neo_glass_theme.dart';
 
 /// Modal dialog presented when Innings 1 concludes, prompting the scorer
 /// to select the Opening Striker, Non-Striker, and Opening Bowler for Innings 2.
@@ -91,7 +92,7 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
     final rrr = widget.match.overs > 0 ? (targetRuns / widget.match.overs).toStringAsFixed(1) : '0.0';
 
     return Dialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Color(0x4400F5A0), width: 1.5),
@@ -127,7 +128,7 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                         ),
                         Text(
                           'Set 2nd Innings Crease Lineup (${widget.chasingTeam.name} Chase)',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                       ],
                     ),
@@ -141,7 +142,7 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF1E293B), Color(0xFF1E3A5F)],
+                    colors: [GlassTokens.bgLightBlue, Color(0xFF1E3A5F)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
@@ -154,12 +155,12 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                       children: [
                         Text(
                           '${widget.defendingTeam.name}: ${widget.inn1.totalRuns}/${widget.inn1.wickets} (${widget.inn1.oversStr} ov)',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'TARGET: $targetRuns RUNS',
-                          style: const TextStyle(color: Colors.amberAccent, fontSize: 15, fontWeight: FontWeight.w900),
+                          style: const TextStyle(color: Color(0xFFD97706), fontSize: 15, fontWeight: FontWeight.w900),
                         ),
                       ],
                     ),
@@ -171,7 +172,7 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                       ),
                       child: Text(
                         'Req RR: $rrr',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -252,11 +253,11 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white24),
+                        side: const BorderSide(color: GlassTokens.glassHairline),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Cancel / Later', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      child: const Text('Cancel / Later', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12)),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -296,9 +297,9 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: GlassTokens.bgLightBlue,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: GlassTokens.glassHairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,15 +319,15 @@ class _StartInnings2DialogState extends State<StartInnings2Dialog> {
                 value: p.id,
                 child: Text(
                   '${_name(p)} (${p.roleString})',
-                  style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12.5),
                 ),
               );
             }).toList(),
             onChanged: onChanged,
-            dropdownColor: const Color(0xFF0F172A),
+            dropdownColor: Colors.white,
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFF0B1120),
+              fillColor: GlassTokens.bgIcyWhite,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
             ),

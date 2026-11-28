@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/auth_modal_dialog.dart';
 import 'player_profile_screen.dart';
+import '../../theme/neo_glass_theme.dart';
 
 class PlayerDirectoryScreen extends StatefulWidget {
   const PlayerDirectoryScreen({super.key});
@@ -56,20 +57,20 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070B14),
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: db.isAuthenticated
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: const Icon(Icons.arrow_back, color: GlassTokens.inkPrimary),
                 tooltip: 'Back to My Profile',
                 onPressed: () => setState(() => _showSearch = false),
               )
             : null,
         title: Text(
           db.isAuthenticated ? 'Search Players' : 'Player Directory',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         actions: [
           if (db.isAuthenticated)
@@ -104,7 +105,7 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
               margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: GlassTokens.bgLightBlue,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.3)),
               ),
@@ -115,7 +116,7 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                   const Expanded(
                     child: Text(
                       'Log in to view your verified Player Profile & career stats.',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -141,22 +142,22 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFF0F172A),
-              border: Border(bottom: BorderSide(color: Colors.white12)),
+              color: GlassTokens.inkPrimary,
+              border: Border(bottom: BorderSide(color: GlassTokens.glassHairline)),
             ),
             child: Column(
               children: [
                 TextField(
                   controller: _searchController,
                   autofocus: db.isAuthenticated && _showSearch,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'Search player name, ID (e.g. PLY-2026), or mobile...',
-                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    hintStyle: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF00F5A0), size: 18),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear, color: Colors.white54, size: 16),
+                            icon: const Icon(Icons.clear, color: GlassTokens.inkSecondary, size: 16),
                             onPressed: () {
                               setState(() {
                                 _searchController.clear();
@@ -165,7 +166,7 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                           )
                         : null,
                     filled: true,
-                    fillColor: const Color(0xFF1E293B),
+                    fillColor: GlassTokens.bgLightBlue,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -202,16 +203,16 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.person_search, color: Colors.white24, size: 48),
+                        const Icon(Icons.person_search, color: GlassTokens.glassHairline, size: 48),
                         const SizedBox(height: 12),
                         const Text(
                           'No registered players match your search',
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                          style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           query.isNotEmpty ? 'Try searching another name or ID' : 'Players will appear once registered',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          style: const TextStyle(color: GlassTokens.inkMuted, fontSize: 12),
                         ),
                       ],
                     ),
@@ -226,9 +227,9 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
+                          color: GlassTokens.inkPrimary,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white12),
+                          border: Border.all(color: GlassTokens.glassHairline),
                         ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -251,7 +252,7 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                               Expanded(
                                 child: Text(
                                   p.fullName,
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 14),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -274,27 +275,27 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${p.roleString} • ${p.battingStyle}',
-                                style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                               ),
                               const SizedBox(height: 2),
                               Row(
                                 children: [
                                   Text(
                                     team?.name ?? 'Free Agent',
-                                    style: const TextStyle(color: Colors.amberAccent, fontSize: 10.5, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(color: Color(0xFFD97706), fontSize: 10.5, fontWeight: FontWeight.w600),
                                   ),
                                   if (p.runs > 0 || p.wickets > 0) ...[
-                                    const Text(' • ', style: TextStyle(color: Colors.white38)),
+                                    const Text(' • ', style: TextStyle(color: GlassTokens.inkMuted)),
                                     Text(
                                       '${p.runs} runs, ${p.wickets} wkts (${p.matches} mat)',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                      style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
                                     ),
                                   ],
                                 ],
                               ),
                             ],
                           ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
+                          trailing: const Icon(Icons.chevron_right, color: GlassTokens.inkMuted, size: 20),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -321,14 +322,14 @@ class _PlayerDirectoryScreenState extends State<PlayerDirectoryScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF00F5A0).withValues(alpha: 0.2) : const Color(0xFF1E293B),
+          color: isSelected ? const Color(0xFF00F5A0).withValues(alpha: 0.2) : GlassTokens.bgLightBlue,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : Colors.white12),
+          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF00F5A0) : Colors.white70,
+            color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.inkSecondary,
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
