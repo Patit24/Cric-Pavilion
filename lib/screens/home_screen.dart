@@ -234,21 +234,17 @@ class _HomeScreenState extends State<HomeScreen> {
   // =========================================================================
   Widget _buildQuickMatchBanner(BuildContext context, MockDatabase db) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+      margin: const EdgeInsets.fromLTRB(14, 10, 14, 6),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0x6600F5A0), width: 1.2),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF00F5A0).withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Color(0x0A0F172A),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -257,24 +253,25 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
+              color: const Color(0xFFECFDF5),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFA7F3D0)),
             ),
-            child: const Icon(Icons.flash_on, color: Color(0xFF00F5A0), size: 24),
+            child: const Icon(Icons.flash_on, color: Color(0xFF009270), size: 22),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  '⚡ Start a Quick Match',
-                  style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w900),
+                  'Start a Quick Match',
+                  style: TextStyle(color: Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.w800),
                 ),
                 SizedBox(height: 2),
                 Text(
                   'Friendly 2-team match with custom overs & live scoring.',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
                 ),
               ],
             ),
@@ -283,12 +280,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(
             onPressed: () => _openQuickMatch(context, db),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00F5A0),
-              foregroundColor: Colors.black,
+              backgroundColor: const Color(0xFF009270),
+              foregroundColor: Colors.white,
+              elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Play Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5)),
+            child: const Text('Play Now', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
           ),
         ],
       ),
@@ -411,10 +409,10 @@ class _HomeScreenState extends State<HomeScreen> {
             statusText = m.winnerId != null
                 ? '${db.getTeam(m.winnerId)?.shortName ?? "Winner"} won by ${m.winMargin ?? "runs"}'
                 : 'Match Completed';
-            statusColor = Colors.amberAccent;
+            statusColor = const Color(0xFF059669);
           } else {
             statusText = '${m.venue} • Starts soon';
-            statusColor = Colors.white60;
+            statusColor = const Color(0xFF64748B);
           }
 
           return InkWell(
@@ -424,17 +422,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (ctx) => MatchDetailScreen(matchId: m.id)),
               );
             },
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               width: 300,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1F2937),
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isLive ? const Color(0xFFEF4444) : const Color(0xFF374151),
-                  width: isLive ? 1.5 : 1,
+                  color: isLive ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0),
+                  width: isLive ? 1.3 : 1,
                 ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x080F172A),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,23 +449,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${tourn?.shortName ?? "CRICKET"} • ${m.stage.toUpperCase()}',
-                        style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
+                      Flexible(
+                        child: Text(
+                          '${tourn?.shortName ?? "CRICKET"} • ${m.stage.toUpperCase()}',
+                          style: const TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       if (isLive)
-                        const PulsingLiveBadge(label: 'LIVE', color: Color(0xFFEF4444))
+                        const PulsingLiveBadge(label: 'LIVE', color: Color(0xFFDC2626))
                       else
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isCompleted ? const Color(0xFF009270) : const Color(0xFF374151),
+                            color: isCompleted ? const Color(0xFFECFDF5) : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isCompleted ? const Color(0xFFA7F3D0) : const Color(0xFFCBD5E1),
+                            ),
                           ),
                           child: Text(
                             isCompleted ? 'RESULT' : 'UPCOMING',
-                            style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w900),
+                            style: TextStyle(
+                              color: isCompleted ? const Color(0xFF065F46) : const Color(0xFF475569),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                     ],
@@ -481,13 +495,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(
                           teamA.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w700),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         inn1 != null ? '${inn1.totalRuns}/${inn1.wickets} (${inn1.oversStr})' : '--',
-                        style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12.5, fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
@@ -507,13 +521,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(
                           teamB.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: const TextStyle(color: Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         inn2 != null ? '${inn2.totalRuns}/${inn2.wickets} (${inn2.oversStr})' : '--',
-                        style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5, fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -572,8 +586,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // =========================================================================
   Widget _buildCricbuzzSubTabs(int liveCount, int upcomingCount, int recentCount, int auctionCount) {
     return Container(
-      color: const Color(0xFF1F2937),
-      height: 42,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: Color(0xFFE2E8F0)),
+          bottom: BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -592,7 +612,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSelected = selectedFilter == id;
     return InkWell(
       onTap: () => setState(() => selectedFilter = id),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
@@ -606,9 +628,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white60,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+            color: isSelected ? const Color(0xFF009270) : const Color(0xFF64748B),
+            fontSize: 12.5,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
           ),
         ),
       ),
@@ -623,39 +645,37 @@ class _HomeScreenState extends State<HomeScreen> {
     final hasFilter = query.isNotEmpty || _selectedTournamentId != 'all';
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+      margin: const EdgeInsets.fromLTRB(14, 12, 14, 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Search Input
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1F2937),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: hasFilter ? const Color(0xFF00F5A0) : const Color(0xFF374151),
+                color: hasFilter ? const Color(0xFF009270) : const Color(0xFFE2E8F0),
                 width: hasFilter ? 1.4 : 1,
               ),
-              boxShadow: hasFilter
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF00F5A0).withValues(alpha: 0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x070F172A),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: TextField(
               controller: _tournamentSearchController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Search live matches & results by tournament (e.g. BPL, IPL)...',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF00F5A0), size: 18),
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF009270), size: 18),
                 suffixIcon: hasFilter
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white60, size: 16),
+                        icon: const Icon(Icons.clear, color: Color(0xFF64748B), size: 16),
                         tooltip: 'Clear filter',
                         onPressed: () {
                           setState(() {
@@ -739,18 +759,18 @@ class _HomeScreenState extends State<HomeScreen> {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF009270) : const Color(0xFF1F2937),
+            color: isSelected ? const Color(0xFF009270) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF00F5A0)
-                  : (hasLive ? const Color(0xFFEF4444).withValues(alpha: 0.6) : const Color(0xFF374151)),
+                  ? const Color(0xFF009270)
+                  : (hasLive ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0)),
               width: hasLive || isSelected ? 1.2 : 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF009270).withValues(alpha: 0.3),
+                      color: const Color(0xFF009270).withValues(alpha: 0.2),
                       blurRadius: 6,
                     ),
                   ]
@@ -760,30 +780,32 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (hasLive) ...[
-                const PulsingLiveDot(color: Color(0xFFEF4444), size: 6.5),
+                const PulsingLiveDot(color: Color(0xFFDC2626), size: 6.5),
                 const SizedBox(width: 5),
               ],
               Text(
                 name,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : (hasLive ? Colors.white : Colors.white70),
-                  fontSize: 11,
-                  fontWeight: isSelected || hasLive ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 11.5,
+                  fontWeight: isSelected || hasLive ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 5),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.black26,
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : (hasLive ? const Color(0xFFFEF2F2) : const Color(0xFFF1F5F9)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   hasLive ? 'LIVE' : '$matchCount',
                   style: TextStyle(
-                    color: isSelected ? Colors.white : (hasLive ? const Color(0xFFEF4444) : Colors.white54),
+                    color: isSelected ? Colors.white : (hasLive ? const Color(0xFFDC2626) : const Color(0xFF64748B)),
                     fontSize: 8.5,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -1160,23 +1182,26 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.symmetric(vertical: 20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1F2937),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF374151)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x080F172A), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         children: [
-          const Icon(Icons.search_off, size: 44, color: Colors.amberAccent),
+          const Icon(Icons.search_off, size: 44, color: Color(0xFFD97706)),
           const SizedBox(height: 12),
           Text(
             query.isNotEmpty ? 'No matches found for "$query"' : 'No matches found for selected tournament',
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
           const Text(
             'Try searching for another tournament name like "BPL" or "IPL", or select "All Tournaments".',
-            style: TextStyle(color: Colors.white60, fontSize: 12),
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -1227,52 +1252,56 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1F2937),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF374151)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A0F172A), blurRadius: 12, offset: Offset(0, 4)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: const BoxDecoration(
-              color: Color(0xFF111827),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    const PulsingLiveDot(color: Color(0xFFEF4444), size: 7.5),
+                    const PulsingLiveDot(color: Color(0xFFDC2626), size: 7.5),
                     const SizedBox(width: 6),
                     if (tourn != null) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         margin: const EdgeInsets.only(right: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF009270).withValues(alpha: 0.25),
+                          color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF009270), width: 0.8),
+                          border: Border.all(color: const Color(0xFFA7F3D0), width: 0.8),
                         ),
                         child: Text(
                           tourn.shortName.isNotEmpty ? tourn.shortName.toUpperCase() : tourn.name.toUpperCase(),
-                          style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 9.5, fontWeight: FontWeight.w900),
+                          style: const TextStyle(color: Color(0xFF065F46), fontSize: 9.5, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ],
                     Text(
                       '${match.stage.toUpperCase()} • LIVE',
-                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11, fontWeight: FontWeight.w900),
+                      style: const TextStyle(color: Color(0xFFDC2626), fontSize: 11, fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
                 Flexible(
                   child: Text(
                     tourn != null ? '${tourn.name} • ${match.venue}' : match.venue,
-                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1289,16 +1318,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(teamA.name, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(teamA.name, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w800)),
                     Row(
                       children: [
                         ScoreNumberTicker(
                           text: '${innings.totalRuns}/${innings.wickets} ',
-                          style: const TextStyle(color: Color(0xFF10B981), fontSize: 20, fontWeight: FontWeight.w900),
+                          style: const TextStyle(color: Color(0xFF059669), fontSize: 20, fontWeight: FontWeight.w900),
                         ),
                         Text(
                           '(${innings.oversStr} ov)',
-                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          style: const TextStyle(color: Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -1308,23 +1337,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(teamB.name, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                    Text(teamB.name, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600)),
                     Text(
                       'CRR: ${innings.runRate.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
 
-                const Divider(color: Color(0xFF374151), height: 18),
+                const Divider(color: Color(0xFFE2E8F0), height: 18),
 
                 // CRICBUZZ RECENT BALLS STRIP
                 Row(
                   children: [
-                    const Text('Recent: ', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const Text('Recent: ', style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(width: 6),
                     if (recent6.isEmpty)
-                      const Text('First over in progress...', style: TextStyle(color: Colors.white38, fontSize: 11))
+                      const Text('First over in progress...', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11))
                     else
                       Wrap(
                         spacing: 5,
@@ -1339,23 +1368,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF111827),
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Column(
                     children: [
                       // Table Header
                       Row(
                         children: const [
-                          Expanded(flex: 4, child: Text('Batter', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('R', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('B', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('4s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('6s', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('SR', textAlign: TextAlign.right, style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold))),
+                          Expanded(flex: 4, child: Text('Batter', style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
+                          Expanded(flex: 1, child: Text('R', textAlign: TextAlign.right, style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
+                          Expanded(flex: 1, child: Text('B', textAlign: TextAlign.right, style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
+                          Expanded(flex: 1, child: Text('4s', textAlign: TextAlign.right, style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
+                          Expanded(flex: 1, child: Text('6s', textAlign: TextAlign.right, style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
+                          Expanded(flex: 2, child: Text('SR', textAlign: TextAlign.right, style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.w700))),
                         ],
                       ),
-                      const Divider(color: Color(0xFF1F2937), height: 8),
+                      const Divider(color: Color(0xFFE2E8F0), height: 8),
                       // Striker
                       Row(
                         children: [
@@ -1363,15 +1393,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             flex: 4,
                             child: Text(
                               '${striker?.fullName ?? "Striker"} *',
-                              style: const TextStyle(color: Colors.amberAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: Color(0xFF065F46), fontSize: 11.5, fontWeight: FontWeight.w800),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Expanded(flex: 1, child: Text('${strikerCard?.runs ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('${strikerCard?.balls ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 1, child: Text('${strikerCard?.fours ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 1, child: Text('${strikerCard?.sixes ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 2, child: Text((strikerCard?.strikeRate ?? 0).toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${strikerCard?.runs ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 11.5, fontWeight: FontWeight.w800))),
+                          Expanded(flex: 1, child: Text('${strikerCard?.balls ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${strikerCard?.fours ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${strikerCard?.sixes ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 2, child: Text((strikerCard?.strikeRate ?? 0).toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -1382,19 +1412,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             flex: 4,
                             child: Text(
                               nonStriker?.fullName ?? "Non-Striker",
-                              style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                              style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5, fontWeight: FontWeight.w600),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Expanded(flex: 1, child: Text('${nonStrikerCard?.runs ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 1, child: Text('${nonStrikerCard?.balls ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 1, child: Text('${nonStrikerCard?.fours ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 1, child: Text('${nonStrikerCard?.sixes ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
-                          Expanded(flex: 2, child: Text((nonStrikerCard?.strikeRate ?? 0).toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Colors.white70, fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${nonStrikerCard?.runs ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 11.5, fontWeight: FontWeight.w800))),
+                          Expanded(flex: 1, child: Text('${nonStrikerCard?.balls ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${nonStrikerCard?.fours ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 1, child: Text('${nonStrikerCard?.sixes ?? 0}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
+                          Expanded(flex: 2, child: Text((nonStrikerCard?.strikeRate ?? 0).toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF475569), fontSize: 11.5))),
                         ],
                       ),
 
-                      const Divider(color: Color(0xFF1F2937), height: 10),
+                      const Divider(color: Color(0xFFE2E8F0), height: 10),
 
                       // Bowler Row
                       Row(
@@ -1402,8 +1432,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             flex: 4,
                             child: Text(
-                              'Bowler: ${bowler?.fullName ?? "Debayan Paul"}',
-                              style: const TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
+                              'Bowler: ${bowler?.fullName ?? "Active Bowler"}',
+                              style: const TextStyle(color: Color(0xFF059669), fontSize: 11, fontWeight: FontWeight.w700),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -1412,7 +1442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               '${bowlerCard?.oversStr ?? "0.0"}-${bowlerCard?.maidens ?? 0}-${bowlerCard?.runsConceded ?? 0}-${bowlerCard?.wickets ?? 0} (Eco: ${(bowlerCard?.economy ?? 0).toStringAsFixed(2)})',
                               textAlign: TextAlign.right,
-                              style: const TextStyle(color: Colors.white70, fontSize: 11),
+                              style: const TextStyle(color: Color(0xFF475569), fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -1430,12 +1460,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: OutlinedButton(
                         onPressed: () => _openFullScorecard(context, db, match),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Color(0xFF374151)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          foregroundColor: const Color(0xFF0F172A),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
-                        child: const Text('Full Scorecard', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        child: const Text('Full Scorecard', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1684,9 +1714,12 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1F2937),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF374151)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x080F172A), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1694,18 +1727,22 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(m.stage, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(m.stage, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w700)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFF374151), borderRadius: BorderRadius.circular(4)),
-                child: const Text('SCHEDULED', style: TextStyle(color: Colors.white70, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                ),
+                child: const Text('SCHEDULED', style: TextStyle(color: Color(0xFF1D4ED8), fontSize: 8.5, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text('${teamA.name} vs ${teamB.name}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+          Text('${teamA.name} vs ${teamB.name}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14.5, fontWeight: FontWeight.w800)),
           const SizedBox(height: 2),
-          Text('📍 ${m.venue} • ${m.overs} Overs Format', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text('${m.venue} • ${m.overs} Overs Format', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -1718,11 +1755,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: m.id)),
                     );
                   },
-                  icon: const Icon(Icons.sports_score, size: 14, color: Colors.black),
-                  label: const Text('🪙 Conduct Toss & Score', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.sports_score, size: 14, color: Colors.white),
+                  label: const Text('Conduct Toss & Score', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF009270),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 )
               else
@@ -1730,14 +1768,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: m.id)),
+                      MaterialPageRoute(builder: (ctx) => MatchDetailScreen(matchId: m.id)),
                     );
                   },
                   icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF009270)),
-                  label: const Text('Match Centre (Viewer)', style: TextStyle(color: Color(0xFF009270), fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: const Text('Match Centre', style: TextStyle(color: Color(0xFF009270), fontSize: 11.5, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF009270)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
             ],
@@ -1768,9 +1806,12 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1F2937),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF374151)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x080F172A), blurRadius: 10, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1786,23 +1827,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF009270).withValues(alpha: 0.2),
+                        color: const Color(0xFFECFDF5),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFF009270), width: 0.8),
+                        border: Border.all(color: const Color(0xFFA7F3D0), width: 0.8),
                       ),
                       child: Text(
                         tourn.shortName.isNotEmpty ? tourn.shortName.toUpperCase() : tourn.name.toUpperCase(),
-                        style: const TextStyle(color: Color(0xFF00F5A0), fontSize: 9.5, fontWeight: FontWeight.w900),
+                        style: const TextStyle(color: Color(0xFF065F46), fontSize: 9.5, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ],
-                  Text('${pm.stage} • RESULT', style: const TextStyle(color: Color(0xFF009270), fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text('${pm.stage} • RESULT', style: const TextStyle(color: Color(0xFF009270), fontSize: 11, fontWeight: FontWeight.w800)),
                 ],
               ),
               Flexible(
                 child: Text(
                   tourn != null ? '${tourn.name} • ${pm.venue}' : pm.venue,
-                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1811,29 +1852,29 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 6),
           Text(
             winner != null ? '${winner.name} won by ${pm.winMargin ?? "runs"}' : 'Match Completed',
-            style: const TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Color(0xFF065F46), fontSize: 13.5, fontWeight: FontWeight.w800),
           ),
           if ((pm.playerOfTheMatchName ?? '').isNotEmpty) ...[
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF064E3B).withValues(alpha: 0.5),
+                color: const Color(0xFFFFFBEB),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFF00F5A0).withValues(alpha: 0.4)),
+                border: Border.all(color: const Color(0xFFFDE68A)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.emoji_events, color: Colors.amberAccent, size: 13),
+                  const Icon(Icons.emoji_events, color: Color(0xFFD97706), size: 13),
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
                       'Man of the Match: ${pm.playerOfTheMatchName}',
                       style: const TextStyle(
-                        color: Color(0xFF00F5A0),
+                        color: Color(0xFF92400E),
                         fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1844,23 +1885,27 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFF111827), borderRadius: BorderRadius.circular(6)),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(teamA.name, style: const TextStyle(color: Colors.white70, fontSize: 11.5)),
-                    Text('${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} (${inn1?.oversStr ?? "0.0"} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5)),
+                    Text(teamA.name, style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text('${inn1?.totalRuns ?? 0}/${inn1?.wickets ?? 0} (${inn1?.oversStr ?? "0.0"} ov)', style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w800, fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(teamB.name, style: const TextStyle(color: Colors.white70, fontSize: 11.5)),
-                    Text('${inn2?.totalRuns ?? 0}/${inn2?.wickets ?? 0} (${inn2?.oversStr ?? "0.0"} ov)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5)),
+                    Text(teamB.name, style: const TextStyle(color: Color(0xFF475569), fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text('${inn2?.totalRuns ?? 0}/${inn2?.wickets ?? 0} (${inn2?.oversStr ?? "0.0"} ov)', style: const TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.w800, fontSize: 12)),
                   ],
                 ),
               ],
