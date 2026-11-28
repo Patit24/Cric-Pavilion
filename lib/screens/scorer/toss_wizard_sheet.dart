@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../theme/neo_glass_theme.dart';
 
@@ -14,6 +15,7 @@ class TossWizardSheet extends StatefulWidget {
     required String strikerId,
     required String nonStrikerId,
     required String bowlerId,
+    int? overs,
   }) onStartMatch;
 
   const TossWizardSheet({
@@ -33,9 +35,11 @@ class TossWizardSheet extends StatefulWidget {
 class _TossWizardSheetState extends State<TossWizardSheet> {
   int currentStep = 1;
 
-  // Toss choices
+  // Toss & format choices
   late String tossWonById;
   String tossDecision = 'bat'; // 'bat' or 'bowl'
+  late int selectedOvers;
+  late TextEditingController _oversController;
 
   // Crease choices
   String? strikerId;
@@ -46,7 +50,15 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
   void initState() {
     super.initState();
     tossWonById = widget.teamA.id;
+    selectedOvers = widget.match.overs > 0 ? widget.match.overs : 20;
+    _oversController = TextEditingController(text: '$selectedOvers');
     _updateCreaseDefaults();
+  }
+
+  @override
+  void dispose() {
+    _oversController.dispose();
+    super.dispose();
   }
 
   void _updateCreaseDefaults() {
@@ -86,13 +98,10 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xF50B1120),
+        color: const Color(0xF7F5F8FC),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border.all(color: NeoGlassTheme.glassBorder, width: 1.2),
-        boxShadow: [
-          NeoGlassTheme.neoDarkShadow,
-          NeoGlassTheme.neoLightHighlight,
-        ],
+        border: Border.all(color: Colors.white, width: 1.4),
+        boxShadow: GlassTokens.softShadow(),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -146,11 +155,11 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                     border: Border.all(color: NeoGlassTheme.neonEmerald.withValues(alpha: 0.4)),
                   ),
                   child: Text(
-                    '${widget.match.overs} Overs T20',
+                    '$selectedOvers Overs',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: NeoGlassTheme.neonEmerald,
+                      color: Color(0xFF047857),
                     ),
                   ),
                 ),
@@ -208,8 +217,8 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
                                 color: tossWonById == widget.teamA.id
-                                    ? NeoGlassTheme.neonEmerald
-                                    : Colors.white,
+                                    ? const Color(0xFF047857)
+                                    : GlassTokens.inkPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -219,7 +228,9 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: tossWonById == widget.teamA.id ? Colors.white : GlassTokens.inkSecondary,
+                                color: tossWonById == widget.teamA.id
+                                    ? GlassTokens.inkPrimary
+                                    : GlassTokens.inkSecondary,
                               ),
                             ),
                           ],
@@ -269,8 +280,8 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
                                 color: tossWonById == widget.teamB.id
-                                    ? NeoGlassTheme.neonCyan
-                                    : Colors.white,
+                                    ? GlassTokens.electricBlue
+                                    : GlassTokens.inkPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -280,7 +291,9 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: tossWonById == widget.teamB.id ? Colors.white : GlassTokens.inkSecondary,
+                                color: tossWonById == widget.teamB.id
+                                    ? GlassTokens.inkPrimary
+                                    : GlassTokens.inkSecondary,
                               ),
                             ),
                           ],
@@ -352,10 +365,100 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
+
+              const Text(
+                '3. Overs per Innings (Both Teams)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: GlassTokens.inkPrimary),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [2, 5, 6, 8, 10, 12, 15, 20, 50].map((ov) {
+                  final isSelected = selectedOvers == ov;
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      setState(() {
+                        selectedOvers = ov;
+                        _oversController.text = '$ov';
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: isSelected ? GlassTokens.electricBlue : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected ? GlassTokens.electricBlue : GlassTokens.glassHairline,
+                        ),
+                      ),
+                      child: Text(
+                        '$ov Ov',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : GlassTokens.inkPrimary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Text(
+                    'Custom Overs:',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GlassTokens.inkSecondary),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 84,
+                    child: TextField(
+                      controller: _oversController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: GlassTokens.glassHairline),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: GlassTokens.glassHairline),
+                        ),
+                      ),
+                      onChanged: (val) {
+                        final parsed = int.tryParse(val.trim());
+                        if (parsed != null && parsed >= 1 && parsed <= 99) {
+                          setState(() => selectedOvers = parsed);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'overs each side',
+                    style: TextStyle(fontSize: 11, color: GlassTokens.inkSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
 
               NeoGlassButton(
                 onPressed: () {
+                  final parsed = int.tryParse(_oversController.text.trim());
+                  if (parsed != null && parsed >= 1 && parsed <= 99) {
+                    selectedOvers = parsed;
+                  }
                   setState(() => currentStep = 2);
                 },
                 gradient: NeoGlassTheme.neonGradient,
@@ -795,6 +898,7 @@ class _TossWizardSheetState extends State<TossWizardSheet> {
                               strikerId: strikerId!,
                               nonStrikerId: nonStrikerId!,
                               bowlerId: bowlerId!,
+                              overs: selectedOvers,
                             );
                           }
                         : null,

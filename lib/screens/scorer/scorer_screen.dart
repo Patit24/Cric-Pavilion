@@ -749,6 +749,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         required strikerId,
                         required nonStrikerId,
                         required bowlerId,
+                        overs,
                       }) {
                         db.startMatchWithToss(
                           matchId: match.id,
@@ -757,6 +758,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                           strikerId: strikerId,
                           nonStrikerId: nonStrikerId,
                           bowlerId: bowlerId,
+                          overs: overs,
                         );
                         setState(() => selectedInningsNum = 1);
                       },

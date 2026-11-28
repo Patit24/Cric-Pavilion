@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../services/mock_database.dart';
 import '../../widgets/add_existing_player_dialog.dart';
@@ -22,6 +23,7 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
   final _matchNameController = TextEditingController(text: 'Friendly Derby');
   final _venueController = TextEditingController(text: 'Eden Gardens');
   int _overs = 8;
+  final _oversController = TextEditingController(text: '8');
 
   // Step 2: Two Teams
   final _teamANameController = TextEditingController(text: 'Royal Strikers');
@@ -770,19 +772,23 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: InkWell(
-                      onTap: () => setState(() => _overs = ov),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => setState(() {
+                        _overs = ov;
+                        _oversController.text = '$ov';
+                      }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.bgLightBlue,
+                          color: isSelected ? GlassTokens.electricBlue : GlassTokens.bgLightBlue,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isSelected ? const Color(0xFF00F5A0) : GlassTokens.glassHairline),
+                          border: Border.all(color: isSelected ? GlassTokens.electricBlue : GlassTokens.glassHairline),
                         ),
                         child: Center(
                           child: Text(
                             '$ov Ov',
                             style: TextStyle(
-                              color: isSelected ? Colors.black : Colors.white,
+                              color: isSelected ? Colors.white : GlassTokens.inkPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -793,6 +799,38 @@ class _CreateDirectMatchDialogState extends State<CreateDirectMatchDialog> {
                   ),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Text('Custom Overs (Both Teams):', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 78,
+                  child: TextField(
+                    controller: _oversController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 13, fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: GlassTokens.bgLightBlue,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onChanged: (val) {
+                      final parsed = int.tryParse(val.trim());
+                      if (parsed != null && parsed >= 1 && parsed <= 99) {
+                        setState(() => _overs = parsed);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('overs per side', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11)),
+              ],
             ),
             const SizedBox(height: 16),
             const Text('Competing Teams', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 12, fontWeight: FontWeight.bold)),

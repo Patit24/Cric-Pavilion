@@ -550,7 +550,7 @@ class MatchModel {
   final String teamBId;
   final String venue;
   final DateTime dateTime;
-  final int overs;
+  int overs;
   MatchStatus status;
   String? tossWonBy;
   String? tossDecision; // 'bat' or 'bowl'

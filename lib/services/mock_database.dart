@@ -3138,6 +3138,7 @@ class MockDatabase extends ChangeNotifier {
     required String strikerId,
     required String nonStrikerId,
     required String bowlerId,
+    int? overs,
     List<String>? playingXIA,
     List<String>? playingXIB,
     String? captainAId,
@@ -3146,6 +3147,9 @@ class MockDatabase extends ChangeNotifier {
     String? keeperBId,
   }) {
     final match = matches.firstWhere((m) => m.id == matchId);
+    if (overs != null && overs > 0) {
+      match.overs = overs;
+    }
     match.tossWonBy = tossWonBy;
     match.tossDecision = tossDecision;
     match.status = MatchStatus.live;
