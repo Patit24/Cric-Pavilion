@@ -1444,7 +1444,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (ctx) => ScorerScreen(initialMatchId: match.id)),
+                            MaterialPageRoute(
+                              builder: (ctx) => canScore
+                                  ? ScorerScreen(initialMatchId: match.id)
+                                  : MatchDetailScreen(matchId: match.id),
+                            ),
                           );
                         },
                         icon: Icon(canScore ? Icons.sports_score : Icons.visibility, size: 14, color: Colors.white),

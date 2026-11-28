@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +15,7 @@ import 'screens/auction/auction_screen.dart';
 import 'screens/tournaments/tournament_hub_screen.dart';
 import 'screens/public/join_auction_screen.dart';
 import 'screens/matches/completed_matches_screen.dart';
+import 'screens/matches/match_detail_screen.dart';
 import 'screens/players/player_directory_screen.dart';
 import 'widgets/organize_hub_modal.dart';
 import 'widgets/auth_modal_dialog.dart';
@@ -22,6 +24,7 @@ import 'widgets/privacy_policy_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -83,13 +86,43 @@ void main() async {
 class CricPavilionApp extends StatelessWidget {
   const CricPavilionApp({super.key});
 
+  static String? extractPublicMatchId(String? routeName) {
+    if (routeName == null || routeName.isEmpty) return null;
+    final uri = Uri.tryParse(routeName);
+    if (uri == null) return null;
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    if (segments.length >= 2 && segments[0] == 'match') {
+      return segments[1];
+    }
+    if (uri.queryParameters.containsKey('matchId')) {
+      return uri.queryParameters['matchId'];
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CricPavilion Pro',
       debugShowCheckedModeBanner: false,
       theme: NeoGlassTheme.themeData,
-      home: const MainNavigationShell(),
+      onGenerateRoute: (settings) {
+        final matchId = extractPublicMatchId(settings.name);
+        if (matchId != null && matchId.isNotEmpty) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => MatchDetailScreen(matchId: matchId),
+          );
+        }
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const MainNavigationShell(),
+        );
+      },
+      onUnknownRoute: (settings) => MaterialPageRoute(
+        settings: settings,
+        builder: (_) => const MainNavigationShell(),
+      ),
     );
   }
 }

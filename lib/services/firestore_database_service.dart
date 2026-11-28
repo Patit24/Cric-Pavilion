@@ -24,6 +24,8 @@ class FirestoreDatabaseService {
   static FirebaseAuth? get _auth => isFirebaseAvailable ? FirebaseAuth.instance : null;
 
   static bool isInitialized = false;
+  static bool isSyncingInitial = false;
+  static bool hasConnectionError = false;
   static bool isApplyingCloudUpdate = false;
   static DateTime? lastCloudSyncTime;
   static String lastSyncStatus = 'Not connected';
@@ -49,6 +51,8 @@ class FirestoreDatabaseService {
     if (!isFirebaseAvailable || isInitialized) return;
 
     try {
+      isSyncingInitial = true;
+      hasConnectionError = false;
       lastSyncStatus = 'Connecting to Cloud Firestore...';
 
       // 1. Ensure user authentication or restore logged-in user from Firebase Auth + Firestore
@@ -80,13 +84,24 @@ class FirestoreDatabaseService {
       _setupRealtimeListeners(db);
 
       isInitialized = true;
+      isSyncingInitial = false;
+      hasConnectionError = false;
       lastSyncStatus = 'Live connected (Firestore)';
       lastCloudSyncTime = DateTime.now();
       debugPrint('[FirestoreDatabaseService] Successfully connected to Cloud Firestore (cricpavilion-750c5)');
     } catch (e) {
+      isSyncingInitial = false;
+      hasConnectionError = true;
       lastSyncStatus = 'Connection error: $e';
       debugPrint('[FirestoreDatabaseService] Initialization notice: $e');
     }
+  }
+
+  /// Reconnects Firestore real-time streams and re-pulls latest cloud state
+  static Future<void> reconnect(MockDatabase db) async {
+    dispose();
+    await init(db);
+    db.notifyListeners();
   }
 
   /// Cancels all active Firestore listeners
@@ -225,6 +240,8 @@ class FirestoreDatabaseService {
           }
         }
         if (changed) {
+          hasConnectionError = false;
+          lastSyncStatus = 'Live connected (Firestore)';
           lastCloudSyncTime = DateTime.now();
           cloudSyncCount++;
           db.notifyListeners();
@@ -236,6 +253,9 @@ class FirestoreDatabaseService {
         isApplyingCloudUpdate = false;
       }
     }, onError: (err) {
+      hasConnectionError = true;
+      lastSyncStatus = 'Live connection interrupted';
+      db.notifyListeners();
       debugPrint('[FirestoreDatabaseService] matches stream error: $err');
     });
     _subscriptions.add(matchSub);
