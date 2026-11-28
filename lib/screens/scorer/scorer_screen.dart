@@ -157,10 +157,16 @@ class _ScorerScreenState extends State<ScorerScreen> {
         : db.areTeamsReadyForScoring(match.teamAId, match.teamBId, match: match);
 
     return Scaffold(
-      backgroundColor: NeoGlassTheme.bgCanvas,
+      backgroundColor: GlassTokens.bgIcyWhite,
       appBar: AppBar(
-        backgroundColor: const Color(0xCC0B1120),
+        backgroundColor: GlassTokens.glassFillHigh,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: GlassTokens.inkPrimary),
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: GlassTokens.glassHairline),
+        ),
         titleSpacing: 8,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +179,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                   isExpanded: true,
                   isDense: true,
                   dropdownColor: Colors.white,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: NeoGlassTheme.neonEmerald, size: 18),
+                  icon: const Icon(Icons.keyboard_arrow_down, color: GlassTokens.mintGreen, size: 18),
                   style: const TextStyle(color: GlassTokens.inkPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                   items: db.matches.map((m) {
                     return DropdownMenuItem<String>(
@@ -204,7 +210,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 Icon(
                   isScorer ? Icons.check_circle : Icons.lock_outline,
                   size: 11,
-                  color: isScorer ? NeoGlassTheme.neonEmerald : Color(0xFFD97706),
+                  color: isScorer ? GlassTokens.mintGreen : const Color(0xFFB45309),
                 ),
                 const SizedBox(width: 4),
                 Flexible(
@@ -213,7 +219,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         ? 'Scorer: ${currentRoom?.id ?? "ROOM-01"}'
                         : 'Spectator Mode',
                     style: TextStyle(
-                      color: isScorer ? NeoGlassTheme.neonEmerald : Color(0xFFD97706),
+                      color: isScorer ? GlassTokens.mintGreen : const Color(0xFFB45309),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -228,7 +234,7 @@ class _ScorerScreenState extends State<ScorerScreen> {
           // Multi-Device Cloud Sync
           IconButton(
             tooltip: 'Sync with Mobile / Central Server',
-            icon: const Icon(Icons.cloud_sync, color: Color(0xFF00F5A0), size: 20),
+            icon: const Icon(Icons.cloud_sync, color: GlassTokens.electricBlue, size: 20),
             padding: const EdgeInsets.all(6),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: () => CloudSyncDialog.show(context),
@@ -1040,28 +1046,52 @@ class _ScorerScreenState extends State<ScorerScreen> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(color: GlassTokens.bgLightBlue, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: GlassTokens.glassFillMid,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: GlassTokens.glassHairline),
+          ),
           child: Row(
             children: [
               Expanded(
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
                   onTap: () => setState(() => selectedInningsNum = 1),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    curve: Curves.easeOutCubic,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: selectedInningsNum == 1 ? const Color(0xFF059669) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
+                      color: selectedInningsNum == 1 ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: selectedInningsNum == 1
+                          ? Border.all(color: GlassTokens.glassHairline)
+                          : null,
+                      boxShadow: selectedInningsNum == 1
+                          ? [
+                              BoxShadow(
+                                color: Color(0x1017233C),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ]
+                          : null,
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Innings 1 ${inn1 != null ? "(${inn1.totalRuns}/${inn1.wickets})" : ""}',
-                      style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: selectedInningsNum == 1 ? GlassTokens.inkPrimary : GlassTokens.inkSecondary,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
               Expanded(
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
                   onTap: () {
                     if (inn2 != null) {
                       setState(() => selectedInningsNum = 2);
@@ -1069,20 +1099,34 @@ class _ScorerScreenState extends State<ScorerScreen> {
                       _showStartInnings2Modal(context, db, match, inn1, safeTeamAPlayers, safeTeamBPlayers);
                     }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    curve: Curves.easeOutCubic,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: selectedInningsNum == 2 ? const Color(0xFF059669) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
+                      color: selectedInningsNum == 2 ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: selectedInningsNum == 2
+                          ? Border.all(color: GlassTokens.glassHairline)
+                          : null,
+                      boxShadow: selectedInningsNum == 2
+                          ? [
+                              BoxShadow(
+                                color: Color(0x1017233C),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ]
+                          : null,
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Innings 2 ${inn2 != null ? "(${inn2.totalRuns}/${inn2.wickets})" : "(Start Chase)"}',
                       style: TextStyle(
                         color: selectedInningsNum == 2
-                            ? Colors.white
-                            : (inn2 != null ? GlassTokens.inkSecondary : const Color(0xFF34D399)),
-                        fontSize: 11,
+                            ? GlassTokens.inkPrimary
+                            : (inn2 != null ? GlassTokens.inkSecondary : GlassTokens.electricBlue),
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1102,19 +1146,19 @@ class _ScorerScreenState extends State<ScorerScreen> {
               children: [
                 // MAIN SCORE BANNER (Neo-Glass Card)
                 NeoGlassCard(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   borderRadius: 22,
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0x3300F5A0),
-                      Color(0x1800D9F5),
-                      Color(0xF00B1120),
+                      Color(0xEBFFFFFF),
+                      Color(0xDCEAF2FF),
+                      Color(0xD1F1EEFF),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderColor: NeoGlassTheme.glassBorder,
-                  glowColor: NeoGlassTheme.neonEmerald,
+                  borderColor: const Color(0xD9FFFFFF),
+                  glowColor: GlassTokens.electricBlue.withValues(alpha: 0.14),
                   child: Column(
                     children: [
                       Row(
@@ -1126,24 +1170,24 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                 width: 6,
                                 height: 6,
                                 decoration: const BoxDecoration(
-                                  color: NeoGlassTheme.neonEmerald,
+                                  color: GlassTokens.mintGreen,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 '${match.stage} • Innings ${currentInnings.inningsNumber}',
-                                style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                           Text(
                             'Max ${match.overs} Ov (4 ov/bowler)',
-                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
+                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
@@ -1155,14 +1199,16 @@ class _ScorerScreenState extends State<ScorerScreen> {
                               fontSize: 46,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -1,
+                              fontFeatures: [FontFeature.tabularFigures()],
                             ),
                           ),
                           Text(
                             '/${currentInnings.wickets}',
                             style: const TextStyle(
-                              color: NeoGlassTheme.neonEmerald,
+                              color: GlassTokens.mintGreen,
                               fontSize: 34,
                               fontWeight: FontWeight.w900,
+                              fontFeatures: [FontFeature.tabularFigures()],
                             ),
                           ),
                           const Spacer(),
@@ -1171,7 +1217,12 @@ class _ScorerScreenState extends State<ScorerScreen> {
                             children: [
                               Text(
                                 'CRR: ${currentInnings.runRate.toStringAsFixed(2)}',
-                                style: const TextStyle(color: NeoGlassTheme.neonCyan, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: GlassTokens.electricBlue,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
                               ),
                               if (currentInnings.targetRuns != null)
                                 Text(
@@ -1179,7 +1230,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                       ? 'Target Reached! (${10 - currentInnings.wickets} wkts victory)'
                                       : 'Target: ${currentInnings.targetRuns} (Need $runsRemaining in $ballsRemaining b, RRR: $rrr)',
                                   style: TextStyle(
-                                    color: runsRemaining != null && runsRemaining <= 0 ? NeoGlassTheme.neonEmerald : Colors.amber,
+                                    color: runsRemaining != null && runsRemaining <= 0
+                                        ? const Color(0xFF047857)
+                                        : const Color(0xFFB45309),
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1193,12 +1246,21 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         children: [
                           Text(
                             'Overs: ${currentInnings.oversStr} (${currentInnings.legalBalls} balls)',
-                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 12),
+                            style: const TextStyle(
+                              color: GlassTokens.inkSecondary,
+                              fontSize: 12,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
                           ),
                           const Spacer(),
                           Text(
                             'Extras: ${currentInnings.totalExtras}',
-                            style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
+                            style: const TextStyle(
+                              color: GlassTokens.inkSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
                           ),
                         ],
                       ),
@@ -1209,21 +1271,21 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 if (currentInnings.legalBalls == 0) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                     decoration: BoxDecoration(
-                      color: GlassTokens.inkPrimary,
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xCCEAF2FF),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: currentInnings.inningsNumber == 1
-                            ? const Color(0xFF00F5A0).withValues(alpha: 0.6)
-                            : const Color(0xFF34D399).withValues(alpha: 0.6),
+                            ? GlassTokens.mintGreen.withValues(alpha: 0.45)
+                            : GlassTokens.electricBlue.withValues(alpha: 0.45),
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           currentInnings.inningsNumber == 1 ? Icons.sports_cricket : Icons.flag_circle,
-                          color: currentInnings.inningsNumber == 1 ? const Color(0xFF00F5A0) : const Color(0xFF34D399),
+                          color: currentInnings.inningsNumber == 1 ? const Color(0xFF047857) : GlassTokens.electricBlue,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -1236,14 +1298,14 @@ class _ScorerScreenState extends State<ScorerScreen> {
                                     ? 'Innings 1 Opening Crease Lineup'
                                     : 'Innings 2 Chase Target: ${currentInnings.targetRuns ?? ((inn1?.totalRuns ?? 0) + 1)} runs in ${match.overs} ov',
                                 style: TextStyle(
-                                  color: currentInnings.inningsNumber == 1 ? const Color(0xFF00F5A0) : const Color(0xFF34D399),
+                                  color: currentInnings.inningsNumber == 1 ? const Color(0xFF047857) : GlassTokens.electricBlue,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
                                 'Striker: ${_formatPlayerName(striker, "Select")} • Non-Striker: ${_formatPlayerName(nonStriker, "Select")} • Bowler: ${_formatPlayerName(bowler, "Select")}',
-                                style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
+                                style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 10),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -1454,33 +1516,41 @@ class _ScorerScreenState extends State<ScorerScreen> {
 
           // Spectator Mode Card
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [GlassTokens.bgLightBlue, Colors.white],
+                colors: [Color(0xEBFFFFFF), Color(0xD9F5F8FC)],
               ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1017233C),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.visibility, size: 14, color: Colors.amber),
+                    const Icon(Icons.visibility, size: 14, color: Color(0xFFB45309)),
                     const SizedBox(width: 6),
                     const Text(
                       'LIVE SPECTATOR BROADCAST',
-                      style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                      style: TextStyle(color: Color(0xFFB45309), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: GlassTokens.glassHairline,
-                        borderRadius: BorderRadius.circular(4),
+                        color: GlassTokens.bgLightBlue,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: GlassTokens.glassHairline),
                       ),
-                      child: const Text('Read Only', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9)),
+                      child: const Text('Read Only', style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 9, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
@@ -1488,9 +1558,9 @@ class _ScorerScreenState extends State<ScorerScreen> {
                 if (!db.isAuthenticated) ...[
                   const Text(
                     'Scoring is restricted to authenticated users. Log in or create an account to start scoring matches.',
-                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 11.5),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () {
                       showDialog(
@@ -1501,31 +1571,33 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.login, size: 14, color: Colors.black),
-                    label: const Text('LOG IN TO BEGIN SCORING', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900)),
+                    icon: const Icon(Icons.login, size: 15, color: Colors.white),
+                    label: const Text('LOG IN TO BEGIN SCORING', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00F5A0),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: GlassTokens.electricBlue,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ] else ...[
                   const Text(
                     'Scoring controls are locked. Official scorers can enter the Scoring Room with the Room ID and Passcode PIN to record deliveries.',
-                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10),
+                    style: TextStyle(color: GlassTokens.inkSecondary, fontSize: 10.5),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _showEnterRoomDialog(context, db, match),
                           icon: const Icon(Icons.vpn_key, size: 14),
-                          label: const Text('ENTER SCORING ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          label: const Text('ENTER SCORING ROOM', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF34D399),
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            backgroundColor: GlassTokens.mintGreen,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                         ),
@@ -1535,11 +1607,11 @@ class _ScorerScreenState extends State<ScorerScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () => _showCreateRoomDialog(context, db, match),
                           icon: const Icon(Icons.add_circle_outline, size: 14),
-                          label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          label: const Text('CREATE ROOM', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: GlassTokens.inkMuted),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            foregroundColor: GlassTokens.inkPrimary,
+                            side: const BorderSide(color: GlassTokens.glassHairline),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                         ),

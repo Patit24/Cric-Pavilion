@@ -163,18 +163,18 @@ class CreaseHudWidget extends StatelessWidget {
                         children: [
                           Container(
                             margin: const EdgeInsets.only(right: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.amber.withValues(alpha: 0.6)),
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.65)),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('★', style: TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w900)),
+                                Text('★', style: TextStyle(color: Color(0xFFB45309), fontSize: 9, fontWeight: FontWeight.w900)),
                                 SizedBox(width: 2),
-                                Text('STRIKE', style: TextStyle(color: Colors.amber, fontSize: 8, fontWeight: FontWeight.w900)),
+                                Text('STRIKE', style: TextStyle(color: Color(0xFF92400E), fontSize: 8.5, fontWeight: FontWeight.w900, letterSpacing: 0.3)),
                               ],
                             ),
                           ),
@@ -194,15 +194,30 @@ class CreaseHudWidget extends StatelessWidget {
                         textAlign: TextAlign.right,
                         text: TextSpan(
                           children: [
-                            TextSpan(text: '${strikerCard.runs} ', style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w900)),
-                            TextSpan(text: '(${strikerCard.balls})', style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 10)),
+                            TextSpan(
+                              text: '${strikerCard.runs} ',
+                              style: const TextStyle(
+                                color: GlassTokens.inkPrimary,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w900,
+                                fontFeatures: [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                            TextSpan(
+                              text: '(${strikerCard.balls})',
+                              style: const TextStyle(
+                                color: GlassTokens.inkSecondary,
+                                fontSize: 10,
+                                fontFeatures: [FontFeature.tabularFigures()],
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    Expanded(flex: 1, child: Text('${strikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11))),
-                    Expanded(flex: 1, child: Text('${strikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11))),
-                    Expanded(flex: 2, child: Text(strikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('${strikerCard.fours}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 1, child: Text('${strikerCard.sixes}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 2, child: Text(strikerCard.strikeRate.toStringAsFixed(1), textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.bold, fontFeatures: [FontFeature.tabularFigures()]))),
                   ],
                 ),
               ),
@@ -305,7 +320,7 @@ class CreaseHudWidget extends StatelessWidget {
                             Text(
                               bowler == null ? 'Select Bowler' : 'Change',
                               style: TextStyle(
-                                color: bowler == null ? Colors.black : Colors.white,
+                                color: bowler == null ? Colors.black : GlassTokens.inkPrimary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -313,7 +328,7 @@ class CreaseHudWidget extends StatelessWidget {
                             Icon(
                               Icons.chevron_right,
                               size: 12,
-                              color: bowler == null ? Colors.black : Colors.white,
+                              color: bowler == null ? Colors.black : GlassTokens.inkPrimary,
                             ),
                           ],
                         ),
@@ -358,11 +373,11 @@ class CreaseHudWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Expanded(flex: 2, child: Text(bowlerCard.oversStr, textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('${bowlerCard.maidens}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
-                    Expanded(flex: 1, child: Text('${bowlerCard.runsConceded}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 1, child: Text('${bowlerCard.wickets}', textAlign: TextAlign.right, style: const TextStyle(color: NeoGlassTheme.neonEmerald, fontSize: 12, fontWeight: FontWeight.w900))),
-                    Expanded(flex: 2, child: Text(bowlerCard.economy.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11))),
+                    Expanded(flex: 2, child: Text(bowlerCard.oversStr, textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkPrimary, fontSize: 12, fontWeight: FontWeight.bold, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 1, child: Text('${bowlerCard.maidens}', textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 1, child: Text('${bowlerCard.runsConceded}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFFB45309), fontSize: 12, fontWeight: FontWeight.bold, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 1, child: Text('${bowlerCard.wickets}', textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF047857), fontSize: 12, fontWeight: FontWeight.w900, fontFeatures: [FontFeature.tabularFigures()]))),
+                    Expanded(flex: 2, child: Text(bowlerCard.economy.toStringAsFixed(2), textAlign: TextAlign.right, style: const TextStyle(color: GlassTokens.inkSecondary, fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]))),
                   ],
                 ),
               ] else ...[
